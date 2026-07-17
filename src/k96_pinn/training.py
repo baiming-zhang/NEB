@@ -1,4 +1,4 @@
-"""GT-free K=96 moving-cylinder basis training with fixed-order SSS peeling.
+"""K=96 moving-cylinder basis training with fixed-order SSS peeling.
 
 The important invariants are deliberately the same as the reference notebook:
 

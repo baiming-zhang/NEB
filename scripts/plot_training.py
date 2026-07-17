@@ -227,8 +227,7 @@ def main():
         ax.set_xlabel("Epoch")
         ax.grid(True, alpha=0.75)
     fig.suptitle(
-        "K=96 GT-free training history — no projection penalty, "
-        "no frequency curriculum",
+        "K=96 training history — no projection penalty, no frequency curriculum",
         fontsize=15,
         y=0.995,
     )

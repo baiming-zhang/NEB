@@ -1,7 +1,7 @@
-# GT-free K=96 Moving-Cylinder PINN Basis
+# K=96 Moving-Cylinder PINN Basis
 
-本仓库是最终采用的移动圆柱连续参数基底代码。训练阶段严格
-GT-free：优化器不读取 Navier–Stokes（NS）快照、数值特征函数或监督标签。
+本仓库是最终采用的移动圆柱连续参数基底代码。训练优化器不读取
+Navier–Stokes（NS）快照、数值特征函数或监督标签。
 独立 Re=100 NS 数据只在模型冻结后用于投影、误差评估和视频绘制。
 
 ## 最终协议
@@ -57,7 +57,7 @@ Windows PowerShell：
 
 ```powershell
 git clone <PRIVATE_REPOSITORY_URL>
-cd gt-free-k96-moving-cylinder-pinn
+cd k96-moving-cylinder-pinn
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 python -m pip install --upgrade pip

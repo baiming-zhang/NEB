@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "k96-moving-cylinder-pinn"
 version = "1.0.0"
-description = "GT-free K=96 moving-cylinder basis learning and NS reconstruction"
+description = "K=96 moving-cylinder PINN basis learning and NS reconstruction"
 requires-python = ">=3.11"
 dependencies = [
   "h5py>=3.10",

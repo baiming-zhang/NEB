@@ -1,4 +1,4 @@
-"""GT-free K=96 moving-cylinder PINN basis."""
+"""K=96 moving-cylinder PINN basis learning and reconstruction."""
 
 from .training import Config, OfficialPeelingFields
 
