@@ -1,4 +1,4 @@
-"""K=96 moving-cylinder PINN basis learning and reconstruction."""
+"""Basis learning and reconstruction for the two-dimensional Karman case."""
 
 from .training import Config, OfficialPeelingFields
 

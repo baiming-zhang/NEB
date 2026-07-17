@@ -32,5 +32,5 @@
   "cylinder_band_radii": 2.5,
   "wake_length_radii": 13.0,
   "wake_half_height_radii": 3.0,
-  "result_root": "results/k96_final"
+  "result_root": "BasisNet/cases/2D_karman/results/k96_final"
 }

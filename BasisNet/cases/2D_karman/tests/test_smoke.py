@@ -1,8 +1,12 @@
 import numpy as np
 import torch
 
-from k96_pinn.postprocess import generalized_symmetric_eig
-from k96_pinn.training import Config, OfficialPeelingFields, fluid_points
+from eigenfluid_sss.basisnet.karman2d.postprocess import generalized_symmetric_eig
+from eigenfluid_sss.basisnet.karman2d.training import (
+    Config,
+    OfficialPeelingFields,
+    fluid_points,
+)
 
 
 def test_final_defaults():

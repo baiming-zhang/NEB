@@ -3,9 +3,9 @@ requires = ["setuptools>=69"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "k96-moving-cylinder-pinn"
-version = "1.0.0"
-description = "K=96 moving-cylinder PINN basis learning and NS reconstruction"
+name = "eigenfluid-sss"
+version = "0.1.0"
+description = "Spatial spectral subspace learning and reduced fluid dynamics"
 requires-python = ">=3.11"
 dependencies = [
   "h5py>=3.10",
@@ -19,11 +19,12 @@ dependencies = [
 dev = ["pytest>=8", "ruff>=0.6"]
 
 [tool.setuptools.packages.find]
-where = ["src"]
+where = ["BasisNet/cases/2D_karman/src"]
+include = ["eigenfluid_sss*"]
 
 [tool.ruff]
 line-length = 88
 target-version = "py311"
 
 [tool.pytest.ini_options]
-testpaths = ["tests"]
+testpaths = ["BasisNet/cases/2D_karman/tests"]

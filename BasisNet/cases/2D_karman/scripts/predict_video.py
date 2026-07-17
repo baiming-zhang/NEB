@@ -1,9 +1,8 @@
 """NS/PINN/error movie evaluated directly at 101 alpha values.
 
-The GT column is removed, but the three original rows are preserved:
-independent NS reference, PINN K=96 reconstruction, and absolute velocity
-error.  Every alpha performs an independent PINN forward/Ritz extraction;
-there is no 21-anchor interpolation path.
+The three rows show the independent NS reference, the PINN K=96
+reconstruction, and the absolute velocity error. Every alpha performs an
+independent PINN forward/Ritz extraction.
 """
 
 from __future__ import annotations
@@ -25,11 +24,11 @@ from matplotlib.colors import Normalize
 from matplotlib.patches import Circle, Rectangle
 from scipy.spatial import cKDTree
 
-from k96_pinn.ns_reference import (
+from eigenfluid_sss.basisnet.karman2d.ns_reference import (
     ScatteredDifferentiator,
     upstream_extension,
 )
-from k96_pinn.postprocess import (
+from eigenfluid_sss.basisnet.karman2d.postprocess import (
     basis_fields,
     compute_ritz_basis,
     encode_mp4,
@@ -320,7 +319,7 @@ def render_frame(
     cax.tick_params(labelsize=7)
 
     fig.suptitle(
-        rf"True Karman wake test, $\alpha={alpha:.3f}$, "
+        rf"2D Karman wake, $\alpha={alpha:.3f}$, "
         rf"phase={phase:.3f}, cycle={cycle_position:.2f}, "
         "velocity-minimum coefficients",
         fontsize=13,
@@ -494,7 +493,7 @@ def main():
 
     movie = args.output_dir / "ns_vs_pinn_k96_continuous_alpha_flow.mp4"
     encode_mp4(frames_dir, movie, args.fps)
-    with (args.output_dir / "sample_metrics.csv").open(
+    with (args.output_dir / "alpha_metrics.csv").open(
         "w", newline="", encoding="utf-8"
     ) as stream:
         writer = csv.DictWriter(stream, fieldnames=sample_rows[0].keys())
@@ -508,14 +507,12 @@ def main():
         writer.writerows(frame_rows)
 
     summary = {
-        "method": "PINN-only K=96 basis, NS reference comparison",
+        "method": "BasisNet K=96 reconstruction with an NS reference",
         "layout": [
             "independent Re=100 NS reference",
             "PINN K=96 reconstruction",
             "absolute velocity error",
         ],
-        "gt_basis_constructed": False,
-        "gt_rendered": False,
         "checkpoint": str(args.checkpoint),
         "checkpoint_epoch": int(checkpoint_payload.get("epoch", -1)),
         "alpha_start": 0.0,

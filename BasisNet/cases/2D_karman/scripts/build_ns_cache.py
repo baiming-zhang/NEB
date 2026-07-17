@@ -4,7 +4,7 @@ import argparse
 import json
 from pathlib import Path
 
-from k96_pinn.ns_reference import build_cache
+from eigenfluid_sss.basisnet.karman2d.ns_reference import build_cache
 
 
 def main() -> None:

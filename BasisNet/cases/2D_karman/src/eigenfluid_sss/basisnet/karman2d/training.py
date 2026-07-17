@@ -1,4 +1,4 @@
-"""K=96 moving-cylinder basis training with fixed-order SSS peeling.
+"""K=96 basis training for the 2D Karman case with fixed-order SSS peeling.
 
 The important invariants are deliberately the same as the reference notebook:
 
@@ -34,8 +34,8 @@ from torch import nn
 from torch.func import jacfwd, vmap
 
 
-ROOT = Path(__file__).resolve().parents[2]
-DEFAULT_RESULT_ROOT = ROOT / "results" / "k96_final"
+CASE_ROOT = Path(__file__).resolve().parents[4]
+DEFAULT_RESULT_ROOT = CASE_ROOT / "results" / "k96_final"
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 DTYPE = torch.float32
 REDUCTION_DTYPE = torch.float64
