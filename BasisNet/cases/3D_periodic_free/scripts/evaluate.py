@@ -1,4 +1,4 @@
-"""Evaluate a frozen 3D TG SSS basis and its projected reconstruction."""
+"""Evaluate a frozen periodic 3D SSS basis and its reconstruction."""
 
 from __future__ import annotations
 
@@ -15,8 +15,8 @@ import torch
 CASE_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(CASE_ROOT / "src"))
 
-from eigenfluid_sss.basisnet.tg3d.postprocess import load_model  # noqa: E402
-from eigenfluid_sss.basisnet.tg3d.training import (  # noqa: E402
+from eigenfluid_sss.basisnet.periodic3d.postprocess import load_model  # noqa: E402
+from eigenfluid_sss.basisnet.periodic3d.training import (  # noqa: E402
     approximate_fluid_volume,
     discrete_all_mode_fields,
 )

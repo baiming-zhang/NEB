@@ -80,7 +80,7 @@ def main() -> None:
     for ax in axes.flat[len(panels) :]:
         ax.axis("off")
     fig.suptitle(
-        "3D TG BasisNet: dynamic SSS with hard discrete divergence"
+        "3D periodic free-flow BasisNet: dynamic SSS with hard discrete divergence"
     )
     fig.tight_layout()
     output = args.output_dir or args.run_dir

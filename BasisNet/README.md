@@ -16,7 +16,12 @@ Subspace peeling:
 - [2D_karman](cases/2D_karman/README.md): a translating cylinder in a
   two-dimensional channel, K=96 learned modes, and Re=100 wake
   reconstruction.
+- [3D_periodic_free](cases/3D_periodic_free/README.md): K=256
+  hard-discrete-divergence-free modes on a periodic cube without obstacles,
+  with independent forced Taylor--Green and oscillatory ABC reconstruction
+  benchmarks.
 
 Case-specific configurations, scripts, tests, and documentation are kept
 inside each case directory so that experiments remain reproducible and
-self-contained.
+self-contained. See the [case index](cases/README.md) for status, validated
+reference results, and artifact policy.
