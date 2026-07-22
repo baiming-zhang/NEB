@@ -17,6 +17,10 @@ The name combines **EigenFluid** with the **Sequential Spectral Subspace
 | Module | Case | Description |
 | --- | --- | --- |
 | BasisNet | [2D_karman](BasisNet/cases/2D_karman/README.md) | K=96 basis learning for a translating cylinder and reconstruction of a Re=100 Karman wake. |
+| BasisNet | [3D_TG](BasisNet/cases/3D_TG/README.md) | K=256 hard-discrete-divergence-free basis learning on a periodic cube, with forced Taylor--Green and oscillatory ABC evaluation. |
+
+See the [BasisNet case index](BasisNet/cases/README.md) for benchmark status
+and validated reference results.
 
 ## Repository layout
 
@@ -25,11 +29,9 @@ EigenFluid-SSS/
 |-- BasisNet/
 |   |-- README.md
 |   `-- cases/
-|       `-- 2D_karman/
-|           |-- configs/
-|           |-- scripts/
-|           |-- src/
-|           `-- tests/
+|       |-- README.md
+|       |-- 2D_karman/
+|       `-- 3D_TG/
 |-- TimeNet/
 |   `-- README.md
 |-- pyproject.toml
@@ -71,8 +73,8 @@ python -m pip install -e ".[dev]"
 ```bash
 python -m pytest -q
 python BasisNet/cases/2D_karman/scripts/train.py --self-test
+python BasisNet/cases/3D_TG/scripts/train.py --self-test
 ```
 
-See the [2D_karman documentation](BasisNet/cases/2D_karman/README.md) for the
-complete training, restart, inference, evaluation, and video-generation
-workflow.
+See the [BasisNet case index](BasisNet/cases/README.md) for complete training,
+restart, inference, evaluation, and video-generation workflows.
