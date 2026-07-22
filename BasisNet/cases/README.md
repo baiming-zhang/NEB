@@ -10,7 +10,7 @@ frames, and videos are intentionally excluded from Git.
 | Case | Domain and target | Learned basis | Independent evaluation | Status |
 | --- | --- | ---: | --- | --- |
 | [2D_karman](2D_karman/README.md) | Translating cylinder in a 2D channel | K=96 | Re=100 Karman-wake HDF5 data | Reproducible workflow; no version-controlled reference metric yet |
-| [3D_TG](3D_TG/README.md) | Triply periodic cube | K=256 | Exact forced Taylor--Green and oscillatory ABC GT | Completed and benchmarked |
+| [3D_periodic_free](3D_periodic_free/README.md) | Triply periodic cube without obstacles | K=256 | Exact forced Taylor--Green and oscillatory ABC GT | Completed and benchmarked |
 
 Basis optimization is unsupervised: independent Navier--Stokes or analytic GT
 fields are used only after the learned basis has been frozen. See each case
@@ -26,9 +26,9 @@ linear basis projection.
 
 | Case and benchmark | Checkpoint | Mean velocity relative error | Additional validated result |
 | --- | --- | ---: | --- |
-| 3D_TG, forced Taylor--Green, Re=500 | Latest, epoch 10000 | 1.09998% | Hard discrete divergence 0; spectrum error 0.02478%; 4096-point inference 0.499 s |
-| 3D_TG, forced Taylor--Green, Re=500 | Validation best, epoch 9800 | 1.21760% | Hard discrete divergence 0; spectrum error 0.03042%; 4096-point inference 0.501 s |
-| 3D_TG, oscillatory ABC k=1, Re=500, 50 frames | Latest, epoch 10000 | about 0.247% | Maximum frame error about 0.268% |
+| 3D_periodic_free, forced Taylor--Green, Re=500 | Latest, epoch 10000 | 1.09998% | Hard discrete divergence 0; spectrum error 0.02478%; 4096-point inference 0.499 s |
+| 3D_periodic_free, forced Taylor--Green, Re=500 | Validation best, epoch 9800 | 1.21760% | Hard discrete divergence 0; spectrum error 0.03042%; 4096-point inference 0.501 s |
+| 3D_periodic_free, oscillatory ABC k=1, Re=500, 50 frames | Latest, epoch 10000 | about 0.247% | Maximum frame error about 0.268% |
 
 The latest 3D checkpoint is the formal Taylor--Green result because it
 reconstructs the independent GT more accurately than the checkpoint selected
@@ -46,7 +46,7 @@ Run the complete case test suite and static checks from the repository root:
 
 ```powershell
 python -m pytest -q BasisNet/cases/2D_karman/tests
-python -m pytest -q BasisNet/cases/3D_TG/tests
+python -m pytest -q BasisNet/cases/3D_periodic_free/tests
 python -m ruff check BasisNet/cases
 ```
 

@@ -1,4 +1,4 @@
-"""Dynamic Shape Space Spectra training for a periodic 3D TG case.
+"""Dynamic Shape Space Spectra training for periodic 3D free flows.
 
 All modes are trained jointly, dynamically sorted by pre-projection Rayleigh
 energy, and causally peeled with detached dominating modes. Every network

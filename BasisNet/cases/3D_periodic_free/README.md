@@ -1,8 +1,9 @@
-# BasisNet case: 3D_TG
+# BasisNet case: 3D_periodic_free
 
 This case learns a 256-dimensional divergence-free spatial basis on the
-triply periodic cube `[-pi, pi]^3`, then projects an independent forced
-Taylor--Green Navier--Stokes truth onto the frozen learned basis.
+obstacle-free triply periodic cube `[-pi, pi]^3`. The frozen basis can be
+evaluated against independent periodic-flow truths, including forced
+Taylor--Green and oscillatory Arnold--Beltrami--Childress benchmarks.
 
 Basis training never reads GT snapshots or supervised labels. Training uses
 continuous Sobol/Monte Carlo points only; there is no training mesh. A regular
@@ -39,7 +40,7 @@ divergence cancels algebraically.
 ## Layout
 
 ```text
-3D_TG/
+3D_periodic_free/
 |-- configs/k256_dynamic_sss.json
 |-- scripts/
 |   |-- train.py
@@ -49,10 +50,12 @@ divergence cancels algebraically.
 |   |-- evaluate.py
 |   |-- render.py
 |   `-- plot_training.py
-|-- src/eigenfluid_sss/basisnet/tg3d/
+|-- src/eigenfluid_sss/basisnet/periodic3d/
 |   |-- training.py
 |   `-- postprocess.py
-|-- tests/test_smoke.py
+|-- tests/
+|   |-- test_smoke.py
+|   `-- test_oscillatory_abc.py
 `-- README.md
 ```
 
@@ -68,15 +71,15 @@ python -m pip install scikit-image
 ## Tests
 
 ```powershell
-python -m pytest -q BasisNet/cases/3D_TG/tests
-python BasisNet/cases/3D_TG/scripts/train.py --self-test
-python -m ruff check BasisNet/cases/3D_TG
+python -m pytest -q BasisNet/cases/3D_periodic_free/tests
+python BasisNet/cases/3D_periodic_free/scripts/train.py --self-test
+python -m ruff check BasisNet/cases/3D_periodic_free
 ```
 
 ## Training
 
 ```powershell
-$case = "BasisNet\cases\3D_TG"
+$case = "BasisNet\cases\3D_periodic_free"
 $run = "$case\results\k256_dynamic_sss\run_001"
 
 python -u "$case\scripts\train.py" `
@@ -112,7 +115,7 @@ f = (a'(t) + 2*nu*a(t)) (sin(x)cos(y), -cos(x)sin(y), 0)
 It is independent of the learned basis and periodic in space and time.
 
 ```powershell
-$case = "BasisNet\cases\3D_TG"
+$case = "BasisNet\cases\3D_periodic_free"
 
 python "$case\scripts\generate_gt.py" `
   --output "$case\data\tg_re500.h5" `
@@ -127,7 +130,7 @@ The formal command below uses the network basis directly. Do not add
 an explicit post-processing control.
 
 ```powershell
-$case = "BasisNet\cases\3D_TG"
+$case = "BasisNet\cases\3D_periodic_free"
 $run = "$case\results\k256_dynamic_sss\run_001"
 $eval = "$run\evaluation_latest_raw"
 
@@ -171,7 +174,7 @@ Navier--Stokes solution; the nonlinear term is absorbed into pressure. The GT
 is analytic and independent of the learned basis.
 
 ```powershell
-$case = "BasisNet\cases\3D_TG"
+$case = "BasisNet\cases\3D_periodic_free"
 $run = "$case\results\k256_dynamic_sss\run_001"
 $eval = "$run\evaluation_oscillatory_abc_latest_raw"
 

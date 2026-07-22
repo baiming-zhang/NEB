@@ -46,5 +46,5 @@
   "obstacle_band_radii": 0.0,
   "wake_length_radii": 0.0,
   "wake_half_width_radii": 0.0,
-  "result_root": "BasisNet/cases/3D_TG/results/k256_dynamic_sss"
+  "result_root": "BasisNet/cases/3D_periodic_free/results/k256_dynamic_sss"
 }
