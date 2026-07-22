@@ -44,6 +44,7 @@ divergence cancels algebraically.
 |-- scripts/
 |   |-- train.py
 |   |-- generate_gt.py
+|   |-- generate_oscillatory_abc_gt.py
 |   |-- reconstruct.py
 |   |-- evaluate.py
 |   |-- render.py
@@ -154,6 +155,51 @@ Repeat the same commands with `best_model.pt` for the validation-best
 comparison. The final/latest and validation-best checkpoints are deliberately
 reported separately: validation uses Rayleigh energy, not GT reconstruction
 error.
+
+## Dynamic large-scale ABC benchmark
+
+For a more visually dynamic classical flow while retaining a single large
+spatial scale, generate the periodically forced oscillatory
+Arnold--Beltrami--Childress benchmark. It contains only wave number `k=1`.
+Smooth periodic changes of the ABC coefficients and phase shifts translate,
+twist, expand, and contract the vortex surfaces over one cycle.
+
+Every instantaneous field is Beltrami (`curl(u)=u`) and satisfies
+`Delta(u)=-u`. Consequently the smooth divergence-free forcing
+`f=du/dt+nu*u` makes the prescribed motion an exact incompressible periodic
+Navier--Stokes solution; the nonlinear term is absorbed into pressure. The GT
+is analytic and independent of the learned basis.
+
+```powershell
+$case = "BasisNet\cases\3D_TG"
+$run = "$case\results\k256_dynamic_sss\run_001"
+$eval = "$run\evaluation_oscillatory_abc_latest_raw"
+
+python "$case\scripts\generate_oscillatory_abc_gt.py" `
+  --output "$case\data\oscillatory_abc_k1_re500.h5" `
+  --resolution 64 --reynolds 500 --frames 50
+
+python "$case\scripts\reconstruct.py" `
+  --checkpoint "$run\checkpoints\sss_dynamic_causal_frozen.pt" `
+  --source "$case\data\oscillatory_abc_k1_re500.h5" `
+  --output "$eval\oscillatory_abc_k256.h5" `
+  --projection-stride 2 --basis-batch 256 --x-block 4
+
+python "$case\scripts\render.py" `
+  --source "$case\data\oscillatory_abc_k1_re500.h5" `
+  --reconstruction "$eval\oscillatory_abc_k256.h5" `
+  --output-dir "$eval\visualization" `
+  --vortex-level 2.15 --vorticity-limit 2.6 `
+  --error-level 0.0075 --error-limit 0.02 --fps 10 `
+  --case-label "Oscillatory-ABC-k1-Re500" `
+  --movie-name "oscillatory-abc-k1-gt-vs-reconstruction.mp4"
+```
+
+The renderer shows a vorticity-magnitude isosurface colored by signed
+`omega_z`, together with a bottom central slice. With the completed epoch-10000
+raw basis, the 50-frame reference run has mean velocity relative error about
+`0.247%` (maximum about `0.268%`). Generated HDF5, frames, and MP4 files remain
+excluded from Git.
 
 ## Reference result
 
