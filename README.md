@@ -18,6 +18,7 @@ The name combines **EigenFluid** with the **Sequential Spectral Subspace
 | --- | --- | --- |
 | BasisNet | [2D_karman](BasisNet/cases/2D_karman/README.md) | K=96 basis learning for a translating cylinder and reconstruction of a Re=100 Karman wake. |
 | BasisNet | [3D_periodic_free](BasisNet/cases/3D_periodic_free/README.md) | K=256 hard-discrete-divergence-free basis learning on a periodic cube without obstacles, with forced Taylor--Green and oscillatory ABC evaluation. |
+| BasisNet | [3D_parametric_wake](BasisNet/cases/3D_parametric_wake/README.md) | K=256 conditional basis learning for a continuously parameterized sphere-to-cube obstacle in a body-force-driven periodic wake. |
 
 See the [BasisNet case index](BasisNet/cases/README.md) for benchmark status
 and validated reference results.
@@ -31,7 +32,8 @@ EigenFluid-SSS/
 |   `-- cases/
 |       |-- README.md
 |       |-- 2D_karman/
-|       `-- 3D_periodic_free/
+|       |-- 3D_periodic_free/
+|       `-- 3D_parametric_wake/
 |-- TimeNet/
 |   `-- README.md
 |-- pyproject.toml
@@ -74,6 +76,7 @@ python -m pip install -e ".[dev]"
 python -m pytest -q
 python BasisNet/cases/2D_karman/scripts/train.py --self-test
 python BasisNet/cases/3D_periodic_free/scripts/train.py --self-test
+python BasisNet/cases/3D_parametric_wake/scripts/train.py --self-test
 ```
 
 See the [BasisNet case index](BasisNet/cases/README.md) for complete training,

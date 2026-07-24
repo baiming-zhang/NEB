@@ -71,6 +71,9 @@ python -m pytest -q BasisNet/tests/test_basisnet.py
   hard-discrete-divergence-free modes on a periodic cube without obstacles,
   with independent forced Taylor--Green and oscillatory ABC reconstruction
   benchmarks.
+- [3D_parametric_wake](cases/3D_parametric_wake/README.md): K=256
+  conditional hard-discrete-divergence-free modes for a continuously
+  parameterized sphere-to-cube obstacle in a body-force-driven periodic wake.
 
 Case-specific configurations, scripts, tests, and documentation are kept
 inside each case directory so that experiments remain reproducible and
