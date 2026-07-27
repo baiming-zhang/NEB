@@ -46,7 +46,8 @@ excluded from version control.
 ## Installation
 
 Python 3.11 or newer is required. A CUDA GPU is recommended for the full
-K=96 training run.
+K=256 airfoil training run; the smaller reference cases provide lighter-weight
+verification paths.
 
 ```bash
 git clone https://github.com/baiming-zhang/eigenfluid-sss.git
@@ -75,8 +76,13 @@ python -m pip install -e ".[dev]"
 ```bash
 python -m pytest -q
 python BasisNet/cases/2D_karman/scripts/train.py --self-test
+python -m pytest -q BasisNet/cases/2D_airfoil/tests
 python BasisNet/cases/3D_periodic_free/scripts/train.py --self-test
 ```
 
 See the [BasisNet case index](BasisNet/cases/README.md) for complete training,
 restart, inference, evaluation, and video-generation workflows.
+
+Only source code, canonical configurations, tests, and documentation belong in
+Git. Generated checkpoints, GT fields, reconstructions, figures, videos, and
+all `results/` directories remain local artifacts.

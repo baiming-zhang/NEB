@@ -18,6 +18,21 @@ fields are used only after the learned basis has been frozen. See each case
 README for the exact training, checkpoint-selection, projection, evaluation,
 and rendering commands.
 
+## Validated training runs
+
+The canonical airfoil experiment uses a 10,000-epoch maximum budget with
+validation-driven early stopping. Its generated checkpoint is deliberately
+excluded from Git; the source, configuration, fixed validation protocol, and
+regression tests required to reproduce it are versioned.
+
+| Case | Modes | Maximum epoch | Stop epoch | Best epoch | Best fixed-validation mean | Final rank |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| 2D_airfoil | 256 | 10,000 | 6,800 | 5,800 | 0.337540 | 256 |
+
+The fixed-validation value is the training/selection Rayleigh objective. It is
+not an independent Navier--Stokes reconstruction error; the case evaluates
+velocity- and vorticity-optimal GT reconstructions separately.
+
 ## Validated reference results
 
 Only results with a documented independent GT generator or data source and a

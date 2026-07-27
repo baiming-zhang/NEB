@@ -61,6 +61,43 @@ epoch 5800 with `val_mean=0.337540`; all 256 modes remained full rank.
 Checkpoints, training logs, GT caches, images, and videos are not stored in
 Git.
 
+### Validated final-run summary
+
+| Quantity | Result |
+| --- | ---: |
+| Mode count | 256 |
+| Maximum epoch budget | 10,000 |
+| Early-stop epoch | 6,800 |
+| Best validation epoch | 5,800 |
+| Best fixed-validation mean | 0.337540 |
+| Final Ritz rank | 256 |
+| Frozen checkpoint basename | `hardcoded_sss_frozen.npz` |
+
+The validation mean is the fixed training-selection objective evaluated on the
+immutable validation pack. It is not a velocity or vorticity error against the
+independent Navier--Stokes GT.
+
+### Relationship to 2D_karman
+
+The directory and command surface intentionally match
+[`2D_karman`](../2D_karman/README.md): both cases keep `configs/`, `scripts/`,
+`tests/`, a canonical training entry point, a prediction/video entry point,
+fixed-identity peeling, and Ritz postprocessing inside the case directory.
+
+| Concern | `2D_karman` | `2D_airfoil` |
+| --- | --- | --- |
+| Geometry | Translating cylinder | C2-smooth analytic airfoil |
+| Parameters | Cylinder position parameter | Thickness `beta` and angle `alpha` |
+| Canonical modes | 96 | 256 |
+| SSS order | Fixed identity peeling | Fixed identity peeling |
+| Training backend | Case reference backend | Hand-written fixed-graph CuPy backend |
+| MLP arithmetic | Case reference precision | FP16 shadow forward, FP32 master/Adam |
+| Independent GT | Re=100 Karman wake | D2Q9 TRT Navier--Stokes trajectories |
+| Reconstruction | Ritz projection | Velocity- and vorticity-optimal Ritz fits |
+
+The matching format is structural and semantic; it does not imply identical
+geometry, boundary data, Reynolds number, or GT fields.
+
 ## Case layout
 
 ```text
@@ -268,6 +305,14 @@ postprocess/frames/
 postprocess/frames_vorticity_optimal/
 ```
 
+The velocity-optimal video selects coefficients by velocity L2 minimization.
+The vorticity-optimal video selects coefficients by fluctuation-vorticity L2
+minimization. Each frame places GT on the top row, the basis reconstruction in
+the middle row, and absolute error on the bottom row; velocity magnitude and
+streamlines are shown on the left, and vorticity is shown on the right. The
+workflow also exports the six lowest-frequency Ritz modes individually and as
+`basis_lowest6/contact_sheet.png`.
+
 Evaluate one existing GT cache:
 
 ```powershell
@@ -297,4 +342,5 @@ python "$case\scripts\evaluate_single_gt.py" `
 The repository ignores every `results/` directory as well as checkpoints,
 NPZ caches, logs, frames, plots, and MP4 files. Publish large trained weights
 through a release, object storage, or Git LFS if needed; do not commit them
-to the source tree.
+to the source tree. The GitHub publication contains only source code,
+canonical configurations, tests, and documentation.
