@@ -10,6 +10,7 @@ frames, and videos are intentionally excluded from Git.
 | Case | Domain and target | Learned basis | Independent evaluation | Status |
 | --- | --- | ---: | --- | --- |
 | [2D_karman](2D_karman/README.md) | Translating cylinder in a 2D channel | K=96 | Re=100 Karman-wake HDF5 data | Reproducible workflow; no version-controlled reference metric yet |
+| [2D_airfoil](2D_airfoil/README.md) | Analytic thickness and angle jointly parameterized in a 2D far field | K=256 | Independent D2Q9 NS trajectories | Completed; early-stopped at epoch 6800 with full rank |
 | [3D_periodic_free](3D_periodic_free/README.md) | Triply periodic cube without obstacles | K=256 | Exact forced Taylor--Green and oscillatory ABC GT | Completed and benchmarked |
 
 Basis optimization is unsupervised: independent Navier--Stokes or analytic GT
@@ -46,6 +47,7 @@ Run the complete case test suite and static checks from the repository root:
 
 ```powershell
 python -m pytest -q BasisNet/cases/2D_karman/tests
+python -m pytest -q BasisNet/cases/2D_airfoil/tests
 python -m pytest -q BasisNet/cases/3D_periodic_free/tests
 python -m ruff check BasisNet/cases
 ```

@@ -18,6 +18,7 @@ The name combines **EigenFluid** with the **Sequential Spectral Subspace
 | --- | --- | --- |
 | BasisNet | [2D_karman](BasisNet/cases/2D_karman/README.md) | K=96 basis learning for a translating cylinder and reconstruction of a Re=100 Karman wake. |
 | BasisNet | [3D_periodic_free](BasisNet/cases/3D_periodic_free/README.md) | K=256 hard-discrete-divergence-free basis learning on a periodic cube without obstacles, with forced Taylor--Green and oscillatory ABC evaluation. |
+| BasisNet | [2D_airfoil](BasisNet/cases/2D_airfoil/README.md) | K=256 fixed-order SSS basis jointly conditioned on analytic airfoil thickness and angle of attack, with a manual fixed-graph trainer and independent D2Q9 Navier--Stokes evaluation. |
 
 See the [BasisNet case index](BasisNet/cases/README.md) for benchmark status
 and validated reference results.
@@ -31,6 +32,7 @@ EigenFluid-SSS/
 |   `-- cases/
 |       |-- README.md
 |       |-- 2D_karman/
+|       |-- 2D_airfoil/
 |       `-- 3D_periodic_free/
 |-- TimeNet/
 |   `-- README.md
