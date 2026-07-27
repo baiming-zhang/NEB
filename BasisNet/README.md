@@ -62,11 +62,22 @@ python BasisNet/basisnet.py
 python -m pytest -q BasisNet/tests/test_basisnet.py
 ```
 
+The `2D_airfoil` case also supplies a case-local, explicitly written CuPy
+backend. It uses a fixed computation graph, fused value/gradient/Hessian jets,
+FP16 shadow weights for MLP matrix products, and FP32 master weights and Adam
+state. This changes the execution backend rather than the mathematical SSS
+protocol: fixed peeling, Rayleigh minimization, divergence-free construction,
+and Ritz postprocessing retain their documented semantics.
+
 ## Cases
 
 - [2D_karman](cases/2D_karman/README.md): a translating cylinder in a
   two-dimensional channel, K=96 learned modes, and Re=100 wake
   reconstruction.
+- [2D_airfoil](cases/2D_airfoil/README.md): a jointly thickness/angle
+  parameterized analytic airfoil, K=256 modes, a hand-written fixed-graph
+  trainer, independent D2Q9 Navier--Stokes GT, and velocity- and
+  vorticity-optimal reconstruction videos.
 - [3D_periodic_free](cases/3D_periodic_free/README.md): K=256
   hard-discrete-divergence-free modes on a periodic cube without obstacles,
   with independent forced Taylor--Green and oscillatory ABC reconstruction
@@ -79,3 +90,12 @@ Case-specific configurations, scripts, tests, and documentation are kept
 inside each case directory so that experiments remain reproducible and
 self-contained. See the [case index](cases/README.md) for status, validated
 reference results, and artifact policy.
+
+Run case-level verification from the repository root:
+
+```powershell
+python -m pytest -q BasisNet/cases/2D_karman/tests
+python -m pytest -q BasisNet/cases/2D_airfoil/tests
+python -m pytest -q BasisNet/cases/3D_periodic_free/tests
+python -m ruff check BasisNet/cases
+```

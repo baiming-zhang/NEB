@@ -8,6 +8,10 @@ The basis optimizer does not read Navier-Stokes snapshots, numerical
 eigenfunctions, or supervised labels. The independent NS data are used only
 after the model is frozen for projection, error evaluation, and rendering.
 
+The jointly parameterized airfoil counterpart follows the same case-directory,
+training-entry-point, fixed-peeling, and Ritz-postprocessing conventions; see
+[`2D_airfoil`](../2D_airfoil/README.md).
+
 ## Final protocol
 
 - Parameter range: `alpha in [0, 1]`

@@ -10,6 +10,7 @@ frames, and videos are intentionally excluded from Git.
 | Case | Domain and target | Learned basis | Independent evaluation | Status |
 | --- | --- | ---: | --- | --- |
 | [2D_karman](2D_karman/README.md) | Translating cylinder in a 2D channel | K=96 | Re=100 Karman-wake HDF5 data | Reproducible workflow; no version-controlled reference metric yet |
+| [2D_airfoil](2D_airfoil/README.md) | Analytic thickness and angle jointly parameterized in a 2D far field | K=256 | Independent D2Q9 NS trajectories | Completed; early-stopped at epoch 6800 with full rank |
 | [3D_periodic_free](3D_periodic_free/README.md) | Triply periodic cube without obstacles | K=256 | Exact forced Taylor--Green and oscillatory ABC GT | Completed and benchmarked |
 | [3D_parametric_wake](3D_parametric_wake/README.md) | Continuously morphed sphere-to-cube obstacle in a driven periodic 3D flow | K=256 | Independent Re=500 pseudo-spectral NS trajectory | Reproducible workflow; final 10000-epoch benchmark to be generated |
 
@@ -17,6 +18,21 @@ Basis optimization is unsupervised: independent Navier--Stokes or analytic GT
 fields are used only after the learned basis has been frozen. See each case
 README for the exact training, checkpoint-selection, projection, evaluation,
 and rendering commands.
+
+## Validated training runs
+
+The canonical airfoil experiment uses a 10,000-epoch maximum budget with
+validation-driven early stopping. Its generated checkpoint is deliberately
+excluded from Git; the source, configuration, fixed validation protocol, and
+regression tests required to reproduce it are versioned.
+
+| Case | Modes | Maximum epoch | Stop epoch | Best epoch | Best fixed-validation mean | Final rank |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| 2D_airfoil | 256 | 10,000 | 6,800 | 5,800 | 0.337540 | 256 |
+
+The fixed-validation value is the training/selection Rayleigh objective. It is
+not an independent Navier--Stokes reconstruction error; the case evaluates
+velocity- and vorticity-optimal GT reconstructions separately.
 
 ## Validated reference results
 
@@ -47,6 +63,7 @@ Run the complete case test suite and static checks from the repository root:
 
 ```powershell
 python -m pytest -q BasisNet/cases/2D_karman/tests
+python -m pytest -q BasisNet/cases/2D_airfoil/tests
 python -m pytest -q BasisNet/cases/3D_periodic_free/tests
 python -m pytest -q BasisNet/cases/3D_parametric_wake/tests
 python -m ruff check BasisNet/cases
