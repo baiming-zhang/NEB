@@ -72,8 +72,27 @@ def save_history(run_dir: Path, history: list[dict[str, Any]]) -> None:
     os.replace(temporary, target)
     keys = [
         "epoch", "seconds", "beta", "alpha_deg", "train_loss",
+        "train_base_loss", "train_vorticity_regularization_loss",
+        "train_enstrophy_ratio",
+        "train_small_vorticity_regularization_loss",
+        "train_large_vorticity_preservation_loss",
+        "train_small_vorticity_highpass_ratio",
+        "train_large_vorticity_drift_ratio",
+        "train_peeled_subspace_vorticity_regularization_loss",
+        "train_peeled_subspace_vorticity_highpass_trace",
+        "train_velocity_rayleigh", "train_vorticity_rayleigh",
         "train_mean_energy", "train_max_energy", "train_mean_projection_ratio",
         "train_orth_error", "train_rank", "validation_loss",
+        "validation_base_loss",
+        "validation_vorticity_regularization_loss",
+        "validation_enstrophy_ratio",
+        "validation_small_vorticity_regularization_loss",
+        "validation_large_vorticity_preservation_loss",
+        "validation_small_vorticity_highpass_ratio",
+        "validation_large_vorticity_drift_ratio",
+        "validation_peeled_subspace_vorticity_regularization_loss",
+        "validation_peeled_subspace_vorticity_highpass_trace",
+        "validation_velocity_rayleigh", "validation_vorticity_rayleigh",
         "validation_mean_energy", "validation_max_energy",
         "validation_mean_projection_ratio", "validation_orth_error",
         "validation_min_rank",
@@ -93,6 +112,46 @@ def aggregate(items: list[dict[str, Any]]) -> dict[str, Any]:
     case_losses = np.asarray([item["loss"] for item in items], dtype=np.float64)
     return {
         "loss": float(np.mean(case_losses)),
+        "base_loss": float(np.mean([item["base_loss"] for item in items])),
+        "vorticity_regularization_loss": float(
+            np.mean(
+                [
+                    item["vorticity_regularization_loss"]
+                    for item in items
+                ]
+            )
+        ),
+        "enstrophy_ratio": float(
+            np.mean([item["enstrophy_ratio"] for item in items])
+        ),
+        "small_vorticity_regularization_loss": float(np.mean([
+            item["small_vorticity_regularization_loss"] for item in items
+        ])),
+        "large_vorticity_preservation_loss": float(np.mean([
+            item["large_vorticity_preservation_loss"] for item in items
+        ])),
+        "small_vorticity_highpass_ratio": float(np.mean([
+            item["small_vorticity_highpass_ratio"] for item in items
+        ])),
+        "large_vorticity_drift_ratio": float(np.mean([
+            item["large_vorticity_drift_ratio"] for item in items
+        ])),
+        "peeled_subspace_vorticity_regularization_loss": float(np.mean([
+            item["peeled_subspace_vorticity_regularization_loss"]
+            for item in items
+        ])),
+        "peeled_subspace_vorticity_highpass_trace": float(np.mean([
+            item["peeled_subspace_vorticity_highpass_trace"]
+            for item in items
+        ])),
+        "velocity_rayleigh": float(np.mean([
+            item.get("velocity_rayleigh", item["mean_energy"])
+            for item in items
+        ])),
+        "vorticity_rayleigh": float(np.mean([
+            item.get("vorticity_rayleigh", item["enstrophy_ratio"])
+            for item in items
+        ])),
         "loss_p95": float(np.percentile(case_losses, 95.0)),
         "loss_max": float(np.max(case_losses)),
         "mean_energy": float(np.mean([item["mean_energy"] for item in items])),
@@ -101,7 +160,11 @@ def aggregate(items: list[dict[str, Any]]) -> dict[str, Any]:
             np.mean([item["mean_projection_ratio"] for item in items])
         ),
         "orth_error": float(np.max([item["orth_error"] for item in items])),
-        "min_rank": int(np.min([item["effective_raw_rank"] for item in items])),
+        "min_rank": int(np.min([
+            item["effective_raw_rank"]
+            for item in items
+            if item["effective_raw_rank"] >= 0
+        ])),
     }
 
 
@@ -109,6 +172,7 @@ def validate(
     cfg: Any,
     model: HardcodedModel,
     sample_pack: dict[str, np.ndarray] | None = None,
+    reference_model: HardcodedModel | None = None,
 ) -> tuple[dict[str, Any], list[dict[str, Any]]]:
     details = []
     pairs = [
@@ -127,7 +191,13 @@ def validate(
             beta = float(sample_pack["validation_beta"][index])
             alpha = float(sample_pack["validation_alpha"][index])
             points = sample_pack["validation_points"][index]
-        details.append(peel_step(cfg, model, points, beta, alpha, False))
+        details.append(
+            peel_step(
+                cfg, model, points, beta, alpha, False,
+                reference_model=reference_model,
+                full_diagnostics=(index == 0),
+            )
+        )
     return aggregate(details), details
 
 
@@ -140,6 +210,28 @@ def main() -> None:
     parser.add_argument("--validation-pack", type=Path)
     parser.add_argument("--self-test-epochs", type=int, default=0)
     parser.add_argument("--self-test-points", type=int, default=256)
+    parser.add_argument("--learning-rate", type=float)
+    parser.add_argument(
+        "--vorticity-regularization-weight", type=float
+    )
+    parser.add_argument(
+        "--small-vorticity-regularization-weight", type=float
+    )
+    parser.add_argument(
+        "--large-vorticity-preservation-weight", type=float
+    )
+    parser.add_argument(
+        "--peeled-subspace-vorticity-regularization-weight", type=float
+    )
+    parser.add_argument("--small-vorticity-scale-chords", type=float)
+    parser.add_argument("--small-vorticity-anchor-points", type=int)
+    parser.add_argument("--regularization-reference", type=Path)
+    parser.add_argument("--freeze-prefix-modes", type=int)
+    parser.add_argument(
+        "--orthonormal-peeling-fast-path", action="store_true"
+    )
+    parser.add_argument("--early-stopping-patience-epochs", type=int)
+    parser.add_argument("--reset-validation-state", action="store_true")
     args = parser.parse_args()
     if "torch" in sys.modules:
         raise RuntimeError("hardcoded trainer must not import PyTorch")
@@ -158,8 +250,61 @@ def main() -> None:
     config_dict = metadata["config"]
     if args.epochs is not None:
         config_dict["epochs"] = args.epochs
+    if args.learning_rate is not None:
+        config_dict["learning_rate"] = args.learning_rate
+    if args.vorticity_regularization_weight is not None:
+        config_dict["vorticity_regularization_weight"] = (
+            args.vorticity_regularization_weight
+        )
+    for argument, key in (
+        (
+            args.small_vorticity_regularization_weight,
+            "small_vorticity_regularization_weight",
+        ),
+        (
+            args.large_vorticity_preservation_weight,
+            "large_vorticity_preservation_weight",
+        ),
+        (
+            args.peeled_subspace_vorticity_regularization_weight,
+            "peeled_subspace_vorticity_regularization_weight",
+        ),
+        (
+            args.small_vorticity_scale_chords,
+            "small_vorticity_scale_chords",
+        ),
+        (
+            args.small_vorticity_anchor_points,
+            "small_vorticity_anchor_points",
+        ),
+        (
+            args.freeze_prefix_modes,
+            "freeze_prefix_modes",
+        ),
+    ):
+        if argument is not None:
+            config_dict[key] = argument
+    if args.orthonormal_peeling_fast_path:
+        config_dict["orthonormal_peeling_fast_path"] = True
+    if args.early_stopping_patience_epochs is not None:
+        config_dict["early_stopping_patience_epochs"] = (
+            args.early_stopping_patience_epochs
+        )
     cfg = cfg_namespace(config_dict)
     model = HardcodedModel(cfg, arrays)
+    scale_selective = (
+        float(getattr(cfg, "small_vorticity_regularization_weight", 0.0)) > 0.0
+        or float(getattr(cfg, "large_vorticity_preservation_weight", 0.0)) > 0.0
+    )
+    reference_model = None
+    if scale_selective:
+        if args.regularization_reference is None:
+            raise ValueError(
+                "--regularization-reference is required for scale-selective "
+                "vorticity regularization"
+            )
+        _, reference_arrays = load_neutral(args.regularization_reference)
+        reference_model = HardcodedModel(cfg, reference_arrays)
     start_epoch = int(metadata["epoch"]) + 1
     stop_epoch = (
         start_epoch + args.self_test_epochs - 1
@@ -179,7 +324,9 @@ def main() -> None:
     best_validation = float(metadata.get("best_validation", float("inf")))
     restored_state = metadata.get("training_state", {})
     current_learning_rate = float(
-        restored_state.get("current_learning_rate", cfg.learning_rate)
+        args.learning_rate
+        if args.learning_rate is not None
+        else restored_state.get("current_learning_rate", cfg.learning_rate)
     )
     cfg.learning_rate = current_learning_rate
     config_dict["learning_rate"] = current_learning_rate
@@ -189,14 +336,26 @@ def main() -> None:
     )
     lr_reference_epoch = int(restored_state.get("lr_reference_epoch", 0))
     lr_reductions = int(restored_state.get("lr_reductions", 0))
+    if args.reset_validation_state:
+        best_validation = float("inf")
+        best_validation_epoch = start_epoch - 1
+        lr_reference_loss = float("inf")
+        lr_reference_epoch = start_epoch - 1
+        lr_reductions = 0
     protocol = {
-        "algorithm": "official_sss_fixed_order_residual_peeling_joint_beta_alpha",
+        "algorithm": (
+            "shared_velocity_vorticity_hybrid_residual_peeling"
+            if getattr(cfg, "basis_objective", "velocity_rayleigh")
+            == "velocity_vorticity_hybrid"
+            else "official_sss_fixed_order_residual_peeling_joint_beta_alpha"
+        ),
         "backend": "cupy_cuda_fixed_graph",
         "mlp_compute_dtype": getattr(cfg, "mlp_compute_dtype", "float32"),
         "mode_forward_batch": getattr(cfg, "mode_forward_batch", 1),
         "fp16_shadow_weights": (
             getattr(cfg, "mlp_compute_dtype", "float32") == "float16"
         ),
+        "fp32_boundary_layers": getattr(cfg, "fp32_boundary_layers", False),
         "jet2_linear_channels_fused": True,
         "mlp_accumulation_dtype": "float32",
         "hardcoded_reverse_dtype": "float32",
@@ -211,6 +370,10 @@ def main() -> None:
         "parameter_backward": "hardcoded reverse Jet2 pass",
         "one_network_and_adam_per_mode": True,
         "fixed_mode_order": True,
+        "freeze_prefix_modes": getattr(cfg, "freeze_prefix_modes", 0),
+        "orthonormal_peeling_fast_path": getattr(
+            cfg, "orthonormal_peeling_fast_path", False
+        ),
         "mode_sorting_used": False,
         "least_squares_residual_peeling": True,
         "previous_modes_detached": True,
@@ -227,6 +390,80 @@ def main() -> None:
         "farfield_boundary": (
             "double-zero perturbation envelope; total velocity remains free stream"
         ),
+        "hybrid_basis_objective": {
+            "type": getattr(cfg, "basis_objective", "velocity_rayleigh"),
+            "velocity_weight": getattr(cfg, "hybrid_velocity_weight", 1.0),
+            "vorticity_weight": getattr(cfg, "hybrid_vorticity_weight", 0.0),
+            "velocity_rayleigh_scale": getattr(
+                cfg, "hybrid_velocity_rayleigh_scale", cfg.rayleigh_scale
+            ),
+            "vorticity_rayleigh_scale": getattr(
+                cfg, "hybrid_vorticity_rayleigh_scale", cfg.rayleigh_scale
+            ),
+            "vorticity_mass_length_scale_chords": getattr(
+                cfg, "hybrid_vorticity_mass_length_scale_chords", 1.0
+            ),
+            "vorticity_difference_chords": getattr(
+                cfg, "hybrid_vorticity_difference_chords", 0.05
+            ),
+            "vorticity_anchor_points": getattr(
+                cfg, "hybrid_vorticity_anchor_points", 0
+            ),
+            "reorthogonalization_passes": getattr(
+                cfg, "hybrid_reorthogonalization_passes", 1
+            ),
+            "vorticity_gradient": (
+                "symmetric four-neighbor Jet2-Hessian differences"
+            ),
+            "jet3_avoided": True,
+        },
+        "vorticity_regularization": {
+            "weight": getattr(
+                cfg, "vorticity_regularization_weight", 0.0
+            ),
+            "objective": (
+                "full-domain vorticity L2 divided by modal velocity L2"
+            ),
+            "spatial_mask": "none",
+            "geometry_prior": False,
+            "requires_streamfunction_derivative_order": 2,
+        },
+        "scale_selective_vorticity_regularization": {
+            "small_scale_weight": getattr(
+                cfg, "small_vorticity_regularization_weight", 0.0
+            ),
+            "large_scale_preservation_weight": getattr(
+                cfg, "large_vorticity_preservation_weight", 0.0
+            ),
+            "scale_chords": getattr(
+                cfg, "small_vorticity_scale_chords", 0.05
+            ),
+            "anchor_points": getattr(
+                cfg, "small_vorticity_anchor_points", 512
+            ),
+            "reference_checkpoint": (
+                str(args.regularization_reference.resolve())
+                if args.regularization_reference is not None
+                else None
+            ),
+            "spatial_mask": "none",
+            "geometry_prior": False,
+            "highpass_operator": "center minus normalized four-neighbor mean",
+            "lowpass_operator": "half center plus half normalized neighbor mean",
+            "peeled_subspace_weight": getattr(
+                cfg,
+                "peeled_subspace_vorticity_regularization_weight",
+                0.0,
+            ),
+            "peeled_subspace_objective": (
+                "trace of fixed-scale vorticity highpass energy over the "
+                "mass-orthonormal residual-peeled basis"
+            ),
+            "basis_invariance": (
+                "Frobenius trace invariant under orthogonal changes of the "
+                "mass-orthonormal basis"
+            ),
+        },
         "early_stopping_patience_epochs": cfg.early_stopping_patience_epochs,
         "lr_scheduler": {
             "type": "validation_plateau",
@@ -242,7 +479,15 @@ def main() -> None:
         args.run_dir,
         f"start hardcoded-no-pytorch device=cuda modes={cfg.modes} "
         f"points={cfg.points_per_step} resume_epoch={metadata['epoch']} "
-        f"lr={current_learning_rate:.6e}",
+        f"lr={current_learning_rate:.6e} "
+        f"vorticity_reg="
+        f"{getattr(cfg, 'vorticity_regularization_weight', 0.0):.3e} "
+        f"small_vorticity_reg="
+        f"{getattr(cfg, 'small_vorticity_regularization_weight', 0.0):.3e} "
+        f"large_vorticity_keep="
+        f"{getattr(cfg, 'large_vorticity_preservation_weight', 0.0):.3e} "
+        f"peeled_subspace_reg="
+        f"{getattr(cfg, 'peeled_subspace_vorticity_regularization_weight', 0.0):.3e}",
     )
     started = time.perf_counter()
     stopped_early = False
@@ -259,13 +504,48 @@ def main() -> None:
         else:
             beta, alpha = continuous_parameters(cfg, epoch)
             points = fluid_points(cfg, count, beta, alpha, cfg.seed + epoch * 1009)
-        diagnostic = peel_step(cfg, model, points, beta, alpha, True)
+        diagnostic = peel_step(
+            cfg, model, points, beta, alpha, True,
+            reference_model=reference_model,
+            full_diagnostics=(
+                args.self_test_epochs > 0
+                or epoch == 1
+                or epoch % cfg.validate_every == 0
+            ),
+        )
         row: dict[str, Any] = {
             "epoch": epoch,
             "seconds": time.perf_counter() - started,
             "beta": beta,
             "alpha_deg": alpha,
             "train_loss": diagnostic["loss"],
+            "train_base_loss": diagnostic["base_loss"],
+            "train_vorticity_regularization_loss": diagnostic[
+                "vorticity_regularization_loss"
+            ],
+            "train_enstrophy_ratio": diagnostic[
+                "enstrophy_ratio"
+            ],
+            "train_small_vorticity_regularization_loss": diagnostic[
+                "small_vorticity_regularization_loss"
+            ],
+            "train_large_vorticity_preservation_loss": diagnostic[
+                "large_vorticity_preservation_loss"
+            ],
+            "train_small_vorticity_highpass_ratio": diagnostic[
+                "small_vorticity_highpass_ratio"
+            ],
+            "train_large_vorticity_drift_ratio": diagnostic[
+                "large_vorticity_drift_ratio"
+            ],
+            "train_peeled_subspace_vorticity_regularization_loss": diagnostic[
+                "peeled_subspace_vorticity_regularization_loss"
+            ],
+            "train_peeled_subspace_vorticity_highpass_trace": diagnostic[
+                "peeled_subspace_vorticity_highpass_trace"
+            ],
+            "train_velocity_rayleigh": diagnostic.get("velocity_rayleigh"),
+            "train_vorticity_rayleigh": diagnostic.get("vorticity_rayleigh"),
             "train_mean_energy": diagnostic["mean_energy"],
             "train_max_energy": diagnostic["max_energy"],
             "train_mean_projection_ratio": diagnostic["mean_projection_ratio"],
@@ -278,13 +558,27 @@ def main() -> None:
             append_log(
                 args.run_dir,
                 f"hardcoded-test epoch={epoch:04d} train={diagnostic['loss']:.6e} "
+                f"base={diagnostic['base_loss']:.6e} "
+                f"omega_reg="
+                f"{diagnostic['vorticity_regularization_loss']:.3e} "
+                f"small_ratio="
+                f"{diagnostic['small_vorticity_highpass_ratio']:.3e} "
+                f"large_drift="
+                f"{diagnostic['large_vorticity_drift_ratio']:.3e} "
+                f"peeled_trace="
+                f"{diagnostic['peeled_subspace_vorticity_highpass_trace']:.3e} "
+                f"velocity_R={diagnostic.get('velocity_rayleigh', float('nan')):.3e} "
+                f"vorticity_R={diagnostic.get('vorticity_rayleigh', float('nan')):.3e} "
                 f"orth={diagnostic['orth_error']:.2e} rank={diagnostic['effective_raw_rank']}",
             )
         elif epoch == 1 or epoch % cfg.validate_every == 0:
             validation_source = (
                 validation_pack if validation_pack is not None else sample_pack
             )
-            validation, details = validate(cfg, model, validation_source)
+            validation, details = validate(
+                cfg, model, validation_source,
+                reference_model=reference_model,
+            )
             case_rows = [
                 {
                     "beta": float(
@@ -304,6 +598,22 @@ def main() -> None:
                         )[index % cfg.validation_alpha_samples]
                     ),
                     "loss": item["loss"],
+                    "base_loss": item["base_loss"],
+                    "vorticity_regularization_loss": item[
+                        "vorticity_regularization_loss"
+                    ],
+                    "enstrophy_ratio": item[
+                        "enstrophy_ratio"
+                    ],
+                    "small_vorticity_highpass_ratio": item[
+                        "small_vorticity_highpass_ratio"
+                    ],
+                    "large_vorticity_drift_ratio": item[
+                        "large_vorticity_drift_ratio"
+                    ],
+                    "peeled_subspace_vorticity_highpass_trace": item[
+                        "peeled_subspace_vorticity_highpass_trace"
+                    ],
                     "mean_energy": item["mean_energy"],
                     "max_energy": item["max_energy"],
                     "orth_error": item["orth_error"],
@@ -314,6 +624,43 @@ def main() -> None:
             row.update(
                 {
                     "validation_loss": validation["loss"],
+                    "validation_base_loss": validation["base_loss"],
+                    "validation_vorticity_regularization_loss": (
+                        validation[
+                            "vorticity_regularization_loss"
+                        ]
+                    ),
+                    "validation_enstrophy_ratio": validation[
+                        "enstrophy_ratio"
+                    ],
+                    "validation_small_vorticity_regularization_loss": (
+                        validation["small_vorticity_regularization_loss"]
+                    ),
+                    "validation_large_vorticity_preservation_loss": (
+                        validation["large_vorticity_preservation_loss"]
+                    ),
+                    "validation_small_vorticity_highpass_ratio": validation[
+                        "small_vorticity_highpass_ratio"
+                    ],
+                    "validation_large_vorticity_drift_ratio": validation[
+                        "large_vorticity_drift_ratio"
+                    ],
+                    "validation_peeled_subspace_vorticity_regularization_loss": (
+                        validation[
+                            "peeled_subspace_vorticity_regularization_loss"
+                        ]
+                    ),
+                    "validation_peeled_subspace_vorticity_highpass_trace": (
+                        validation[
+                            "peeled_subspace_vorticity_highpass_trace"
+                        ]
+                    ),
+                    "validation_velocity_rayleigh": validation[
+                        "velocity_rayleigh"
+                    ],
+                    "validation_vorticity_rayleigh": validation[
+                        "vorticity_rayleigh"
+                    ],
                     "validation_loss_p95": validation["loss_p95"],
                     "validation_loss_max": validation["loss_max"],
                     "validation_mean_energy": validation["mean_energy"],
@@ -382,6 +729,17 @@ def main() -> None:
                 args.run_dir,
                 f"epoch={epoch:04d} beta={beta:.5f} alpha={alpha:+.3f} "
                 f"train={diagnostic['loss']:.6e} "
+                f"base={diagnostic['base_loss']:.6e} "
+                f"omega_reg="
+                f"{diagnostic['vorticity_regularization_loss']:.3e} "
+                f"small_ratio="
+                f"{diagnostic['small_vorticity_highpass_ratio']:.3e} "
+                f"large_drift="
+                f"{diagnostic['large_vorticity_drift_ratio']:.3e} "
+                f"peeled_trace="
+                f"{diagnostic['peeled_subspace_vorticity_highpass_trace']:.3e} "
+                f"velocity_R={diagnostic.get('velocity_rayleigh', float('nan')):.3e} "
+                f"vorticity_R={diagnostic.get('vorticity_rayleigh', float('nan')):.3e} "
                 f"val_mean={validation['loss']:.6e} "
                 f"val_p95={validation['loss_p95']:.6e} "
                 f"val_max={validation['loss_max']:.6e} "
@@ -407,7 +765,8 @@ def main() -> None:
                 )
             )
             probe = peel_step(
-                cfg, model, probe_points, cfg.probe_beta, cfg.probe_alpha_deg, False
+                cfg, model, probe_points, cfg.probe_beta, cfg.probe_alpha_deg,
+                False, reference_model=reference_model, full_diagnostics=True,
             )
             row.update(
                 {

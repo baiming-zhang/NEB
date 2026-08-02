@@ -119,10 +119,31 @@ def raw_fields(
     raw_u = np.empty((len(points), cfg.modes), dtype=np.float32)
     raw_v = np.empty_like(raw_u)
     raw_omega = np.empty_like(raw_u)
-    for mode in range(cfg.modes):
-        raw_u[:, mode], raw_v[:, mode], raw_omega[:, mode] = mode_fields(
-            model, cfg, mode, points, beta, alpha_deg, batch
-        )
+    mode_batch = max(1, int(getattr(cfg, "mode_forward_batch", 1)))
+    if mode_batch == 1:
+        for mode in range(cfg.modes):
+            raw_u[:, mode], raw_v[:, mode], raw_omega[:, mode] = mode_fields(
+                model, cfg, mode, points, beta, alpha_deg, batch
+            )
+        return raw_u, raw_v, raw_omega
+
+    # Batched mode evaluation reuses encoded coordinates and turns the MLP
+    # layers into strided batched GEMMs.  Cap points per pass so the Jet2
+    # Hessian tensors remain comfortably within GPU memory.
+    point_budget = int(getattr(cfg, "postprocess_mode_point_budget", 262_144))
+    effective_batch = min(batch, max(256, point_budget // mode_batch))
+    for start in range(0, len(points), effective_batch):
+        stop = min(start + effective_batch, len(points))
+        for mode, (_network, field, _cache) in enumerate(
+            model.forward_stream(
+                cfg, points[start:stop], beta, alpha_deg, False
+            )
+        ):
+            raw_u[start:stop, mode] = cp.asnumpy(field.grad[:, 0, 1])
+            raw_v[start:stop, mode] = cp.asnumpy(-field.grad[:, 0, 0])
+            raw_omega[start:stop, mode] = cp.asnumpy(
+                -(field.hess[:, 0, 0, 0] + field.hess[:, 0, 1, 1])
+            )
     return raw_u, raw_v, raw_omega
 
 
@@ -141,31 +162,32 @@ def compute_ritz_basis(
         alpha_deg,
         cfg.seed + 96_300 if seed is None else seed,
     )
-    velocity_columns = []
-    gradient_columns = []
-    for mode in range(cfg.modes):
-        field, _ = model.modes[mode].forward(
-            cfg, points, beta, alpha_deg, False
+    velocity = np.empty((2 * len(points), cfg.modes), dtype=np.float64)
+    gradient = np.empty((4 * len(points), cfg.modes), dtype=np.float64)
+    if max(1, int(getattr(cfg, "mode_forward_batch", 1))) == 1:
+        stream = (
+            (model.modes[mode],)
+            + model.modes[mode].forward(cfg, points, beta, alpha_deg, False)
+            for mode in range(cfg.modes)
         )
+    else:
+        stream = model.forward_stream(cfg, points, beta, alpha_deg, False)
+    for mode, (_network, field, _cache) in enumerate(stream):
         grad = field.grad[:, 0]
         hess = field.hess[:, 0]
-        velocity_columns.append(
-            cp.asnumpy(cp.concatenate((grad[:, 1], -grad[:, 0])))
+        velocity[:, mode] = cp.asnumpy(
+            cp.concatenate((grad[:, 1], -grad[:, 0]))
         )
-        gradient_columns.append(
-            cp.asnumpy(
-                cp.concatenate(
-                    (
-                        hess[:, 1, 0],
-                        hess[:, 1, 1],
-                        -hess[:, 0, 0],
-                        -hess[:, 0, 1],
-                    )
+        gradient[:, mode] = cp.asnumpy(
+            cp.concatenate(
+                (
+                    hess[:, 1, 0],
+                    hess[:, 1, 1],
+                    -hess[:, 0, 0],
+                    -hess[:, 0, 1],
                 )
             )
         )
-    velocity = np.stack(velocity_columns, axis=1).astype(np.float64)
-    gradient = np.stack(gradient_columns, axis=1).astype(np.float64)
     domain_area = (
         (cfg.xmax - cfg.xmin) * (cfg.ymax - cfg.ymin)
         - airfoil_area(cfg, beta)

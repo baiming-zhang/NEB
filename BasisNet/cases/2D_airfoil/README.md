@@ -1,346 +1,266 @@
-# BasisNet case: 2D_airfoil
+# BasisNet case: 2D airfoil
 
-This case learns a continuous `K=256` spatial basis for left-to-right flow
-past a two-dimensional analytic airfoil. Two parameters are trained jointly:
+This case learns a continuous, parameter-dependent spatial basis for
+left-to-right flow past a two-dimensional analytic airfoil. The current
+experiment uses `K=1024` shared modes and conditions every mode on:
 
-- `beta in [0, 1]` controls the thickness ratio,
+- `beta in [0, 1]`, which controls the thickness ratio
   `t/c = 0.08 + 0.10 beta`;
-- `alpha in [-12, 12] degrees` is the angle of attack about the fixed
+- `alpha in [-12, 12] degrees`, the angle of attack about the fixed
   quarter-chord point.
 
-The basis optimizer does not read Navier--Stokes snapshots, numerical
-eigenfunctions, or supervised labels. Independent D2Q9 Navier--Stokes data
-are used only after the model is frozen for projection, error evaluation,
-and rendering.
+Basis training is unsupervised: it never reads Navier--Stokes snapshots,
+numerical eigenfunctions, or labeled flow fields. Independent D2Q9-TRT
+Navier--Stokes data are used only after checkpoint selection for linear
+projection, error evaluation, and rendering.
 
-The case follows the same repository format and fixed-order SSS protocol as
-[`2D_karman`](../2D_karman/README.md). Airfoil-specific additions are the
-joint `(beta, alpha)` parameterization, the analytic obstacle, the
-fixed-graph manual derivative backend, and the independent GT solver.
+> The K1024 numbers below are preliminary experimental results recorded on
+> 2026-08-02. Raw checkpoints and GT archives remain excluded from Git. The
+> compact machine-readable record is
+> [`reports/k1024_preliminary_results.json`](reports/k1024_preliminary_results.json).
 
-## Final protocol
+## Current K1024 protocol
 
 - Domain: `[0, 10] x [-4, 4]`
-- Uniform free stream from left to right
-- Analytic `C-infinity` elliptical airfoil with chord `c=2`
-- Fixed quarter-chord point: `(3, 0)`
-- Airfoil thickness ratio: `0.08..0.18`
-- Angle of attack: `-12..12 degrees`
-- Number of modes: `K=256`
-- Four hidden sine layers of width 64 with six Fourier frequencies
-- One independent MLP and one Adam state per mode
-- Fixed mode identity and order; modes are never sorted or swapped
-- Earlier modes are frozen during later-mode optimization
-- Streamfunction, velocity, and spatial derivatives share the same peeling
-  coefficients
-- Divergence-free velocity is obtained analytically from the streamfunction
-- Double-zero perturbation envelope at the inlet, airfoil, top, and bottom
-- The reconstructed total field still contains the uniform free stream, so
-  the top and bottom are far-field boundaries, not no-slip walls
-- Mixed scrambled-Sobol sampling: 50% global, 25% airfoil neighborhood,
-  and 25% wake
-- 4096 fresh mesh-free spatial samples per epoch
-- 4096 fixed validation points per joint parameter case
-- MLP matrix products use FP16 shadow weights
-- FP32 master weights, Adam state, reductions, peeling, and Ritz algebra
-- Explicit Jet2 value/gradient/Hessian propagation; no PyTorch autograd or
-  dynamic training graph
-- Raw-mode forward batch size: 32
-- Base learning rate: `8e-4`
-- Reduce-on-plateau patience: 200 epochs
-- Early-stopping patience: 1000 epochs
-- Maximum training length: 10000 epochs
-- Training loss:
+- Analytic `C-infinity` elliptical airfoil, chord `c=2`, quarter chord at
+  `(3, 0)`
+- Thickness ratio `0.08..0.18`; angle of attack `-12..12 degrees`
+- `K=1024` shared, fixed-identity modes
+- Four hidden sine layers of width 64 and six Fourier frequencies
+- 4096 fresh mixed Sobol points per epoch: 50% global, 25% airfoil
+  neighborhood, 25% wake
+- 4096 immutable validation points for each of nine joint parameter cases
+- FP16 hidden-layer shadow weights; FP32 boundary layers, reductions, master
+  weights, Adam state, peeling, and Ritz algebra
+- Raw-mode forward batch size 32
+- One FP64 modified Gram--Schmidt reorthogonalization pass
+- Divergence-free velocity obtained analytically from a streamfunction
+- Double-zero perturbation envelope at inlet, airfoil, top, and bottom
+- Base learning rate `8e-4`; validation every 50 epochs; checkpoint every 100
+  epochs; early-stopping patience 1000 epochs
 
-  ```text
-  loss = mean_k[(||grad u_k||^2 / ||u_k||^2) / 80]
-  ```
+Two matched configurations are included:
 
-The final run stopped at epoch 6800. Its best fixed-validation result was at
-epoch 5800 with `val_mean=0.337540`; all 256 modes remained full rank.
-Checkpoints, training logs, GT caches, images, and videos are not stored in
-Git.
+| Experiment | Objective | Epoch budget | Configuration |
+| --- | --- | ---: | --- |
+| Hybrid | `0.5 (R_u / 80) + 0.5 (R_omega / 232)` | 10,000 | [`k1024_c2_sobol_10000_fp16_hybrid50.json`](configs/k1024_c2_sobol_10000_fp16_hybrid50.json) |
+| Velocity-only ablation | `R_u / 80` | 1,000 | [`k1024_c2_sobol_1000_fp16_velocity_only.json`](configs/k1024_c2_sobol_1000_fp16_velocity_only.json) |
 
-### Validated final-run summary
+The vorticity term uses 512 full-domain four-neighborhood finite-difference
+anchors per epoch. It changes the training objective but does not introduce
+NS supervision.
 
-| Quantity | Result |
+## Preliminary training results
+
+The hybrid run reached epoch 4300 before it was stopped for evaluation. Its
+selected checkpoint is epoch 650, where the fixed-validation joint objective
+was lowest. Continuing the run did not improve that selection metric and the
+raw effective rank later fell to 1002, so epoch 650 is the evaluation model.
+
+| Quantity | Hybrid K1024 selected checkpoint |
 | --- | ---: |
-| Mode count | 256 |
-| Maximum epoch budget | 10,000 |
-| Early-stop epoch | 6,800 |
-| Best validation epoch | 5,800 |
-| Best fixed-validation mean | 0.337540 |
-| Final Ritz rank | 256 |
-| Frozen checkpoint basename | `hardcoded_sss_frozen.npz` |
+| Checkpoint epoch | 650 |
+| Joint validation objective | 0.5280304703 |
+| Validation velocity Rayleigh `R_u` | 36.27116149 |
+| Validation vorticity Rayleigh `R_omega` | 139.81976992 |
+| Validation P95 / maximum | 0.54670135 / 0.54834647 |
+| Raw rank | 1024 / 1024 |
+| Orthogonality error | `2.61e-12` |
+| Accumulated active time through epoch 650 | 14,031.13 s (3:53:51) |
 
-The validation mean is the fixed training-selection objective evaluated on the
-immutable validation pack. It is not a velocity or vorticity error against the
-independent Navier--Stokes GT.
+The velocity-only ablation starts from the exact same epoch-0 weights and
+uses the exact same immutable validation pack. The published in-progress
+snapshot at epoch 200 had validation `R_u / 80 = 1.6993393228`,
+`R_u = 135.94714582`, rank `1024/1024`, and orthogonality error `9.77e-15`.
+Its final three-case comparison should be made only after the 1000-epoch run
+finishes; the epoch-200 value is not presented as a final result.
 
-### Relationship to 2D_karman
+The earlier K256 experiment remains reproducible with `k256_final.json`, but
+it is now a legacy baseline rather than the primary result. Its best recorded
+validation value was `0.337540` at epoch 5800 under the velocity-only K256
+objective, which is not numerically comparable to the normalized hybrid K1024
+objective.
 
-The directory and command surface intentionally match
-[`2D_karman`](../2D_karman/README.md): both cases keep `configs/`, `scripts/`,
-`tests/`, a canonical training entry point, a prediction/video entry point,
-fixed-identity peeling, and Ritz postprocessing inside the case directory.
+## Three-case velocity reconstruction
 
-| Concern | `2D_karman` | `2D_airfoil` |
-| --- | --- | --- |
-| Geometry | Translating cylinder | C2-smooth analytic airfoil |
-| Parameters | Cylinder position parameter | Thickness `beta` and angle `alpha` |
-| Canonical modes | 96 | 256 |
-| SSS order | Fixed identity peeling | Fixed identity peeling |
-| Training backend | Case reference backend | Hand-written fixed-graph CuPy backend |
-| MLP arithmetic | Case reference precision | FP16 shadow forward, FP32 master/Adam |
-| Independent GT | Re=100 Karman wake | D2Q9 TRT Navier--Stokes trajectories |
-| Reconstruction | Ritz projection | Velocity- and vorticity-optimal Ritz fits |
+The epoch-650 hybrid checkpoint was evaluated on the middle snapshot
+(`20/41`) of three independent Re=1500, `1001 x 801` D2Q9-TRT trajectories.
+Coefficients were fit by velocity L2 only. All three neural Ritz bases and all
+three rectangular Laplacian projections had rank `1024`.
 
-The matching format is structural and semantic; it does not imply identical
-geometry, boundary data, Reynolds number, or GT fields.
+The figures use the historical `PINN` label for the learned neural basis. The
+model is physics-informed through the Rayleigh objective and analytic
+constraints, but it is not trained against the NS residual or GT snapshots.
 
-## Case layout
+| `beta`, `alpha` | Learned K1024 total | Laplacian K1024 total | Learned wake | Laplacian wake | Learned fluctuation | Laplacian fluctuation |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| `0.50`, `+10 deg` | 2.1091% | 2.9837% | 3.9332% | 5.0597% | 27.3801% | 38.7340% |
+| `0.85`, `0 deg` | 1.6388% | 2.5474% | 2.7698% | 5.2305% | 28.9384% | 44.9846% |
+| `0.50`, `-10 deg` | 2.0880% | 3.4120% | 3.8320% | 6.1448% | 26.7353% | 43.6886% |
+| **Mean** | **1.9453%** | **2.9810%** | **3.5117%** | **5.4783%** | **27.6846%** | **42.4691%** |
 
-```text
-2D_airfoil/
-|-- configs/
-|   |-- k256_final.json
-|   |-- gt_re1500_separated.json
-|   `-- continuous_gt_video_k256_fp16_farfield.json
-|-- scripts/
-|   |-- train.py
-|   |-- plot_training.py
-|   |-- solve_ns.py
-|   |-- render_ns.py
-|   |-- predict_video.py
-|   |-- evaluate_single_gt.py
-|   |-- train_hardcoded.py
-|   `-- run_continuous_postprocess.py
-|-- src/
-|   `-- eigenfluid_sss/basisnet/airfoil2d/
-|       |-- hardcoded_backend.py
-|       |-- hardcoded_postprocess.py
-|       |-- ns_reference.py
-|       |-- postprocess.py
-|       `-- training.py
-|-- tests/
-|   `-- test_smoke.py
-`-- README.md
-```
+Across these three frames, the rectangular Laplacian basis is worse than the
+learned basis by 53.25% in total velocity error, 53.40% in fluctuation
+velocity error, 56.00% in wake velocity error, and 58.20% in wake
+fluctuation-velocity error.
 
-`train.py` and `predict_video.py` are the canonical public entry points,
-matching the `2D_karman` layout. The longer implementation files are kept
-separate so the explicit fixed-graph derivative and postprocessing passes
-remain inspectable.
+The Laplacian baseline is a rectangular Dirichlet streamfunction basis,
+ordered by ascending eigenvalue and fit with the same 32,768 velocity
+projection points and the same GT temporal mean. It does not enforce the
+airfoil boundary; solid points are excluded from fitting and metrics. Its six
+lowest eigenvalues are `0.252909`, `0.548997`, `0.715546`, `1.011634`,
+`1.042477`, and `1.486609`.
 
-All commands below are run from the repository root.
+### `beta=0.50`, `alpha=+10 deg`
 
-## Environment and installation
+![Top case: learned K1024 and Laplacian K1024 velocity reconstruction](assets/k1024_preliminary/alpha_top_p10_beta050_pinn_vs_laplacian_velocity.png)
 
-Recommended environment:
+[Six lowest learned Ritz modes](assets/k1024_preliminary/alpha_top_p10_beta050_pinn_lowest6.png)
 
-- Windows 10/11 or Linux
-- Python 3.11-3.13
-- CUDA GPU with at least 16 GB of memory
-- CuPy matching the installed CUDA runtime
-- PyTorch 2.5 or newer for the independent LBM reference path
-- `ffmpeg` available on `PATH` for MP4 generation
+### `beta=0.85`, `alpha=0 deg`
 
-Install the project and run the case checks:
+![Middle case: learned K1024 and Laplacian K1024 velocity reconstruction](assets/k1024_preliminary/alpha_middle_0_beta085_pinn_vs_laplacian_velocity.png)
+
+[Six lowest learned Ritz modes](assets/k1024_preliminary/alpha_middle_0_beta085_pinn_lowest6.png) ·
+[Six lowest rectangular Laplacian modes](assets/k1024_preliminary/laplacian_rectangular_lowest6_middle_geometry.png)
+
+### `beta=0.50`, `alpha=-10 deg`
+
+![Bottom case: learned K1024 and Laplacian K1024 velocity reconstruction](assets/k1024_preliminary/alpha_bottom_m10_beta050_pinn_vs_laplacian_velocity.png)
+
+[Six lowest learned Ritz modes](assets/k1024_preliminary/alpha_bottom_m10_beta050_pinn_lowest6.png)
+
+## Reproduce the runs
+
+All commands below run from the repository root. Recommended environment:
+Python 3.11--3.13, a CUDA GPU with at least 16 GB, CuPy matching CUDA,
+PyTorch 2.5 or newer for the independent LBM path, and `ffmpeg` for videos.
 
 ```powershell
-python -m pip install --upgrade pip
 python -m pip install -e ".[dev]"
 python -m pytest -q BasisNet/cases/2D_airfoil/tests
 python -m ruff check BasisNet/cases/2D_airfoil
 ```
 
-The tests cover analytic geometry, mesh-free Sobol sampling, joint parameter
-conditioning, free-stream boundaries, the generalized eigenproblem, and a
-small independent NS solve.
-
-## Training
-
-The complete canonical configuration is
-`BasisNet/cases/2D_airfoil/configs/k256_final.json`.
+### Train the hybrid basis
 
 ```powershell
 $case = "BasisNet\cases\2D_airfoil"
-$run = "$case\results\k256_final\run_001"
+$run = "$case\results\k1024_c2_sobol_10000_fp16_hybrid50\run_001"
 
 python -u "$case\scripts\train.py" `
-  --config "$case\configs\k256_final.json" `
+  --config "$case\configs\k1024_c2_sobol_10000_fp16_hybrid50.json" `
   --run-dir $run
 ```
 
-For a new run, the public entry point first creates:
-
-```text
-reference_inputs/initial_epoch0000.npz
-reference_inputs/initial_epoch0000.json
-reference_inputs/fixed_validation_scipy_sobol_v1.npz
-reference_inputs/manifest.json
-```
-
-The initialization and immutable validation pack use NumPy/SciPy only.
-Training then runs the explicit CuPy forward/reverse pass.
-
-Resume from a complete checkpoint:
+The public training entry point creates deterministic epoch-0 weights and an
+immutable SciPy-Sobol validation pack before launching the explicit CuPy
+trainer. Resume only from a complete checkpoint:
 
 ```powershell
 python -u "$case\scripts\train.py" `
-  --config "$case\configs\k256_final.json" `
+  --config "$case\configs\k1024_c2_sobol_10000_fp16_hybrid50.json" `
   --run-dir $run `
-  --resume "$run\checkpoints\hardcoded_epoch_5000.npz"
+  --resume "$run\checkpoints\hardcoded_epoch_0600.npz"
 ```
 
-The checkpoint stores FP32 master parameters, Adam state, epoch, learning
-rate scheduler state, early-stopping state, and training history. FP16
-shadow weights are synchronized from the masters.
-
-### Per-epoch learning logic
-
-1. A deterministic two-dimensional Sobol sample provides one `(beta, alpha)`
-   pair. Every twentieth epoch inserts a joint-domain corner.
-2. The sampler creates 4096 continuous fluid points without a training mesh.
-3. Jet2 propagates value, spatial gradient, and spatial Hessian through each
-   sine MLP using fused batched matrix products.
-4. Streamfunction derivatives produce an exactly divergence-free velocity.
-5. Fixed-order peeling removes components in all earlier modes.
-6. Only the active mode receives the explicit reverse-pass gradient.
-7. FP32 Adam updates the master parameters and synchronizes FP16 shadows.
-8. Fixed validation runs every 50 epochs; checkpoints are written every 100
-   epochs.
-9. The learning rate is reduced after 200 epochs without sufficient
-   validation improvement.
-10. Training stops after 1000 epochs without a new best validation result.
-
-### Training outputs
-
-```text
-hardcoded_train.log
-data/hardcoded_training_history.json
-data/hardcoded_training_history.csv
-checkpoints/hardcoded_latest.npz
-checkpoints/hardcoded_latest.json
-checkpoints/hardcoded_epoch_*.npz
-checkpoints/hardcoded_sss_frozen.npz
-checkpoints/hardcoded_sss_frozen.json
-```
-
-Plot the training curves:
+### Train the matched velocity-only ablation
 
 ```powershell
-python "$case\scripts\plot_training.py" --run-dir $run
+$runVelocity = "$case\results\k1024_c2_sobol_1000_fp16_velocity_only\run_001"
+
+python -u "$case\scripts\train.py" `
+  --config "$case\configs\k1024_c2_sobol_1000_fp16_velocity_only.json" `
+  --run-dir $runVelocity
 ```
 
-## Independent Navier--Stokes reference
+For a strict ablation, preserve and verify the same epoch-0 and validation
+pack hashes recorded in the JSON report.
 
-The formal GT solver is independent of basis training:
+### Generate formal NS GT
 
 ```powershell
-$beta = 0.5
-$alpha = 10.0
-$cache = "$run\gt_beta_0p5_alpha_p10.npz"
-
 python "$case\scripts\solve_ns.py" `
-  --config "$case\configs\k256_final.json" `
+  --config "$case\configs\k1024_c2_sobol_10000_fp16_hybrid50.json" `
   --solver-config "$case\configs\gt_re1500_separated.json" `
-  --beta $beta `
-  --alpha-deg $alpha `
-  --output $cache
+  --beta 0.5 `
+  --alpha-deg 10 `
+  --output "$run\gt_beta050_alpha_p10.npz"
 ```
 
-The formal configuration uses a `1001 x 801` isotropic lattice, TRT-D2Q9
-collision, `Re_c=1500`, 60000 steps, a 40000-step warm-up, and 41
-post-warm-up snapshots. The airfoil is no-slip, the left boundary is the
-uniform inlet, top and bottom are uniform far field, and the right boundary
-is open zero-gradient.
+The formal solver uses a `1001 x 801` isotropic lattice, TRT-D2Q9 collision,
+`Re_c=1500`, 60,000 steps, a 40,000-step warm-up, and 41 post-warm-up
+snapshots. High-angle GT must pass the separated-wake quality gate.
 
-Each GT cache records near-wall vorticity, wake vorticity RMS, reverse-flow
-fraction, minimum streamwise wake velocity, coherent-vortex counts, and
-temporal wake-vorticity RMS. High-angle GT is rejected unless the separated
-wake passes the configured quality gate.
+### Evaluate the three typical cases
 
-Render one GT frame:
+Provide existing top and middle GT caches. If the bottom GT is absent, the
+script generates it once with the formal NS configuration.
 
 ```powershell
-python "$case\scripts\render_ns.py" `
-  --input $cache `
-  --output "$run\gt_beta_0p5_alpha_p10.png"
+$eval = "$case\results\k1024_hybrid_epoch0650_three_cases"
+
+python -u "$case\scripts\evaluate_three_typical_cases.py" `
+  --checkpoint "$run\checkpoints\hardcoded_best_model.npz" `
+  --output-root $eval `
+  --top-gt "PATH_TO_BETA050_ALPHA_P10_GT.npz" `
+  --middle-gt "PATH_TO_BETA085_ALPHA_0_GT.npz" `
+  --phase 0.5 `
+  --ritz-quadrature 4096 `
+  --field-batch 32768
 ```
 
-## Ritz reconstruction and videos
+This writes one directory per case, `velocity_optimal_comparison.png`, a
+six-mode contact sheet, individual modes 1--6, and
+`three_case_summary.json`. The coefficient fit is velocity L2 only.
 
-The frozen checkpoint is postprocessed with the same Ritz convention used
-by `2D_karman`. No GT field participates in training or basis extraction.
+### Compare against rectangular Laplacian K1024
 
 ```powershell
-python "$case\scripts\predict_video.py" `
-  --checkpoint "$run\checkpoints\hardcoded_sss_frozen.npz" `
-  --run-dir "$run\evaluation" `
-  --config "$case\configs\continuous_gt_video_k256_fp16_farfield.json"
+python -u "$case\scripts\evaluate_three_typical_laplacian1024.py" `
+  --pinn-root $eval `
+  --output-root "$eval\laplacian1024_vs_pinn" `
+  --airfoil-config "$case\configs\k1024_c2_sobol_10000_fp16_hybrid50.json" `
+  --modes 1024 `
+  --projection-points 32768 `
+  --field-batch 32768
 ```
 
-For every joint parameter sample, postprocessing:
-
-1. evaluates the raw 256-mode neural field;
-2. computes velocity and vorticity from explicit spatial derivatives;
-3. constructs mass and stiffness matrices on independent Sobol quadrature;
-4. solves the generalized symmetric Ritz eigenproblem;
-5. projects the held-out GT onto the frozen basis;
-6. produces both velocity-`L2`-optimal and fluctuation-vorticity-`L2`-optimal
-   reconstructions;
-7. reports total-field, fluctuation, and wake errors;
-8. renders the GT, reconstruction, and absolute-error panels.
-
-Main generated outputs:
+## Implementation layout
 
 ```text
-postprocess/continuous_alpha_beta_gt_pinn_error.mp4
-postprocess/continuous_alpha_beta_gt_pinn_vorticity_optimal_error.mp4
-postprocess/continuous_pipeline_complete.json
-postprocess/basis_lowest6/contact_sheet.png
-postprocess/samples/
-postprocess/frames/
-postprocess/frames_vorticity_optimal/
+2D_airfoil/
+|-- assets/k1024_preliminary/       # curated, versioned figures
+|-- configs/
+|   |-- k1024_c2_sobol_10000_fp16_hybrid50.json
+|   |-- k1024_c2_sobol_1000_fp16_velocity_only.json
+|   |-- gt_re1500_separated.json
+|   `-- k256_final.json             # legacy baseline
+|-- reports/k1024_preliminary_results.json
+|-- scripts/
+|   |-- train.py
+|   |-- prepare_hardcoded_run.py
+|   |-- train_hardcoded.py
+|   |-- solve_ns.py
+|   |-- evaluate_single_gt.py
+|   |-- evaluate_three_typical_cases.py
+|   `-- evaluate_three_typical_laplacian1024.py
+|-- src/eigenfluid_sss/basisnet/airfoil2d/
+|   |-- hardcoded_backend.py
+|   |-- hardcoded_postprocess.py
+|   `-- ns_reference.py
+`-- tests/test_smoke.py
 ```
 
-The velocity-optimal video selects coefficients by velocity L2 minimization.
-The vorticity-optimal video selects coefficients by fluctuation-vorticity L2
-minimization. Each frame places GT on the top row, the basis reconstruction in
-the middle row, and absolute error on the bottom row; velocity magnitude and
-streamlines are shown on the left, and vorticity is shown on the right. The
-workflow also exports the six lowest-frequency Ritz modes individually and as
-`basis_lowest6/contact_sheet.png`.
+## Reproducibility and artifact policy
 
-Evaluate one existing GT cache:
-
-```powershell
-python "$case\scripts\evaluate_single_gt.py" `
-  --checkpoint "$run\checkpoints\hardcoded_sss_frozen.npz" `
-  --gt $cache `
-  --output-dir "$run\single_gt_evaluation" `
-  --phase 0.5 `
-  --ritz-quadrature 4096
-```
-
-## Reproducibility
-
-- Training seed: `20260727`.
-- Spatial and joint-parameter samples use deterministic scrambled Sobol
-  sequences.
-- Validation uses an immutable independently seeded point pack.
-- The analytic airfoil participates directly in sampling and derivatives;
-  no body-fitted or Cartesian training mesh is used.
-- Peeling order is fixed and no causal sorting is performed.
+- Training seed: `20260801` for both K1024 configurations.
+- Parameter and spatial samples use deterministic scrambled Sobol sequences.
+- Peeling order is fixed; modes are never sorted or swapped.
+- Initialization and validation packs are generated independently of CuPy.
 - Results can vary slightly with CUDA, CuPy, BLAS, and GPU architecture.
-- Full K=256 training and 1001-by-801 GT generation are computationally
-  expensive; use the tests before launching the complete workflow.
-
-## Data, checkpoints, and generated media
-
-The repository ignores every `results/` directory as well as checkpoints,
-NPZ caches, logs, frames, plots, and MP4 files. Publish large trained weights
-through a release, object storage, or Git LFS if needed; do not commit them
-to the source tree. The GitHub publication contains only source code,
-canonical configurations, tests, and documentation.
+- Raw `results/` trees, checkpoints, GT NPZ caches, logs, frames, and MP4s
+  are ignored. Only the compact report and curated PNGs above are versioned.
+- The selected K1024 checkpoint is about 188 MB and is intentionally not
+  committed. Distribute it through a release, object storage, or Git LFS if
+  a binary artifact is required.

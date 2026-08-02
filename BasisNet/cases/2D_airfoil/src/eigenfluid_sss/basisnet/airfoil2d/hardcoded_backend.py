@@ -522,7 +522,12 @@ class HardcodedMode:
                 before,
                 self.shadow_weights[layer_index],
                 self.shadow_biases[layer_index],
-                self.compute_dtype,
+                (
+                    F32
+                    if bool(getattr(cfg, "fp32_boundary_layers", False))
+                    and layer_index == 0
+                    else self.compute_dtype
+                ),
             )
             current = sine_forward(preactivation)
             if cache:
@@ -532,7 +537,11 @@ class HardcodedMode:
             output_input,
             self.shadow_weights[-1],
             self.shadow_biases[-1],
-            self.compute_dtype,
+            (
+                F32
+                if bool(getattr(cfg, "fp32_boundary_layers", False))
+                else self.compute_dtype
+            ),
         )
         field = envelope * raw
         return field, (envelope, output_input, layer_cache) if cache else None
@@ -570,13 +579,21 @@ class HardcodedMode:
     def adam_step(self, gradients: list[cp.ndarray], cfg: SimpleNamespace) -> None:
         if len(gradients) != 2 * len(self.weights):
             raise RuntimeError("hardcoded reverse pass returned the wrong gradient count")
+        allow_zero_tensors = bool(
+            getattr(cfg, "allow_zero_gradient_tensors", False)
+        )
         for index, gradient in enumerate(gradients):
             if not bool(cp.all(cp.isfinite(gradient)).get()):
                 raise FloatingPointError(f"non-finite hardcoded gradient tensor {index}")
-            if float(cp.max(cp.abs(gradient)).get()) == 0.0:
+            if (
+                not allow_zero_tensors
+                and float(cp.max(cp.abs(gradient)).get()) == 0.0
+            ):
                 raise FloatingPointError(f"zero hardcoded gradient tensor {index}")
         total = sum(cp.sum(item.astype(F64) ** 2) for item in gradients)
         norm = float(cp.sqrt(total).get())
+        if not math.isfinite(norm) or norm == 0.0:
+            raise FloatingPointError("zero or non-finite total hardcoded gradient")
         scale = min(1.0, cfg.grad_clip / max(norm, 1.0e-30))
         parameters: list[cp.ndarray] = []
         for weight, bias in zip(self.weights, self.biases):
@@ -611,16 +628,24 @@ class HardcodedModel:
             for mode in range(cfg.modes)
         ]
         layer_count = cfg.hidden_layers + 1
-        shadow_dtype = F16 if compute_dtype is F16 else F32
+        fp32_boundary_layers = bool(getattr(cfg, "fp32_boundary_layers", False))
         self.shadow_weight_stacks = [
             cp.stack([mode.weights[layer] for mode in self.modes]).astype(
-                shadow_dtype
+                F32
+                if fp32_boundary_layers and layer in (0, layer_count - 1)
+                else F16
+                if compute_dtype is F16
+                else F32
             )
             for layer in range(layer_count)
         ]
         self.shadow_bias_stacks = [
             cp.stack([mode.biases[layer] for mode in self.modes]).astype(
-                shadow_dtype
+                F32
+                if fp32_boundary_layers and layer in (0, layer_count - 1)
+                else F16
+                if compute_dtype is F16
+                else F32
             )
             for layer in range(layer_count)
         ]
@@ -653,7 +678,11 @@ class HardcodedModel:
                     before,
                     self.shadow_weight_stacks[layer][start:stop],
                     self.shadow_bias_stacks[layer][start:stop],
-                    self.modes[start].compute_dtype,
+                    (
+                        F32
+                        if self.shadow_weight_stacks[layer].dtype == F32
+                        else self.modes[start].compute_dtype
+                    ),
                 )
                 current = sine_forward(preactivation)
                 if cache:
@@ -663,7 +692,11 @@ class HardcodedModel:
                 output_input,
                 self.shadow_weight_stacks[-1][start:stop],
                 self.shadow_bias_stacks[-1][start:stop],
-                self.modes[start].compute_dtype,
+                (
+                    F32
+                    if self.shadow_weight_stacks[-1].dtype == F32
+                    else self.modes[start].compute_dtype
+                ),
             )
             field = _expand_mode_axis(envelope) * raw
             for local, mode_index in enumerate(range(start, stop)):
@@ -823,30 +856,133 @@ def airfoil_area(cfg: SimpleNamespace, beta: float) -> float:
     return float(math.pi * 0.5 * cfg.chord * 0.5 * thickness * cfg.chord)
 
 
-def peel_step(
+def _small_vorticity_stencil(
+    cfg: SimpleNamespace, points: np.ndarray, beta: float, alpha: float
+) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+    """Return globally distributed anchors, four neighbours, and normalized weights."""
+    requested = max(
+        1, min(len(points), int(getattr(cfg, "small_vorticity_anchor_points", 512)))
+    )
+    anchor_indices = np.linspace(0, len(points) - 1, requested, dtype=np.int64)
+    anchors = np.asarray(points[anchor_indices], dtype=np.float64)
+    distance = float(
+        getattr(cfg, "small_vorticity_scale_chords", 0.05)
+    ) * float(cfg.chord)
+    offsets = distance * np.asarray(
+        ((1.0, 0.0), (-1.0, 0.0), (0.0, 1.0), (0.0, -1.0)),
+        dtype=np.float64,
+    )
+    neighbours = anchors[:, None, :] + offsets[None, :, :]
+    flat = neighbours.reshape(-1, 2)
+    valid = (
+        (flat[:, 0] >= cfg.xmin)
+        & (flat[:, 0] <= cfg.xmax)
+        & (flat[:, 1] >= cfg.ymin)
+        & (flat[:, 1] <= cfg.ymax)
+        & ~inside_airfoil(cfg, flat, beta, alpha)
+    ).reshape(requested, 4)
+    neighbours = np.where(valid[:, :, None], neighbours, anchors[:, None, :])
+    counts = np.maximum(valid.sum(axis=1, keepdims=True), 1)
+    weights = valid.astype(np.float64) / counts
+    return anchor_indices, neighbours.reshape(-1, 2), weights
+
+
+def _velocity_peel_step(
     cfg: SimpleNamespace, model: HardcodedModel, points: np.ndarray,
-    beta: float, alpha: float, training: bool
+    beta: float, alpha: float, training: bool,
+    reference_model: HardcodedModel | None = None,
+    full_diagnostics: bool = True,
 ) -> dict[str, Any]:
     weight = ((cfg.xmax - cfg.xmin) * (cfg.ymax - cfg.ymin) - airfoil_area(cfg, beta)) / len(points)
+    regularization_weight = float(
+        getattr(cfg, "vorticity_regularization_weight", 0.0)
+    )
+    small_weight = float(
+        getattr(cfg, "small_vorticity_regularization_weight", 0.0)
+    )
+    preservation_weight = float(
+        getattr(cfg, "large_vorticity_preservation_weight", 0.0)
+    )
+    peeled_subspace_weight = float(
+        getattr(cfg, "peeled_subspace_vorticity_regularization_weight", 0.0)
+    )
+    raw_scale_selective = small_weight > 0.0 or preservation_weight > 0.0
+    scale_selective = raw_scale_selective or peeled_subspace_weight > 0.0
+    if raw_scale_selective and reference_model is None:
+        raise ValueError(
+            "scale-selective vorticity regularization requires a frozen reference model"
+        )
+    n = len(points)
+    if scale_selective:
+        anchor_indices, neighbour_points, stencil_weights_np = (
+            _small_vorticity_stencil(cfg, points, beta, alpha)
+        )
+        anchor_count = len(anchor_indices)
+        current_points = np.concatenate((points, neighbour_points), axis=0)
+        reference_points = np.concatenate(
+            (points[anchor_indices], neighbour_points), axis=0
+        )
+        stencil_weights = cp.asarray(stencil_weights_np, dtype=F64)
+        reference_stream = (
+            reference_model.forward_stream(
+                cfg, reference_points, beta, alpha, False
+            )
+            if raw_scale_selective
+            else None
+        )
+        valid_neighbour_fraction = float(np.mean(stencil_weights_np > 0.0))
+    else:
+        anchor_indices = np.empty(0, dtype=np.int64)
+        anchor_count = 0
+        current_points = points
+        reference_stream = None
+        stencil_weights = None
+        valid_neighbour_fraction = 1.0
     previous_v: list[cp.ndarray] = []
     previous_g: list[cp.ndarray] = []
+    previous_omega_augmented: list[cp.ndarray] = []
     raw_velocities: list[cp.ndarray] = []
     energies: list[float] = []
     projections: list[float] = []
-    for mode, field, cache in model.forward_stream(
-        cfg, points, beta, alpha, training
-    ):
-        psi_x, psi_y = field.grad[:, 0, 0], field.grad[:, 0, 1]
+    enstrophy_ratios: list[float] = []
+    regularization_losses: list[float] = []
+    small_ratios: list[float] = []
+    preservation_ratios: list[float] = []
+    small_losses: list[float] = []
+    preservation_losses: list[float] = []
+    peeled_subspace_ratios: list[float] = []
+    peeled_subspace_losses: list[float] = []
+    freeze_prefix_modes = int(getattr(cfg, "freeze_prefix_modes", 0))
+    fast_orthonormal_projection = bool(
+        getattr(cfg, "orthonormal_peeling_fast_path", False)
+    )
+    for mode_index, (mode, field, cache) in enumerate(model.forward_stream(
+        cfg, current_points, beta, alpha, training
+    )):
+        requires_grad = training and mode_index >= freeze_prefix_modes
+        center_field = Jet2(
+            field.value[:n], field.grad[:n], field.hess[:n]
+        )
+        psi_x = center_field.grad[:, 0, 0]
+        psi_y = center_field.grad[:, 0, 1]
         velocity = cp.concatenate((psi_y, -psi_x)).astype(F64)
         raw_velocities.append(velocity)
-        h = field.hess[:, 0]
+        h = center_field.hess[:, 0]
         gradient = cp.concatenate((h[:, 1, 0], h[:, 1, 1], -h[:, 0, 0], -h[:, 0, 1])).astype(F64)
         if previous_v:
             u = cp.stack(previous_v, axis=1)
             g = cp.stack(previous_g, axis=1)
-            lhs = weight * (u.T @ u)
+            lhs = (
+                None
+                if fast_orthonormal_projection
+                else weight * (u.T @ u)
+            )
             rhs = weight * (u.T @ velocity)
-            coefficients = cp.linalg.solve(lhs, rhs)
+            coefficients = (
+                rhs
+                if fast_orthonormal_projection
+                else cp.linalg.solve(lhs, rhs)
+            )
             reconstructed_v = u @ coefficients
             reconstructed_g = g @ coefficients
         else:
@@ -860,19 +996,186 @@ def peel_step(
         stiffness = weight * cp.dot(residual_g, residual_g)
         denominator = cp.maximum(mass, cfg.mass_floor)
         rayleigh = stiffness / denominator
+        residual_omega = (
+            residual_g[2 * n : 3 * n] - residual_g[n : 2 * n]
+        )
+        enstrophy = weight * cp.dot(residual_omega, residual_omega)
+        enstrophy_ratio = enstrophy / denominator
+        global_regularization_loss = regularization_weight * enstrophy_ratio
+        if raw_scale_selective:
+            _, reference_field, _ = next(reference_stream)
+            raw_omega = -(
+                field.hess[:, 0, 0, 0] + field.hess[:, 0, 1, 1]
+            ).astype(F64)
+            reference_omega = -(
+                reference_field.hess[:, 0, 0, 0]
+                + reference_field.hess[:, 0, 1, 1]
+            ).astype(F64)
+            anchor_omega = raw_omega[cp.asarray(anchor_indices)]
+            neighbour_omega = raw_omega[n:].reshape(anchor_count, 4)
+            reference_anchor_omega = reference_omega[:anchor_count]
+            reference_neighbour_omega = reference_omega[anchor_count:].reshape(
+                anchor_count, 4
+            )
+            averaged_omega = cp.sum(
+                stencil_weights * neighbour_omega, axis=1
+            )
+            reference_averaged_omega = cp.sum(
+                stencil_weights * reference_neighbour_omega, axis=1
+            )
+            highpass = anchor_omega - averaged_omega
+            lowpass = 0.5 * (anchor_omega + averaged_omega)
+            reference_lowpass = 0.5 * (
+                reference_anchor_omega + reference_averaged_omega
+            )
+            reference_scale = cp.maximum(
+                cp.mean(reference_anchor_omega * reference_anchor_omega),
+                cfg.mass_floor,
+            )
+            small_ratio = cp.mean(highpass * highpass) / reference_scale
+            preservation_ratio = cp.mean(
+                (lowpass - reference_lowpass) ** 2
+            ) / reference_scale
+            small_loss = small_weight * small_ratio
+            preservation_loss = preservation_weight * preservation_ratio
+        else:
+            highpass = lowpass = reference_lowpass = reference_scale = None
+            small_ratio = preservation_ratio = cp.asarray(0.0, dtype=F64)
+            small_loss = preservation_loss = cp.asarray(0.0, dtype=F64)
+        if scale_selective:
+            raw_omega_augmented = -(
+                field.hess[:, 0, 0, 0] + field.hess[:, 0, 1, 1]
+            ).astype(F64)
+        else:
+            raw_omega_augmented = None
+        if peeled_subspace_weight > 0.0:
+            if previous_omega_augmented:
+                omega_basis = cp.stack(previous_omega_augmented, axis=1)
+                reconstructed_omega_augmented = omega_basis @ coefficients
+            else:
+                omega_basis = None
+                reconstructed_omega_augmented = cp.zeros_like(
+                    raw_omega_augmented
+                )
+            residual_omega_augmented = (
+                raw_omega_augmented - reconstructed_omega_augmented
+            )
+            normalized_omega_augmented = (
+                residual_omega_augmented / cp.sqrt(denominator)
+            )
+            anchor_normalized_omega = normalized_omega_augmented[
+                cp.asarray(anchor_indices)
+            ]
+            neighbour_normalized_omega = normalized_omega_augmented[
+                n:
+            ].reshape(anchor_count, 4)
+            peeled_highpass = anchor_normalized_omega - cp.sum(
+                stencil_weights * neighbour_normalized_omega, axis=1
+            )
+            peeled_subspace_ratio = cp.mean(peeled_highpass ** 2)
+            peeled_subspace_loss = (
+                peeled_subspace_weight * peeled_subspace_ratio
+            )
+        else:
+            omega_basis = residual_omega_augmented = None
+            normalized_omega_augmented = peeled_highpass = None
+            peeled_subspace_ratio = cp.asarray(0.0, dtype=F64)
+            peeled_subspace_loss = cp.asarray(0.0, dtype=F64)
+        regularization_loss = (
+            global_regularization_loss + small_loss + preservation_loss
+            + peeled_subspace_loss
+        )
         projection_mass = weight * cp.dot(reconstructed_v, reconstructed_v)
-        if training:
+        if requires_grad:
             grad_residual_v = (
                 -2.0 * stiffness * weight / (cfg.rayleigh_scale * denominator * denominator)
             ) * residual_v
             grad_residual_g = (
                 2.0 * weight / (cfg.rayleigh_scale * denominator)
             ) * residual_g
+            if regularization_weight > 0.0:
+                grad_residual_v += (
+                    -2.0
+                    * regularization_weight
+                    * enstrophy
+                    * weight
+                    / (denominator * denominator)
+                ) * residual_v
+                grad_omega = (
+                    2.0
+                    * regularization_weight
+                    * weight
+                    / denominator
+                ) * residual_omega
+                grad_residual_g[n : 2 * n] -= grad_omega
+                grad_residual_g[2 * n : 3 * n] += grad_omega
+            scale_adjoint = cp.zeros(len(current_points), dtype=F64)
+            projection_coefficient_adjoint = None
+            if raw_scale_selective:
+                grad_highpass = (
+                    2.0 * small_weight * highpass
+                    / (anchor_count * reference_scale)
+                )
+                grad_lowpass = (
+                    2.0
+                    * preservation_weight
+                    * (lowpass - reference_lowpass)
+                    / (anchor_count * reference_scale)
+                )
+                scale_adjoint[cp.asarray(anchor_indices)] += (
+                    grad_highpass + 0.5 * grad_lowpass
+                )
+                neighbour_adjoint = (
+                    -stencil_weights * grad_highpass[:, None]
+                    + 0.5 * stencil_weights * grad_lowpass[:, None]
+                )
+                scale_adjoint[n:] = neighbour_adjoint.reshape(-1)
+            if peeled_subspace_weight > 0.0:
+                grad_peeled_highpass = (
+                    2.0
+                    * peeled_subspace_weight
+                    * peeled_highpass
+                    / anchor_count
+                )
+                grad_normalized_omega = cp.zeros(
+                    len(current_points), dtype=F64
+                )
+                grad_normalized_omega[cp.asarray(anchor_indices)] += (
+                    grad_peeled_highpass
+                )
+                grad_normalized_omega[n:] = (
+                    -stencil_weights * grad_peeled_highpass[:, None]
+                ).reshape(-1)
+                grad_residual_omega_augmented = (
+                    grad_normalized_omega / cp.sqrt(denominator)
+                )
+                scale_adjoint += grad_residual_omega_augmented
+                mass_adjoint = (
+                    -0.5
+                    * cp.dot(
+                        grad_normalized_omega,
+                        normalized_omega_augmented,
+                    )
+                    / denominator
+                )
+                grad_residual_v += (
+                    2.0 * weight * mass_adjoint
+                ) * residual_v
+                if previous_omega_augmented:
+                    projection_coefficient_adjoint = -(
+                        omega_basis.T @ grad_residual_omega_augmented
+                    )
             grad_velocity = grad_residual_v
             if previous_v:
                 grad_q = -(u.T @ grad_residual_v) - (g.T @ grad_residual_g)
-                grad_velocity = grad_velocity + weight * u @ cp.linalg.solve(lhs.T, grad_q)
-            n = len(points)
+                if projection_coefficient_adjoint is not None:
+                    grad_q += projection_coefficient_adjoint
+                projection_gradient = (
+                    grad_q
+                    if fast_orthonormal_projection
+                    else cp.linalg.solve(lhs.T, grad_q)
+                )
+                grad_velocity = grad_velocity + weight * u @ projection_gradient
             adjoint_dtype = (
                 F16
                 if bool(getattr(cfg, "all_network_fp16", False))
@@ -883,34 +1186,40 @@ def peel_step(
                 raw_adjoint_max = max(
                     float(cp.max(cp.abs(grad_velocity)).get()),
                     float(cp.max(cp.abs(grad_residual_g)).get()),
+                    float(cp.max(cp.abs(scale_adjoint)).get()),
                     1.0e-30,
                 )
                 loss_scale = min(configured_scale, 1.0e-4 / raw_adjoint_max)
             else:
                 loss_scale = 1.0
             adjoint = Jet2(
-                cp.zeros((n, 1), dtype=adjoint_dtype),
-                cp.zeros((n, 1, 2), dtype=adjoint_dtype),
-                cp.zeros((n, 1, 2, 2), dtype=adjoint_dtype),
+                cp.zeros((len(current_points), 1), dtype=adjoint_dtype),
+                cp.zeros((len(current_points), 1, 2), dtype=adjoint_dtype),
+                cp.zeros((len(current_points), 1, 2, 2), dtype=adjoint_dtype),
             )
-            adjoint.grad[:, 0, 1] = (
+            adjoint.grad[:n, 0, 1] = (
                 grad_velocity[:n] * loss_scale
             ).astype(adjoint_dtype)
-            adjoint.grad[:, 0, 0] = (
+            adjoint.grad[:n, 0, 0] = (
                 -grad_velocity[n:] * loss_scale
             ).astype(adjoint_dtype)
-            adjoint.hess[:, 0, 1, 0] = (
+            adjoint.hess[:n, 0, 1, 0] = (
                 grad_residual_g[:n] * loss_scale
             ).astype(adjoint_dtype)
-            adjoint.hess[:, 0, 1, 1] = (
+            adjoint.hess[:n, 0, 1, 1] = (
                 grad_residual_g[n : 2 * n] * loss_scale
             ).astype(adjoint_dtype)
-            adjoint.hess[:, 0, 0, 0] = (
+            adjoint.hess[:n, 0, 0, 0] = (
                 -grad_residual_g[2 * n : 3 * n] * loss_scale
             ).astype(adjoint_dtype)
-            adjoint.hess[:, 0, 0, 1] = (
+            adjoint.hess[:n, 0, 0, 1] = (
                 -grad_residual_g[3 * n :] * loss_scale
             ).astype(adjoint_dtype)
+            scale_hessian_adjoint = (-scale_adjoint * loss_scale).astype(
+                adjoint_dtype
+            )
+            adjoint.hess[:, 0, 0, 0] += scale_hessian_adjoint
+            adjoint.hess[:, 0, 1, 1] += scale_hessian_adjoint
             gradients = mode.backward(cache, adjoint)
             if (
                 loss_scale != 1.0
@@ -921,8 +1230,18 @@ def peel_step(
         normalizer = 1.0 / cp.sqrt(denominator)
         previous_v.append(residual_v * normalizer)
         previous_g.append(residual_g * normalizer)
+        if peeled_subspace_weight > 0.0:
+            previous_omega_augmented.append(normalized_omega_augmented)
         energies.append(float(rayleigh.get()))
         projections.append(float((projection_mass / denominator).get()))
+        enstrophy_ratios.append(float(enstrophy_ratio.get()))
+        regularization_losses.append(float(regularization_loss.get()))
+        small_ratios.append(float(small_ratio.get()))
+        preservation_ratios.append(float(preservation_ratio.get()))
+        small_losses.append(float(small_loss.get()))
+        preservation_losses.append(float(preservation_loss.get()))
+        peeled_subspace_ratios.append(float(peeled_subspace_ratio.get()))
+        peeled_subspace_losses.append(float(peeled_subspace_loss.get()))
     matrix = cp.stack(previous_v, axis=1)
     gram = weight * matrix.T @ matrix
     orth_error = float(cp.max(cp.abs(gram - cp.eye(cfg.modes, dtype=F64))).get())
@@ -932,7 +1251,32 @@ def peel_step(
     threshold = cp.maximum(eigenvalues[-1], cfg.mass_floor) * 1.0e-8
     effective_rank = int(cp.sum(eigenvalues > threshold).get())
     return {
-        "loss": float(np.mean(energies) / cfg.rayleigh_scale),
+        "loss": float(
+            np.mean(energies) / cfg.rayleigh_scale
+            + np.mean(regularization_losses)
+        ),
+        "base_loss": float(np.mean(energies) / cfg.rayleigh_scale),
+        "vorticity_regularization_loss": float(
+            np.mean(regularization_losses)
+        ),
+        "enstrophy_ratio": float(
+            np.mean(enstrophy_ratios)
+        ),
+        "small_vorticity_regularization_loss": float(np.mean(small_losses)),
+        "large_vorticity_preservation_loss": float(
+            np.mean(preservation_losses)
+        ),
+        "small_vorticity_highpass_ratio": float(np.mean(small_ratios)),
+        "large_vorticity_drift_ratio": float(
+            np.mean(preservation_ratios)
+        ),
+        "regularization_valid_neighbor_fraction": valid_neighbour_fraction,
+        "peeled_subspace_vorticity_regularization_loss": float(
+            np.mean(peeled_subspace_losses)
+        ),
+        "peeled_subspace_vorticity_highpass_trace": float(
+            np.mean(peeled_subspace_ratios)
+        ),
         "mean_energy": float(np.mean(energies)),
         "max_energy": float(np.max(energies)),
         "min_energy": float(np.min(energies)),
@@ -941,3 +1285,390 @@ def peel_step(
         "effective_raw_rank": effective_rank,
         "mode_energies": energies,
     }
+
+
+def _hybrid_velocity_vorticity_peel_step(
+    cfg: SimpleNamespace,
+    model: HardcodedModel,
+    points: np.ndarray,
+    beta: float,
+    alpha: float,
+    training: bool,
+    full_diagnostics: bool,
+) -> dict[str, Any]:
+    """Train one shared basis in an equal velocity/vorticity metric.
+
+    The velocity term is the existing vector Rayleigh quotient.  The
+    vorticity term is a graph-consistent Rayleigh quotient: vorticity itself
+    is evaluated exactly from the Jet2 Hessian, while its spatial Dirichlet
+    energy is evaluated with symmetric four-neighbour differences.  This
+    keeps the fixed graph at seven Jet2 channels instead of increasing every
+    MLP activation to the fifteen channels required by Jet3.
+    """
+
+    velocity_weight = float(getattr(cfg, "hybrid_velocity_weight", 0.5))
+    vorticity_weight = float(getattr(cfg, "hybrid_vorticity_weight", 0.5))
+    total_objective_weight = velocity_weight + vorticity_weight
+    if total_objective_weight <= 0.0:
+        raise ValueError("hybrid velocity/vorticity weights must sum to a positive value")
+    velocity_weight /= total_objective_weight
+    vorticity_weight /= total_objective_weight
+    length_scale = float(getattr(
+        cfg, "hybrid_vorticity_mass_length_scale_chords", 1.0
+    )) * float(cfg.chord)
+    distance = float(getattr(
+        cfg, "hybrid_vorticity_difference_chords", 0.05
+    )) * float(cfg.chord)
+    if distance <= 0.0:
+        raise ValueError("hybrid vorticity difference distance must be positive")
+    reorthogonalization_passes = max(
+        1, int(getattr(cfg, "hybrid_reorthogonalization_passes", 2))
+    )
+    velocity_rayleigh_scale = float(getattr(
+        cfg, "hybrid_velocity_rayleigh_scale", cfg.rayleigh_scale
+    ))
+    vorticity_rayleigh_scale = float(getattr(
+        cfg, "hybrid_vorticity_rayleigh_scale", cfg.rayleigh_scale
+    ))
+    if velocity_rayleigh_scale <= 0.0 or vorticity_rayleigh_scale <= 0.0:
+        raise ValueError("hybrid Rayleigh normalization scales must be positive")
+    n = len(points)
+    area = (
+        (cfg.xmax - cfg.xmin) * (cfg.ymax - cfg.ymin)
+        - airfoil_area(cfg, beta)
+    )
+    weight = area / n
+
+    requested = max(
+        1,
+        min(
+            n,
+            int(getattr(cfg, "hybrid_vorticity_anchor_points", 512)),
+        ),
+    )
+    anchor_indices = np.linspace(0, n - 1, requested, dtype=np.int64)
+    anchors = np.asarray(points[anchor_indices], dtype=np.float64)
+    offsets = distance * np.asarray(
+        ((1.0, 0.0), (-1.0, 0.0), (0.0, 1.0), (0.0, -1.0)),
+        dtype=np.float64,
+    )
+    neighbours = anchors[:, None, :] + offsets[None, :, :]
+    flat_neighbours = neighbours.reshape(-1, 2)
+    valid = (
+        (flat_neighbours[:, 0] >= cfg.xmin)
+        & (flat_neighbours[:, 0] <= cfg.xmax)
+        & (flat_neighbours[:, 1] >= cfg.ymin)
+        & (flat_neighbours[:, 1] <= cfg.ymax)
+        & ~inside_airfoil(cfg, flat_neighbours, beta, alpha)
+    ).reshape(requested, 4)
+    neighbours = np.where(valid[:, :, None], neighbours, anchors[:, None, :])
+    valid_counts = np.maximum(valid.sum(axis=1, keepdims=True), 1)
+    stencil_weights_np = valid.astype(np.float64) / valid_counts
+    stencil_weights = cp.asarray(stencil_weights_np, dtype=F64)
+    current_points = np.concatenate((points, neighbours.reshape(-1, 2)), axis=0)
+    anchor_indices_device = cp.asarray(anchor_indices)
+    anchor_weight = area / requested
+    direction_factor = 2.0
+
+    modes = int(cfg.modes)
+    basis_v = cp.empty((2 * n, modes), dtype=F64)
+    basis_g = cp.empty((4 * n, modes), dtype=F64)
+    basis_omega = cp.empty((n, modes), dtype=F64)
+    basis_omega_difference = cp.empty((4 * requested, modes), dtype=F64)
+    raw_velocities: list[cp.ndarray] = []
+    raw_omegas: list[cp.ndarray] = []
+    hybrid_energies: list[float] = []
+    hybrid_losses: list[float] = []
+    velocity_rayleighs: list[float] = []
+    vorticity_rayleighs: list[float] = []
+    enstrophy_ratios: list[float] = []
+    projection_ratios: list[float] = []
+    orth_error = 0.0
+    mass_length_squared = length_scale * length_scale
+
+    for mode_index, (mode, field, cache) in enumerate(model.forward_stream(
+        cfg, current_points, beta, alpha, training
+    )):
+        center = Jet2(field.value[:n], field.grad[:n], field.hess[:n])
+        psi_x = center.grad[:, 0, 0]
+        psi_y = center.grad[:, 0, 1]
+        velocity = cp.concatenate((psi_y, -psi_x)).astype(F64)
+        hessian = center.hess[:, 0]
+        velocity_gradient = cp.concatenate(
+            (
+                hessian[:, 1, 0],
+                hessian[:, 1, 1],
+                -hessian[:, 0, 0],
+                -hessian[:, 0, 1],
+            )
+        ).astype(F64)
+        omega_all = -(
+            field.hess[:, 0, 0, 0] + field.hess[:, 0, 1, 1]
+        ).astype(F64)
+        omega = omega_all[:n]
+        omega_anchor = omega[anchor_indices_device]
+        omega_neighbours = omega_all[n:].reshape(requested, 4)
+        omega_difference = (omega_neighbours - omega_anchor[:, None]) / distance
+
+        if full_diagnostics:
+            raw_velocities.append(velocity.copy())
+            raw_omegas.append(omega.copy())
+
+        residual_v = velocity.copy()
+        residual_g = velocity_gradient.copy()
+        residual_omega = omega.copy()
+        residual_omega_difference = omega_difference.copy()
+        coefficients = cp.zeros(mode_index, dtype=F64)
+        if mode_index:
+            previous_v = basis_v[:, :mode_index]
+            previous_g = basis_g[:, :mode_index]
+            previous_omega = basis_omega[:, :mode_index]
+            previous_omega_difference = basis_omega_difference[:, :mode_index]
+            for _ in range(reorthogonalization_passes):
+                increment = (
+                    velocity_weight * weight * (previous_v.T @ residual_v)
+                    + vorticity_weight
+                    * mass_length_squared
+                    * weight
+                    * (previous_omega.T @ residual_omega)
+                )
+                coefficients += increment
+                residual_v -= previous_v @ increment
+                residual_g -= previous_g @ increment
+                residual_omega -= previous_omega @ increment
+                residual_omega_difference -= (
+                    previous_omega_difference @ increment
+                ).reshape(requested, 4)
+        else:
+            previous_v = previous_g = previous_omega = None
+            previous_omega_difference = None
+
+        velocity_mass = weight * cp.dot(residual_v, residual_v)
+        velocity_stiffness = weight * cp.dot(residual_g, residual_g)
+        vorticity_mass = weight * cp.dot(residual_omega, residual_omega)
+        vorticity_stiffness = (
+            direction_factor
+            * anchor_weight
+            * cp.sum(
+                stencil_weights * residual_omega_difference**2,
+                dtype=F64,
+            )
+        )
+        velocity_denominator = cp.maximum(velocity_mass, cfg.mass_floor)
+        vorticity_denominator = cp.maximum(vorticity_mass, cfg.mass_floor)
+        velocity_rayleigh = velocity_stiffness / velocity_denominator
+        vorticity_rayleigh = vorticity_stiffness / vorticity_denominator
+        hybrid_energy = (
+            velocity_weight * velocity_rayleigh
+            + vorticity_weight * vorticity_rayleigh
+        )
+        hybrid_loss = (
+            velocity_weight * velocity_rayleigh / velocity_rayleigh_scale
+            + vorticity_weight * vorticity_rayleigh / vorticity_rayleigh_scale
+        )
+        mixed_mass = (
+            velocity_weight * velocity_mass
+            + vorticity_weight * mass_length_squared * vorticity_mass
+        )
+        mixed_denominator = cp.maximum(mixed_mass, cfg.mass_floor)
+
+        requires_grad = training and mode_index >= int(
+            getattr(cfg, "freeze_prefix_modes", 0)
+        )
+        if requires_grad:
+            grad_residual_v = (
+                -2.0
+                * velocity_weight
+                * velocity_stiffness
+                * weight
+                / (velocity_denominator * velocity_denominator)
+                / velocity_rayleigh_scale
+            ) * residual_v
+            grad_residual_g = (
+                2.0
+                * velocity_weight
+                * weight
+                / velocity_denominator
+                / velocity_rayleigh_scale
+            ) * residual_g
+            grad_residual_omega = (
+                -2.0
+                * vorticity_weight
+                * vorticity_stiffness
+                * weight
+                / (vorticity_denominator * vorticity_denominator)
+                / vorticity_rayleigh_scale
+            ) * residual_omega
+            grad_residual_omega_difference = (
+                2.0
+                * vorticity_weight
+                * direction_factor
+                * anchor_weight
+                * stencil_weights
+                / vorticity_denominator
+                / vorticity_rayleigh_scale
+            ) * residual_omega_difference
+
+            if mode_index:
+                for _ in range(reorthogonalization_passes):
+                    coefficient_adjoint = -(
+                        previous_v.T @ grad_residual_v
+                        + previous_g.T @ grad_residual_g
+                        + previous_omega.T @ grad_residual_omega
+                        + previous_omega_difference.T
+                        @ grad_residual_omega_difference.reshape(-1)
+                    )
+                    grad_residual_v += (
+                        velocity_weight
+                        * weight
+                        * (previous_v @ coefficient_adjoint)
+                    )
+                    grad_residual_omega += (
+                        vorticity_weight
+                        * mass_length_squared
+                        * weight
+                        * (previous_omega @ coefficient_adjoint)
+                    )
+
+            omega_adjoint = cp.zeros(len(current_points), dtype=F64)
+            omega_adjoint[:n] = grad_residual_omega
+            neighbour_adjoint = grad_residual_omega_difference / distance
+            omega_adjoint[anchor_indices_device] -= cp.sum(
+                neighbour_adjoint, axis=1
+            )
+            omega_adjoint[n:] = neighbour_adjoint.reshape(-1)
+
+            adjoint = Jet2(
+                cp.zeros((len(current_points), 1), dtype=F32),
+                cp.zeros((len(current_points), 1, 2), dtype=F32),
+                cp.zeros((len(current_points), 1, 2, 2), dtype=F32),
+            )
+            adjoint.grad[:n, 0, 1] = grad_residual_v[:n].astype(F32)
+            adjoint.grad[:n, 0, 0] = (-grad_residual_v[n:]).astype(F32)
+            adjoint.hess[:n, 0, 1, 0] = grad_residual_g[:n].astype(F32)
+            adjoint.hess[:n, 0, 1, 1] = grad_residual_g[n : 2 * n].astype(F32)
+            adjoint.hess[:n, 0, 0, 0] = (-grad_residual_g[2 * n : 3 * n]).astype(F32)
+            adjoint.hess[:n, 0, 0, 1] = (-grad_residual_g[3 * n :]).astype(F32)
+            omega_hessian_adjoint = (-omega_adjoint).astype(F32)
+            adjoint.hess[:, 0, 0, 0] += omega_hessian_adjoint
+            adjoint.hess[:, 0, 1, 1] += omega_hessian_adjoint
+            gradients = mode.backward(cache, adjoint)
+            mode.adam_step(gradients, cfg)
+
+        normalizer = 1.0 / cp.sqrt(mixed_denominator)
+        normalized_v = residual_v * normalizer
+        normalized_g = residual_g * normalizer
+        normalized_omega = residual_omega * normalizer
+        normalized_omega_difference = residual_omega_difference * normalizer
+        orth_error = max(
+            orth_error,
+            abs(float((mixed_mass / mixed_denominator).get()) - 1.0),
+        )
+        if mode_index:
+            final_overlap = (
+                velocity_weight * weight * (previous_v.T @ normalized_v)
+                + vorticity_weight
+                * mass_length_squared
+                * weight
+                * (previous_omega.T @ normalized_omega)
+            )
+            orth_error = max(
+                orth_error, float(cp.max(cp.abs(final_overlap)).get())
+            )
+        basis_v[:, mode_index] = normalized_v
+        basis_g[:, mode_index] = normalized_g
+        basis_omega[:, mode_index] = normalized_omega
+        basis_omega_difference[:, mode_index] = normalized_omega_difference.reshape(-1)
+
+        hybrid_energies.append(float(hybrid_energy.get()))
+        hybrid_losses.append(float(hybrid_loss.get()))
+        velocity_rayleighs.append(float(velocity_rayleigh.get()))
+        vorticity_rayleighs.append(float(vorticity_rayleigh.get()))
+        enstrophy_ratios.append(float((vorticity_mass / velocity_denominator).get()))
+        projection_ratios.append(
+            float((cp.dot(coefficients, coefficients) / mixed_denominator).get())
+            if mode_index
+            else 0.0
+        )
+
+    if full_diagnostics:
+        raw_velocity_matrix = cp.stack(raw_velocities, axis=1)
+        raw_omega_matrix = cp.stack(raw_omegas, axis=1)
+        raw_gram = (
+            velocity_weight * weight * (raw_velocity_matrix.T @ raw_velocity_matrix)
+            + vorticity_weight
+            * mass_length_squared
+            * weight
+            * (raw_omega_matrix.T @ raw_omega_matrix)
+        )
+        raw_gram = 0.5 * (raw_gram + raw_gram.T)
+        eigenvalues = cp.linalg.eigvalsh(raw_gram)
+        threshold = cp.maximum(eigenvalues[-1], cfg.mass_floor) * 1.0e-8
+        effective_rank = int(cp.sum(eigenvalues > threshold).get())
+    else:
+        effective_rank = -1
+
+    zeros = 0.0
+    return {
+        "loss": float(np.mean(hybrid_losses)),
+        "base_loss": float(np.mean(hybrid_losses)),
+        "velocity_rayleigh": float(np.mean(velocity_rayleighs)),
+        "vorticity_rayleigh": float(np.mean(vorticity_rayleighs)),
+        "hybrid_velocity_weight": velocity_weight,
+        "hybrid_vorticity_weight": vorticity_weight,
+        "hybrid_velocity_rayleigh_scale": velocity_rayleigh_scale,
+        "hybrid_vorticity_rayleigh_scale": vorticity_rayleigh_scale,
+        "vorticity_regularization_loss": zeros,
+        "enstrophy_ratio": float(np.mean(enstrophy_ratios)),
+        "small_vorticity_regularization_loss": zeros,
+        "large_vorticity_preservation_loss": zeros,
+        "small_vorticity_highpass_ratio": zeros,
+        "large_vorticity_drift_ratio": zeros,
+        "regularization_valid_neighbor_fraction": float(np.mean(valid)),
+        "peeled_subspace_vorticity_regularization_loss": zeros,
+        "peeled_subspace_vorticity_highpass_trace": zeros,
+        "mean_energy": float(np.mean(hybrid_energies)),
+        "max_energy": float(np.max(hybrid_energies)),
+        "min_energy": float(np.min(hybrid_energies)),
+        "mean_projection_ratio": float(np.mean(projection_ratios)),
+        "orth_error": orth_error,
+        "effective_raw_rank": effective_rank,
+        "mode_energies": hybrid_energies,
+    }
+
+
+def peel_step(
+    cfg: SimpleNamespace,
+    model: HardcodedModel,
+    points: np.ndarray,
+    beta: float,
+    alpha: float,
+    training: bool,
+    reference_model: HardcodedModel | None = None,
+    full_diagnostics: bool = True,
+) -> dict[str, Any]:
+    objective = str(getattr(cfg, "basis_objective", "velocity_rayleigh"))
+    if objective == "velocity_vorticity_hybrid":
+        if reference_model is not None:
+            raise ValueError("hybrid basis training does not use a reference model")
+        return _hybrid_velocity_vorticity_peel_step(
+            cfg,
+            model,
+            points,
+            beta,
+            alpha,
+            training,
+            full_diagnostics,
+        )
+    if objective != "velocity_rayleigh":
+        raise ValueError(f"unknown basis objective: {objective}")
+    return _velocity_peel_step(
+        cfg,
+        model,
+        points,
+        beta,
+        alpha,
+        training,
+        reference_model=reference_model,
+        full_diagnostics=full_diagnostics,
+    )

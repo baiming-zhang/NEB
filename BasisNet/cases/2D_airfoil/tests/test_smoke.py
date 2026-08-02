@@ -54,6 +54,50 @@ def test_final_protocol_config():
     assert cfg.geometry_mode == "c2_ellipse"
 
 
+def test_k1024_protocols_and_preliminary_report():
+    case_root = Path(__file__).resolve().parents[1]
+    hybrid = json.loads(
+        (
+            case_root
+            / "configs"
+            / "k1024_c2_sobol_10000_fp16_hybrid50.json"
+        ).read_text(encoding="utf-8")
+    )
+    velocity = json.loads(
+        (
+            case_root
+            / "configs"
+            / "k1024_c2_sobol_1000_fp16_velocity_only.json"
+        ).read_text(encoding="utf-8")
+    )
+    assert hybrid["modes"] == velocity["modes"] == 1024
+    assert hybrid["seed"] == velocity["seed"] == 20260801
+    assert hybrid["points_per_step"] == velocity["points_per_step"] == 4096
+    assert hybrid["mode_forward_batch"] == velocity["mode_forward_batch"] == 32
+    assert hybrid["fp32_boundary_layers"]
+    assert velocity["fp32_boundary_layers"]
+    assert hybrid["basis_objective"] == "velocity_vorticity_hybrid"
+    assert hybrid["hybrid_velocity_weight"] == 0.5
+    assert hybrid["hybrid_vorticity_weight"] == 0.5
+    assert hybrid["hybrid_vorticity_anchor_points"] == 512
+    assert velocity["basis_objective"] == "velocity_rayleigh"
+    assert velocity["epochs"] == 1000
+
+    report = json.loads(
+        (
+            case_root / "reports" / "k1024_preliminary_results.json"
+        ).read_text(encoding="utf-8")
+    )
+    assert report["status"] == "preliminary"
+    assert report["training"]["hybrid_velocity_vorticity"]["selected_epoch"] == 650
+    assert len(report["evaluation"]["cases"]) == 3
+    for case in report["evaluation"]["cases"]:
+        for method in ("learned", "laplacian"):
+            assert all(np.isfinite(list(case[method].values())))
+        for key in ("figure", "learned_lowest_six"):
+            assert (case_root / "reports" / case[key]).resolve().is_file()
+
+
 def test_joint_geometry_and_sampling():
     cfg = Config()
     beta, alpha_deg = 0.7, 9.0

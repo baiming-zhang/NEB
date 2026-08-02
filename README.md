@@ -38,40 +38,25 @@ was resumed more than once, the accumulated active time stored in
 
 - [2D_airfoil](BasisNet/cases/2D_airfoil/README.md)
 
-  - Training: 256 modes, 4,096 Sobol points/epoch, epoch budget 10,000,
-    early stop at epoch 6,800.
-  - Training time: `08:37:53` wall span
-    (`2026-07-27 01:29:52` to `2026-07-27 10:07:45`);
-    accumulated active time `07:02:43` across epochs 1-6,800.
-  - Early-stopping reference: epoch 5,800; validation mean `0.3375403533`;
-    validation P95 `0.3457105660`; validation maximum `0.3460695776`;
-    train loss `0.3456664867`; validation `max |G-I| =
-    1.332267630e-15`; rank `256/256`.
-  - Smallest recorded validation mean: `0.3375304713` at epoch 6,700.
-    It did not replace epoch 5,800 under the configured material-improvement
-    threshold.
-  - Frozen epoch-6,800 checkpoint, in-domain 21-frame path
-    (`beta=0.15..0.85`, `alpha=-10..10 degrees`), velocity-fit:
-    mean/P95/maximum velocity error
-    `3.045560% / 4.151656% / 4.232482%`; mean vorticity error
-    `30.082296%`; mean fluctuation-velocity error `53.531760%`; mean
-    fluctuation-vorticity error `85.777799%`; mean wake-velocity error
-    `6.803666%`; mean wake-vorticity error `51.585655%`; Ritz rank
-    `256/256`.
-  - The same 21 frames with vorticity-fit coefficients: mean velocity error
-    `4.012830%`; mean vorticity error `29.465638%`; mean
-    fluctuation-vorticity error `84.187929%`; vorticity projection rank
-    `256/256`.
-  - Outside-training-domain test at `beta=3`, `alpha=30 degrees`, Re=100:
-    velocity-fit velocity/vorticity errors
-    `2.002120% / 23.584463%`; fluctuation velocity/vorticity errors
-    `19.458154% / 105.584121%`; wake velocity/vorticity errors
-    `2.040363% / 26.215795%`.
-  - Outside-training-domain test at `beta=3`, `alpha=30 degrees`, Re=1,500:
-    velocity-fit velocity/vorticity errors
-    `12.020214% / 67.008829%`; fluctuation velocity/vorticity errors
-    `34.149164% / 93.678719%`; wake velocity/vorticity errors
-    `16.335338% / 74.660629%`.
+  - Current training: 1,024 shared modes, 4,096 Sobol points/epoch,
+    FP16 hidden-layer shadows with FP32 boundary/master/Adam arithmetic.
+  - Hybrid objective:
+    `0.5 (velocity Rayleigh / 80) + 0.5 (vorticity Rayleigh / 232)`;
+    selected epoch 650 with validation `0.5280304703`, rank `1024/1024`,
+    orthogonality error `2.61e-12`, and 3:53:51 accumulated active time.
+  - Three Re=1500 velocity-L2 reconstructions at
+    `(beta, alpha)=(0.50,+10 deg),(0.85,0 deg),(0.50,-10 deg)` have mean
+    total/wake/fluctuation/wake-fluctuation velocity errors
+    `1.945275% / 3.511677% / 27.684598% / 20.135484%`.
+  - A matched rectangular Dirichlet Laplacian K1024 basis gives
+    `2.981040% / 5.478333% / 42.469079% / 31.854173%` on the same fields;
+    its errors are 53--58% higher depending on the metric.
+  - A from-scratch K1024 velocity-only ablation uses identical epoch-0
+    weights and validation points. The versioned preliminary snapshot is
+    epoch 200 with validation `1.6993393228`, rank `1024/1024`; the final
+    1,000-epoch comparison is pending.
+  - The earlier K256 result remains documented as a legacy baseline inside
+    the case README; it is no longer the primary result.
 
 - [3D_periodic_free](BasisNet/cases/3D_periodic_free/README.md)
 
