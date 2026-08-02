@@ -10,7 +10,7 @@ frames, and videos are intentionally excluded from Git.
 | Case | Domain and target | Learned basis | Independent evaluation | Status |
 | --- | --- | ---: | --- | --- |
 | [2D_karman](2D_karman/README.md) | Translating cylinder in a 2D channel | K=96 | Re=100 Karman-wake HDF5 data | Reproducible workflow; no version-controlled reference metric yet |
-| [2D_airfoil](2D_airfoil/README.md) | Analytic thickness and angle jointly parameterized in a 2D far field | K=256 | Independent D2Q9 NS trajectories | Completed; early-stopped at epoch 6800 with full rank |
+| [2D_airfoil](2D_airfoil/README.md) | Analytic thickness and angle jointly parameterized in a 2D far field | K=1024 | Independent Re=1500 D2Q9-TRT NS trajectories | Preliminary K1024 hybrid benchmark and matched velocity-only ablation |
 | [3D_periodic_free](3D_periodic_free/README.md) | Triply periodic cube without obstacles | K=256 | Exact forced Taylor--Green and oscillatory ABC GT | Completed and benchmarked |
 | [3D_parametric_wake](3D_parametric_wake/README.md) | Continuously morphed sphere-to-cube obstacle in a driven periodic 3D flow | K=256 | Independent Re=500 pseudo-spectral NS trajectory | Reproducible workflow; final 10000-epoch benchmark to be generated |
 
@@ -21,18 +21,21 @@ and rendering commands.
 
 ## Validated training runs
 
-The canonical airfoil experiment uses a 10,000-epoch maximum budget with
-validation-driven early stopping. Its generated checkpoint is deliberately
-excluded from Git; the source, configuration, fixed validation protocol, and
-regression tests required to reproduce it are versioned.
+The current airfoil experiment uses a 10,000-epoch hybrid budget and a matched
+1,000-epoch velocity-only ablation. Generated checkpoints are deliberately
+excluded from Git; the source, configurations, fixed validation protocol,
+compact result record, curated figures, and tests required to reproduce the
+comparison are versioned.
 
-| Case | Modes | Maximum epoch | Stop epoch | Best epoch | Best fixed-validation mean | Final rank |
+| Case | Modes | Epoch budget | Observed epoch | Selected epoch | Selected fixed-validation objective | Selected rank |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| 2D_airfoil | 256 | 10,000 | 6,800 | 5,800 | 0.337540 | 256 |
+| 2D_airfoil hybrid | 1024 | 10,000 | 4,300 | 650 | 0.528030 | 1024 |
+| 2D_airfoil velocity-only ablation | 1024 | 1,000 | 200 snapshot | 200 snapshot | 1.699339 | 1024 |
 
-The fixed-validation value is the training/selection Rayleigh objective. It is
-not an independent Navier--Stokes reconstruction error; the case evaluates
-velocity- and vorticity-optimal GT reconstructions separately.
+The hybrid fixed-validation value is
+`0.5 (R_u / 80) + 0.5 (R_omega / 232)`, while the velocity-only value is
+`R_u / 80`; neither is an independent Navier--Stokes reconstruction error.
+The ablation row is explicitly an in-progress epoch-200 snapshot.
 
 ## Validated reference results
 
@@ -43,6 +46,7 @@ linear basis projection.
 
 | Case and benchmark | Checkpoint | Mean velocity relative error | Additional validated result |
 | --- | --- | ---: | --- |
+| 2D_airfoil, three Re=1500 cases | Hybrid best, epoch 650 | 1.94527% | Rectangular Laplacian K1024: 2.98104%; learned basis is 34.74% lower |
 | 3D_periodic_free, forced Taylor--Green, Re=500 | Latest, epoch 10000 | 1.09998% | Hard discrete divergence 0; spectrum error 0.02478%; 4096-point inference 0.499 s |
 | 3D_periodic_free, forced Taylor--Green, Re=500 | Validation best, epoch 9800 | 1.21760% | Hard discrete divergence 0; spectrum error 0.03042%; 4096-point inference 0.501 s |
 | 3D_periodic_free, oscillatory ABC k=1, Re=500, 50 frames | Latest, epoch 10000 | about 0.247% | Maximum frame error about 0.268% |

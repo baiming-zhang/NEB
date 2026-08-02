@@ -46,12 +46,16 @@ def main() -> None:
     rng = np.random.default_rng(cfg.seed)
     arrays: dict[str, np.ndarray] = {}
     input_features = 4 * cfg.frequencies + 4
+    first_layer_gain = float(getattr(cfg, "initial_first_layer_gain", 1.0))
+    hidden_layer_gain = float(getattr(cfg, "initial_hidden_layer_gain", 1.0))
+    output_layer_gain = float(getattr(cfg, "initial_output_layer_gain", 1.0))
     for mode in range(cfg.modes):
         prefix = f"m{mode:03d}"
         parameter_names: list[str] = []
         fan_in = input_features
         for layer in range(cfg.hidden_layers):
-            bound = 1.0 / math.sqrt(fan_in)
+            gain = first_layer_gain if layer == 0 else hidden_layer_gain
+            bound = gain / math.sqrt(fan_in)
             weight_name = f"{prefix}.l{layer}.weight"
             bias_name = f"{prefix}.l{layer}.bias"
             arrays[weight_name] = rng.uniform(
@@ -62,7 +66,7 @@ def main() -> None:
             ).astype(np.float32)
             parameter_names.extend((weight_name, bias_name))
             fan_in = cfg.hidden
-        bound = 1.0 / math.sqrt(fan_in)
+        bound = output_layer_gain / math.sqrt(fan_in)
         weight_name = f"{prefix}.output.weight"
         bias_name = f"{prefix}.output.bias"
         arrays[weight_name] = rng.uniform(
@@ -140,6 +144,9 @@ def main() -> None:
     manifest = {
         "config": str(args.config.resolve()),
         "initializer": "numpy_pcg64_v1",
+        "initial_first_layer_gain": first_layer_gain,
+        "initial_hidden_layer_gain": hidden_layer_gain,
+        "initial_output_layer_gain": output_layer_gain,
         "sampler": "scipy_scrambled_sobol_v1",
         "geometry": "c2_ellipse",
         "initial_checkpoint": str(initial.resolve()),

@@ -75,9 +75,9 @@ and Ritz postprocessing retain their documented semantics.
   two-dimensional channel, K=96 learned modes, and Re=100 wake
   reconstruction.
 - [2D_airfoil](cases/2D_airfoil/README.md): a jointly thickness/angle
-  parameterized analytic airfoil, K=256 modes, a hand-written fixed-graph
-  trainer, independent D2Q9 Navier--Stokes GT, and velocity- and
-  vorticity-optimal reconstruction videos.
+  parameterized analytic airfoil, K=1024 shared modes, matched hybrid and
+  velocity-only objectives, independent D2Q9 Navier--Stokes GT, and a
+  three-case learned-basis versus Laplacian reconstruction benchmark.
 - [3D_periodic_free](cases/3D_periodic_free/README.md): K=256
   hard-discrete-divergence-free modes on a periodic cube without obstacles,
   with independent forced Taylor--Green and oscillatory ABC reconstruction

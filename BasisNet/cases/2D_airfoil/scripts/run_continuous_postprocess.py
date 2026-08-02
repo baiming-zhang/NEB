@@ -278,7 +278,7 @@ def render_frame(
         absolute=True,
     )
     figure.suptitle(
-        rf"Continuous airfoil path: $\beta={beta:.3f}$, "
+        rf"Airfoil case: $\beta={beta:.3f}$, "
         rf"$\alpha={alpha:+.2f}^\circ$",
         fontsize=13,
     )
@@ -293,6 +293,7 @@ def reconstruct_case(
     phase: float,
     quadrature: int,
     batch: int,
+    velocity_only: bool = False,
 ) -> None:
     cfg, model, _ = load_hardcoded_model(checkpoint)
     cache = np.load(cache_path)
@@ -331,19 +332,20 @@ def reconstruct_case(
     predicted_u = mean_u + raw_u @ raw_modal
     predicted_v = mean_v + raw_v @ raw_modal
     predicted_omega = mean_omega + raw_omega @ raw_modal
-    (
-        vorticity_modal,
-        vorticity_raw_modal,
-        vorticity_projection_rank,
-        vorticity_projection_relative_residual,
-    ) = project_ritz_scalar(
-        raw_omega,
-        actual_omega - mean_omega,
-        ritz["coefficients"],
-    )
-    vorticity_opt_u = mean_u + raw_u @ vorticity_raw_modal
-    vorticity_opt_v = mean_v + raw_v @ vorticity_raw_modal
-    vorticity_opt_omega = mean_omega + raw_omega @ vorticity_raw_modal
+    if not velocity_only:
+        (
+            vorticity_modal,
+            vorticity_raw_modal,
+            vorticity_projection_rank,
+            vorticity_projection_relative_residual,
+        ) = project_ritz_scalar(
+            raw_omega,
+            actual_omega - mean_omega,
+            ritz["coefficients"],
+        )
+        vorticity_opt_u = mean_u + raw_u @ vorticity_raw_modal
+        vorticity_opt_v = mean_v + raw_v @ vorticity_raw_modal
+        vorticity_opt_omega = mean_omega + raw_omega @ vorticity_raw_modal
 
     def velocity_relative_error(
         target_u: np.ndarray,
@@ -411,45 +413,45 @@ def reconstruct_case(
     wake_fluctuation_vorticity_error = scalar_relative_error(
         fluctuation_omega, predicted_fluctuation_omega, wake
     )
-    vorticity_opt_velocity_error = velocity_relative_error(
-        actual_u, actual_v, vorticity_opt_u, vorticity_opt_v
-    )
-    vorticity_opt_vorticity_error = scalar_relative_error(
-        actual_omega, vorticity_opt_omega
-    )
-    vorticity_opt_fluctuation_velocity_error = velocity_relative_error(
-        fluctuation_u,
-        fluctuation_v,
-        vorticity_opt_u - mean_u,
-        vorticity_opt_v - mean_v,
-    )
-    vorticity_opt_fluctuation_vorticity_error = scalar_relative_error(
-        fluctuation_omega, vorticity_opt_omega - mean_omega
-    )
-    vorticity_opt_wake_velocity_error = velocity_relative_error(
-        actual_u, actual_v, vorticity_opt_u, vorticity_opt_v, wake
-    )
-    vorticity_opt_wake_vorticity_error = scalar_relative_error(
-        actual_omega, vorticity_opt_omega, wake
-    )
-    vorticity_opt_wake_fluctuation_velocity_error = velocity_relative_error(
-        fluctuation_u,
-        fluctuation_v,
-        vorticity_opt_u - mean_u,
-        vorticity_opt_v - mean_v,
-        wake,
-    )
-    vorticity_opt_wake_fluctuation_vorticity_error = scalar_relative_error(
-        fluctuation_omega, vorticity_opt_omega - mean_omega, wake
-    )
+    if not velocity_only:
+        vorticity_opt_velocity_error = velocity_relative_error(
+            actual_u, actual_v, vorticity_opt_u, vorticity_opt_v
+        )
+        vorticity_opt_vorticity_error = scalar_relative_error(
+            actual_omega, vorticity_opt_omega
+        )
+        vorticity_opt_fluctuation_velocity_error = velocity_relative_error(
+            fluctuation_u,
+            fluctuation_v,
+            vorticity_opt_u - mean_u,
+            vorticity_opt_v - mean_v,
+        )
+        vorticity_opt_fluctuation_vorticity_error = scalar_relative_error(
+            fluctuation_omega, vorticity_opt_omega - mean_omega
+        )
+        vorticity_opt_wake_velocity_error = velocity_relative_error(
+            actual_u, actual_v, vorticity_opt_u, vorticity_opt_v, wake
+        )
+        vorticity_opt_wake_vorticity_error = scalar_relative_error(
+            actual_omega, vorticity_opt_omega, wake
+        )
+        vorticity_opt_wake_fluctuation_velocity_error = velocity_relative_error(
+            fluctuation_u,
+            fluctuation_v,
+            vorticity_opt_u - mean_u,
+            vorticity_opt_v - mean_v,
+            wake,
+        )
+        vorticity_opt_wake_fluctuation_vorticity_error = scalar_relative_error(
+            fluctuation_omega, vorticity_opt_omega - mean_omega, wake
+        )
 
     def grid(values: np.ndarray) -> np.ndarray:
         result = np.zeros_like(solid, dtype=np.float32)
         result[fluid] = values
         return result
 
-    np.savez_compressed(
-        sample_path,
+    payload = dict(
         x=x.astype(np.float32),
         y=y.astype(np.float32),
         solid=solid,
@@ -462,19 +464,9 @@ def reconstruct_case(
         pinn_u=grid(predicted_u),
         pinn_v=grid(predicted_v),
         pinn_omega=grid(predicted_omega),
-        vorticity_opt_u=grid(vorticity_opt_u),
-        vorticity_opt_v=grid(vorticity_opt_v),
-        vorticity_opt_omega=grid(vorticity_opt_omega),
         modal_coefficients=modal.astype(np.float32),
         raw_modal_coefficients=raw_modal.astype(np.float32),
-        vorticity_opt_modal_coefficients=vorticity_modal.astype(np.float32),
-        vorticity_opt_raw_modal_coefficients=vorticity_raw_modal.astype(
-            np.float32
-        ),
-        vorticity_projection_rank=np.int32(vorticity_projection_rank),
-        vorticity_projection_relative_residual=np.float64(
-            vorticity_projection_relative_residual
-        ),
+        coefficient_fit=np.asarray("velocity_l2"),
         basis_coordinate_system=np.asarray("mass_orthogonal_ritz"),
         projection_ritz_orth_error=np.float64(projection_ritz_orth_error),
         velocity_error=np.float32(velocity_error),
@@ -489,35 +481,50 @@ def reconstruct_case(
         wake_fluctuation_vorticity_error=np.float32(
             wake_fluctuation_vorticity_error
         ),
-        vorticity_opt_velocity_error=np.float32(
-            vorticity_opt_velocity_error
-        ),
-        vorticity_opt_vorticity_error=np.float32(
-            vorticity_opt_vorticity_error
-        ),
-        vorticity_opt_fluctuation_velocity_error=np.float32(
-            vorticity_opt_fluctuation_velocity_error
-        ),
-        vorticity_opt_fluctuation_vorticity_error=np.float32(
-            vorticity_opt_fluctuation_vorticity_error
-        ),
-        vorticity_opt_wake_velocity_error=np.float32(
-            vorticity_opt_wake_velocity_error
-        ),
-        vorticity_opt_wake_vorticity_error=np.float32(
-            vorticity_opt_wake_vorticity_error
-        ),
-        vorticity_opt_wake_fluctuation_velocity_error=np.float32(
-            vorticity_opt_wake_fluctuation_velocity_error
-        ),
-        vorticity_opt_wake_fluctuation_vorticity_error=np.float32(
-            vorticity_opt_wake_fluctuation_vorticity_error
-        ),
         wake_fluid_points=np.int32(np.count_nonzero(wake)),
         ritz_eigenvalues=ritz["eigenvalues"],
         ritz_coefficients=ritz["coefficients"],
         ritz_rank=np.int32(ritz["rank"]),
     )
+    if not velocity_only:
+        payload.update(
+            vorticity_opt_u=grid(vorticity_opt_u),
+            vorticity_opt_v=grid(vorticity_opt_v),
+            vorticity_opt_omega=grid(vorticity_opt_omega),
+            vorticity_opt_modal_coefficients=vorticity_modal.astype(np.float32),
+            vorticity_opt_raw_modal_coefficients=vorticity_raw_modal.astype(
+                np.float32
+            ),
+            vorticity_projection_rank=np.int32(vorticity_projection_rank),
+            vorticity_projection_relative_residual=np.float64(
+                vorticity_projection_relative_residual
+            ),
+            vorticity_opt_velocity_error=np.float32(
+                vorticity_opt_velocity_error
+            ),
+            vorticity_opt_vorticity_error=np.float32(
+                vorticity_opt_vorticity_error
+            ),
+            vorticity_opt_fluctuation_velocity_error=np.float32(
+                vorticity_opt_fluctuation_velocity_error
+            ),
+            vorticity_opt_fluctuation_vorticity_error=np.float32(
+                vorticity_opt_fluctuation_vorticity_error
+            ),
+            vorticity_opt_wake_velocity_error=np.float32(
+                vorticity_opt_wake_velocity_error
+            ),
+            vorticity_opt_wake_vorticity_error=np.float32(
+                vorticity_opt_wake_vorticity_error
+            ),
+            vorticity_opt_wake_fluctuation_velocity_error=np.float32(
+                vorticity_opt_wake_fluctuation_velocity_error
+            ),
+            vorticity_opt_wake_fluctuation_vorticity_error=np.float32(
+                vorticity_opt_wake_fluctuation_vorticity_error
+            ),
+        )
+    np.savez_compressed(sample_path, **payload)
 
 
 def sampled_percentile(paths: list[Path], key: str, percentile: float) -> float:
@@ -700,7 +707,12 @@ def main() -> None:
         if not gt_cache_source.is_absolute():
             gt_cache_source = WORKSPACE_ROOT / gt_cache_source
     count = int(settings["parameter_samples"])
-    positions = np.linspace(0.0, 1.0, count)
+    positions = np.linspace(
+        0.0,
+        1.0,
+        count,
+        endpoint=bool(settings.get("path_endpoint", True)),
+    )
     sample_paths = []
     cache_reuse = []
     state = {"stage": "gt_and_reconstruction", "completed_cases": 0, "total_cases": count}
