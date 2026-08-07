@@ -38,23 +38,14 @@ was resumed more than once, the accumulated active time stored in
 
 - [2D_airfoil](BasisNet/cases/2D_airfoil/README.md)
 
-  - Current training: 1,024 shared modes, 4,096 Sobol points/epoch,
-    FP16 hidden-layer shadows with FP32 boundary/master/Adam arithmetic.
-  - Hybrid objective:
-    `0.5 (velocity Rayleigh / 80) + 0.5 (vorticity Rayleigh / 232)`;
-    selected epoch 650 with validation `0.5280304703`, rank `1024/1024`,
-    orthogonality error `2.61e-12`, and 3:53:51 accumulated active time.
-  - Three Re=1500 velocity-L2 reconstructions at
+  - Published training uses only the velocity Rayleigh objective: 1,024 shared
+    modes, 4,096 Sobol points/epoch, and no vorticity contribution.
+  - The completed 1,000-epoch run selected epoch 1,000 with validation
+    `1.3789594584`, rank `1024/1024`, and orthogonality error `1.03e-14`.
+  - Three independent Re=1500 velocity-L2 reconstructions at
     `(beta, alpha)=(0.50,+10 deg),(0.85,0 deg),(0.50,-10 deg)` have mean
     total/wake/fluctuation/wake-fluctuation velocity errors
-    `1.945275% / 3.511677% / 27.684598% / 20.135484%`.
-  - A matched rectangular Dirichlet Laplacian K1024 basis gives
-    `2.981040% / 5.478333% / 42.469079% / 31.854173%` on the same fields;
-    its errors are 53--58% higher depending on the metric.
-  - A from-scratch K1024 velocity-only ablation uses identical epoch-0
-    weights and validation points. The versioned preliminary snapshot is
-    epoch 200 with validation `1.6993393228`, rank `1024/1024`; the final
-    1,000-epoch comparison is pending.
+    `1.887090% / 3.318033% / 26.720236% / 18.927503%`.
   - The earlier K256 result remains documented as a legacy baseline inside
     the case README; it is no longer the primary result.
 
