@@ -355,12 +355,29 @@ def main() -> None:
         "fp16_shadow_weights": (
             getattr(cfg, "mlp_compute_dtype", "float32") == "float16"
         ),
+        "batched_forward_weights_synchronized_after_adam": True,
         "fp32_boundary_layers": getattr(cfg, "fp32_boundary_layers", False),
         "jet2_linear_channels_fused": True,
-        "mlp_accumulation_dtype": "float32",
-        "hardcoded_reverse_dtype": "float32",
-        "master_weight_dtype": "float32",
-        "adam_state_dtype": "float32",
+        "mlp_accumulation_dtype": (
+            "float64"
+            if getattr(cfg, "mlp_compute_dtype", "float32") == "float64"
+            else "float32"
+        ),
+        "hardcoded_reverse_dtype": (
+            "float64"
+            if getattr(cfg, "mlp_compute_dtype", "float32") == "float64"
+            else "float32"
+        ),
+        "master_weight_dtype": (
+            "float64"
+            if getattr(cfg, "mlp_compute_dtype", "float32") == "float64"
+            else "float32"
+        ),
+        "adam_state_dtype": (
+            "float64"
+            if getattr(cfg, "mlp_compute_dtype", "float32") == "float64"
+            else "float32"
+        ),
         "fp16_loss_scale_maximum": getattr(cfg, "fp16_loss_scale", 1.0),
         "fp16_loss_scaling": "dynamic bidirectional with overflow headroom",
         "peeling_ritz_dtype": "float64",

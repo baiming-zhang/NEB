@@ -289,6 +289,8 @@ def _compute_dtype(cfg: SimpleNamespace) -> type[cp.generic]:
         return F16
     if name == "float32":
         return F32
+    if name == "float64":
+        return F64
     raise ValueError(f"Unsupported MLP compute dtype: {name}")
 
 
@@ -383,10 +385,11 @@ def linear_forward_batch(
         ),
         axis=point_axis,
     ).astype(compute_dtype, copy=False)
+    accumulation_dtype = F32 if compute_dtype is F16 else compute_dtype
     projected = cp.matmul(
         packed,
         weights.transpose(0, 2, 1).astype(compute_dtype, copy=False),
-        dtype=F32,
+        dtype=accumulation_dtype,
     )
     projected = projected.reshape(
         weights.shape[0], 7, count, weights.shape[1]
@@ -512,7 +515,7 @@ class HardcodedMode:
     def forward(
         self, cfg: SimpleNamespace, points: np.ndarray, beta: float, alpha: float, cache: bool
     ) -> tuple[Jet2, Any]:
-        x, y = xy_jets(points)
+        x, y = xy_jets(points, self.compute_dtype)
         envelope = envelope_jet(cfg, x, y, beta, alpha)
         current = encoding_jet(cfg, x, y, beta, alpha)
         layer_cache: list[tuple[Jet2, Jet2]] = []
@@ -549,7 +552,7 @@ class HardcodedMode:
     def backward(self, cache: Any, field_adjoint: Jet2) -> list[cp.ndarray]:
         envelope, output_input, layer_cache = cache
         raw_adjoint = envelope_product_backward(envelope, field_adjoint)
-        backward_dtype = F32
+        backward_dtype = F64 if self.compute_dtype is F64 else F32
         current, output_weight, output_bias = linear_backward(
             output_input,
             raw_adjoint,
@@ -600,7 +603,7 @@ class HardcodedMode:
             parameters.extend([weight, bias])
         beta1, beta2, epsilon = 0.9, 0.999, 1.0e-8
         for index, (parameter, gradient) in enumerate(zip(parameters, gradients)):
-            gradient = gradient.astype(F32) * scale
+            gradient = gradient.astype(parameter.dtype, copy=False) * scale
             self.steps[index] += 1
             self.exp_avg[index] *= beta1
             self.exp_avg[index] += (1.0 - beta1) * gradient
@@ -610,17 +613,24 @@ class HardcodedMode:
             correction2 = 1.0 - beta2 ** self.steps[index]
             denominator = cp.sqrt(self.exp_avg_sq[index] / correction2) + epsilon
             parameter -= (cfg.learning_rate / correction1) * self.exp_avg[index] / denominator
-        if self.compute_dtype is F16:
-            for shadow, master in zip(self.shadow_weights, self.weights):
-                shadow[...] = master
-            for shadow, master in zip(self.shadow_biases, self.biases):
-                shadow[...] = master
+        # ``cp.stack`` owns separate storage from the per-mode master arrays.
+        # Keep the batched forward weights synchronized after every optimizer
+        # step for every compute dtype, not only for the FP16-shadow path.
+        for shadow, master in zip(self.shadow_weights, self.weights):
+            shadow[...] = master
+        for shadow, master in zip(self.shadow_biases, self.biases):
+            shadow[...] = master
 
 
 class HardcodedModel:
     def __init__(self, cfg: SimpleNamespace, arrays: dict[str, np.ndarray]):
-        device_arrays = {name: cp.asarray(value) for name, value in arrays.items()}
         compute_dtype = _compute_dtype(cfg)
+        device_arrays = {
+            name: cp.asarray(value).astype(F64, copy=False)
+            if compute_dtype is F64 and np.issubdtype(value.dtype, np.floating)
+            else cp.asarray(value)
+            for name, value in arrays.items()
+        }
         self.modes = [
             HardcodedMode(
                 device_arrays, mode, cfg.hidden_layers, compute_dtype
@@ -635,6 +645,8 @@ class HardcodedModel:
                 if fp32_boundary_layers and layer in (0, layer_count - 1)
                 else F16
                 if compute_dtype is F16
+                else F64
+                if compute_dtype is F64
                 else F32
             )
             for layer in range(layer_count)
@@ -645,6 +657,8 @@ class HardcodedModel:
                 if fp32_boundary_layers and layer in (0, layer_count - 1)
                 else F16
                 if compute_dtype is F16
+                else F64
+                if compute_dtype is F64
                 else F32
             )
             for layer in range(layer_count)
@@ -668,7 +682,7 @@ class HardcodedModel:
         block_size = max(1, int(getattr(cfg, "mode_forward_batch", 1)))
         for start in range(0, len(self.modes), block_size):
             stop = min(start + block_size, len(self.modes))
-            x, y = xy_jets(points)
+            x, y = xy_jets(points, self.modes[start].compute_dtype)
             envelope = envelope_jet(cfg, x, y, beta, alpha)
             current = encoding_jet(cfg, x, y, beta, alpha)
             layer_cache: list[tuple[Jet2, Jet2]] = []
@@ -1176,9 +1190,12 @@ def _velocity_peel_step(
                     else cp.linalg.solve(lhs.T, grad_q)
                 )
                 grad_velocity = grad_velocity + weight * u @ projection_gradient
+            network_dtype = _compute_dtype(cfg)
             adjoint_dtype = (
                 F16
                 if bool(getattr(cfg, "all_network_fp16", False))
+                else F64
+                if network_dtype is F64
                 else F32
             )
             if adjoint_dtype is F16:
