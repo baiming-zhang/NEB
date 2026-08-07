@@ -1,3 +1,4 @@
+import json
 from pathlib import Path
 import sys
 
@@ -42,3 +43,16 @@ def test_antisymmetric_tensor_is_hard_discrete_divergence_free():
     with torch.inference_mode():
         fields = discrete_all_mode_fields(cfg, model, points, 0.0)
     assert torch.count_nonzero(fields["divergence"]).item() == 0
+
+
+def test_published_best_result_report():
+    report_path = CASE_ROOT / "reports" / "k256_best_results.json"
+    report = json.loads(report_path.read_text(encoding="utf-8"))
+    assert report["status"] == "complete"
+    assert report["training"]["selected_epoch"] == 10000
+    assert report["training"]["validation_rank"] == 256
+    benchmarks = report["evaluation"]["benchmarks"]
+    assert len(benchmarks) == 2
+    assert all(np.isfinite(item["mean_velocity_error"]) for item in benchmarks)
+    for artifact in report["evaluation"]["artifacts"].values():
+        assert (report_path.parent / artifact).resolve().is_file()

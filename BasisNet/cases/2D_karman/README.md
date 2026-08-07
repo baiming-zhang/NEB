@@ -41,6 +41,35 @@ The raw projection ratio is recorded only as an overlap diagnostic. It is
 not part of the loss and does not contribute gradients. The peeled output
 basis is orthogonal under the discrete velocity inner product.
 
+## Published best result
+
+The selected non-ablation result is the validation-best epoch-4950 checkpoint
+from the completed 5,000-epoch K=96 run. Coefficients are fitted with velocity
+L2 only; vorticity is an independent derived diagnostic and never enters the
+fit.
+
+| Re=100 location | Mean velocity error | Mean vorticity error | Total relative divergence | Rank |
+| --- | ---: | ---: | ---: | ---: |
+| `alpha=0.15` | 6.46475% | 21.5666% | 1.60691% | 96 |
+| `alpha=0.40` | 5.80808% | 18.5700% | 1.76227% | 96 |
+| Mean | 6.13641% | 20.0683% | -- | -- |
+
+The compact machine-readable record is
+[`reports/k96_best_results.json`](reports/k96_best_results.json). The curated
+assets contain the [best reconstruction](assets/k96_best/best_reconstruction_alpha_0p40.png)
+and an [error summary](assets/k96_best/error_summary.png), with a vector PDF
+counterpart. Vorticity-fit experiments are treated as ablations and are not
+published.
+
+![K96 best Re=100 reconstruction](assets/k96_best/best_reconstruction_alpha_0p40.png)
+
+Regenerate the curated figures from an evaluated source frame:
+
+```powershell
+python BasisNet/cases/2D_karman/scripts/plot_published_result.py `
+  --source-frame "<run>\best_model_epoch_4950_true_karman_alpha_0p40\frames\frame_008.png"
+```
+
 ## Case layout
 
 ```text

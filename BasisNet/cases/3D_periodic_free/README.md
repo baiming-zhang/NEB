@@ -154,10 +154,8 @@ python "$case\scripts\render.py" `
   --fps 10 --movie-name "tg-k256-gt-vs-reconstruction.mp4"
 ```
 
-Repeat the same commands with `best_model.pt` for the validation-best
-comparison. The final/latest and validation-best checkpoints are deliberately
-reported separately: validation uses Rayleigh energy, not GT reconstruction
-error.
+The published checkpoint is selected by independent Taylor--Green error;
+validation Rayleigh energy is retained only as a training diagnostic.
 
 ## Dynamic large-scale ABC benchmark
 
@@ -204,20 +202,35 @@ raw basis, the 50-frame reference run has mean velocity relative error about
 `0.247%` (maximum about `0.268%`). Generated HDF5, frames, and MP4 files remain
 excluded from Git.
 
-## Reference result
+## Published best result
 
-The completed 10000-epoch run produced the following raw-network metrics:
+The completed 10,000-epoch run's epoch-10000 checkpoint has the lowest
+independent Taylor--Green error among completed checkpoints. Only this selected
+checkpoint is published.
 
-| Metric | Latest, epoch 10000 | Best, epoch 9800 |
-|---|---:|---:|
-| Mean velocity relative error | 1.09998% | 1.21760% |
-| Hard discrete divergence RMS / max | 0 / 0 | 0 / 0 |
-| Peeled orthogonality max error | 1.78e-15 | 1.55e-15 |
-| Energy-spectrum relative L2 error | 0.02478% | 0.03042% |
-| 4096-point one-shot basis inference | 0.499 s | 0.501 s |
+| Benchmark or diagnostic | Published value |
+| --- | ---: |
+| Forced Taylor--Green Re=500 mean / maximum velocity error | 1.09998% / 1.09998% |
+| Taylor--Green energy-spectrum relative L2 error | 0.0247797% |
+| Taylor--Green kinetic-energy relative error | 0.0121009% |
+| Oscillatory ABC k=1 Re=500 mean / maximum velocity error | 0.246989% / 0.267732% |
+| Hard discrete divergence RMS / maximum | 0 / 0 |
+| Peeled orthogonality maximum error | 1.78e-15 |
+| 4096-point one-shot basis inference | 0.499 s |
 
-The latest checkpoint is the formal result because it reconstructs the
-independent GT more accurately than the validation-best checkpoint.
+The compact record is
+[`reports/k256_best_results.json`](reports/k256_best_results.json). Curated
+assets include the [paired best reconstructions](assets/k256_best/best_checkpoint_reconstructions.png)
+and [velocity-error summary](assets/k256_best/velocity_error_summary.png), with
+a vector PDF counterpart.
+
+![K256 published periodic reconstructions](assets/k256_best/best_checkpoint_reconstructions.png)
+
+```powershell
+python BasisNet/cases/3D_periodic_free/scripts/plot_published_result.py `
+  --taylor-green-frame "<run>\evaluation_latest_raw\visualization_corrected_isosurfaces\frames\frame_015.png" `
+  --abc-frame "<run>\evaluation_oscillatory_abc_latest_raw\visualization\frames\frame_025.png"
+```
 
 ## Data and generated artifacts
 

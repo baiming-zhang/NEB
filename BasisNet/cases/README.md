@@ -9,10 +9,10 @@ frames, and videos are intentionally excluded from Git.
 
 | Case | Domain and target | Learned basis | Independent evaluation | Status |
 | --- | --- | ---: | --- | --- |
-| [2D_karman](2D_karman/README.md) | Translating cylinder in a 2D channel | K=96 | Re=100 Karman-wake HDF5 data | Reproducible workflow; no version-controlled reference metric yet |
+| [2D_karman](2D_karman/README.md) | Translating cylinder in a 2D channel | K=96 | Re=100 Karman-wake HDF5 data | Completed K96 velocity-fit benchmark |
 | [2D_airfoil](2D_airfoil/README.md) | Analytic thickness and angle jointly parameterized in a 2D far field | K=1024 | Independent Re=1500 D2Q9-TRT NS trajectories | Completed K1024 velocity-only benchmark |
-| [3D_periodic_free](3D_periodic_free/README.md) | Triply periodic cube without obstacles | K=256 | Exact forced Taylor--Green and oscillatory ABC GT | Completed and benchmarked |
-| [3D_parametric_wake](3D_parametric_wake/README.md) | Continuously morphed sphere-to-cube obstacle in a driven periodic 3D flow | K=256 | Independent Re=500 pseudo-spectral NS trajectory | Reproducible workflow; final 10000-epoch benchmark to be generated |
+| [3D_periodic_free](3D_periodic_free/README.md) | Triply periodic cube without obstacles | K=256 | Exact forced Taylor--Green and oscillatory ABC GT | Completed K256 benchmark |
+| [3D_parametric_wake](3D_parametric_wake/README.md) | Analytic sphere-to-cube obstacle in a driven 3D wake | K=256 | Independent Re=500 NS trajectory | Completed K256/Re500 fixed-order benchmark; newer dynamic target pending |
 
 Basis optimization is unsupervised: independent Navier--Stokes or analytic GT
 fields are used only after the learned basis has been frozen. See each case
@@ -21,14 +21,16 @@ and rendering commands.
 
 ## Validated training runs
 
-The published airfoil experiment uses a 1,000-epoch velocity-only objective.
-Generated checkpoints are deliberately excluded from Git; the source,
-configuration, fixed validation protocol, compact result record, curated
-figures, and tests required to reproduce the result are versioned.
+Generated checkpoints are deliberately excluded from Git. For each published
+case, the source, configuration, compact result record, curated figures, and
+tests required to audit the selected result are versioned.
 
 | Case | Modes | Epoch budget | Observed epoch | Selected epoch | Selected fixed-validation objective | Selected rank |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| 2D_karman velocity-fit | 96 | 5,000 | 5,000 | 4,950 | 0.305099 | 96 |
 | 2D_airfoil velocity-only | 1024 | 1,000 | 1,000 | 1,000 | 1.378959 | 1024 |
+| 3D_periodic_free | 256 | 10,000 | 10,000 | 10,000 | 0.113886 | 256 |
+| 3D_parametric_wake fixed-order | 256 | 5,000 | 5,000 | 5,000 | 1.902128 | 256 |
 
 The airfoil fixed-validation value is `R_u / 80`; it is not an independent
 Navier--Stokes reconstruction error. No vorticity term contributes to training.
@@ -42,20 +44,20 @@ linear basis projection.
 
 | Case and benchmark | Checkpoint | Mean velocity relative error | Additional validated result |
 | --- | --- | ---: | --- |
+| 2D_karman, two Re=100 locations | Velocity-fit, epoch 4950 | 6.13641% | Best displayed location `alpha=0.40`: 5.80808%; mean vorticity error 20.0683% |
 | 2D_airfoil, three Re=1500 cases | Velocity-only, epoch 1000 | 1.88709% | Mean wake velocity error 3.31803%; all coefficient fits use velocity L2 only |
-| 3D_periodic_free, forced Taylor--Green, Re=500 | Latest, epoch 10000 | 1.09998% | Hard discrete divergence 0; spectrum error 0.02478%; 4096-point inference 0.499 s |
-| 3D_periodic_free, forced Taylor--Green, Re=500 | Validation best, epoch 9800 | 1.21760% | Hard discrete divergence 0; spectrum error 0.03042%; 4096-point inference 0.501 s |
-| 3D_periodic_free, oscillatory ABC k=1, Re=500, 50 frames | Latest, epoch 10000 | about 0.247% | Maximum frame error about 0.268% |
+| 3D_periodic_free, forced Taylor--Green, Re=500 | Epoch 10000 | 1.09998% | Hard discrete divergence 0; spectrum error 0.02478%; 4096-point inference 0.499 s |
+| 3D_periodic_free, oscillatory ABC k=1, Re=500, 50 frames | Epoch 10000 | 0.246989% | Maximum frame error 0.267732% |
+| 3D_parametric_wake, `alpha=0.1`, Re=500, 30 frames | Fixed-order, epoch 5000 | 17.1100% | Projection mean 16.5121%; maximum frame error 17.1647% |
 
-The latest 3D checkpoint is the formal Taylor--Green result because it
-reconstructs the independent GT more accurately than the checkpoint selected
-by validation Rayleigh loss. The oscillatory ABC benchmark uses the same
-frozen epoch-10000 basis and introduces no retraining.
-
-The 2D_karman case is included as a complete reproducible workflow, but its
-README does not currently record a final reference-error table. It is
-therefore not assigned an undocumented score here. Experimental flows with
-poor reconstruction or without an independent GT are likewise omitted.
+The epoch-10000 periodic checkpoint is the formal result because it has the
+lowest independent Taylor--Green error among completed checkpoints; the ABC
+benchmark uses that same frozen basis. The published wake result uses the
+exact fixed-order localized-channel snapshot in
+`3D_parametric_wake/configs/k256_re500_published.json`. The newer dynamic
+periodic-obstacle target in `k256_final.json` has no completed benchmark and
+is not mixed with the published metrics. Ablations and incomplete runs are
+omitted.
 
 ## Verification
 

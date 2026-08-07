@@ -16,7 +16,38 @@ supervised labels. Independent reference trajectories are generated only
 after the basis is frozen and are used for projection, error evaluation, and
 rendering.
 
-## Final protocol
+## Published best completed result
+
+The published K=256/Re=500 result is the best completed non-smoke wake
+evaluation currently available. It uses the historical fixed-order,
+localized-channel protocol captured exactly in
+[`configs/k256_re500_published.json`](configs/k256_re500_published.json), not
+the newer dynamic periodic-obstacle target described below.
+
+| Metric | Published value |
+| --- | ---: |
+| Selected checkpoint | epoch 5000 |
+| Evaluation | `alpha=0.1`, Re=500, 30 frames |
+| Projection points | 17,919 |
+| Projection mean velocity error | 16.5121% |
+| Output-grid mean velocity error | 17.1100% |
+| Output-grid maximum velocity error | 17.1647% |
+| Basis rank | 256/256 |
+
+The compact record is
+[`reports/k256_re500_best_results.json`](reports/k256_re500_best_results.json).
+Curated assets include the [reconstruction](assets/k256_re500_best/best_reconstruction.png)
+and [frame-error history](assets/k256_re500_best/velocity_error_history.png),
+with a vector PDF counterpart.
+
+![K256 published Re=500 wake reconstruction](assets/k256_re500_best/best_reconstruction.png)
+
+```powershell
+python BasisNet/cases/3D_parametric_wake/scripts/plot_published_result.py `
+  --source-frame "<run>\comparison_video\frames\frame_015.png"
+```
+
+## Current target protocol
 
 - Parameter range: `alpha in [0, 1]`
 - Exact analytic geometry:
@@ -108,8 +139,12 @@ The smoke tests verify:
 
 ## Training
 
-The complete configuration is
+The current target configuration is
 `BasisNet/cases/3D_parametric_wake/configs/k256_final.json`.
+
+It defines a newer 10,000-epoch dynamic periodic-obstacle experiment. No
+completed benchmark from that target is published or combined with the
+fixed-order result above.
 
 ```powershell
 $case = "BasisNet\cases\3D_parametric_wake"

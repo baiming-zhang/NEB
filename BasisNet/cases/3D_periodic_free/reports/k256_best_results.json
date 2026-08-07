@@ -1,0 +1,55 @@
+{
+  "schema_version": 1,
+  "recorded_on": "2026-08-07",
+  "status": "complete",
+  "selection": "lowest_independent_Taylor_Green_error_among_completed_checkpoints",
+  "training": {
+    "config": "../configs/k256_dynamic_sss.json",
+    "modes": 256,
+    "epoch_budget": 10000,
+    "selected_epoch": 10000,
+    "selected_checkpoint_sha256": "457d6b0c1942da8b7c49300e80722cf890191ef6d6dde30bbed3308342f7d474",
+    "published_config_sha256": "f86f1dd0d5f12cceece6dc1aed1f6abc86c475d143ee62459189cea6e35ddd3c",
+    "source_run_config_sha256": "d07324a1f0743ca8421f0b8ae0afde253db0c0e3fd7c08001b68939659418a60",
+    "objective": "velocity_rayleigh / 80",
+    "validation_loss": 0.11388644809143983,
+    "validation_rank": 256,
+    "validation_orthogonality_error": 2.3488155864725968e-15,
+    "validation_max_discrete_divergence": 0.0,
+    "history_seconds": 44436.24601349997
+  },
+  "basis_evaluation": {
+    "points": 4096,
+    "inference_seconds": 0.49910880002425984,
+    "inference_points_per_second": 8206.62749244435,
+    "raw_basis_rank": 256,
+    "peeled_orthogonality_max_abs": 1.7763568394002505e-15,
+    "hard_discrete_divergence_max_abs": 0.0,
+    "hard_discrete_divergence_rms": 0.0
+  },
+  "evaluation": {
+    "checkpoint_epoch": 10000,
+    "benchmarks": [
+      {
+        "label": "forced_Taylor_Green_Re500",
+        "frames": 30,
+        "mean_velocity_error": 0.010999776577230882,
+        "max_velocity_error": 0.01099977694033318,
+        "energy_spectrum_relative_l2": 0.00024779704732817666,
+        "kinetic_energy_relative_error": 0.00012100924304550407
+      },
+      {
+        "label": "oscillatory_ABC_k1_Re500",
+        "frames": 50,
+        "mean_velocity_error": 0.002469894357840376,
+        "max_velocity_error": 0.002677320352936183,
+        "projection_mean_velocity_error": 0.0023564668372273445
+      }
+    ],
+    "artifacts": {
+      "best_reconstructions_png": "../assets/k256_best/best_checkpoint_reconstructions.png",
+      "velocity_error_summary_png": "../assets/k256_best/velocity_error_summary.png",
+      "velocity_error_summary_pdf": "../assets/k256_best/velocity_error_summary.pdf"
+    }
+  }
+}

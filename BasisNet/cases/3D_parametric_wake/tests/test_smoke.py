@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import sys
 from pathlib import Path
 
@@ -84,3 +85,21 @@ def test_hard_divergence_and_rank() -> None:
         _, diagnostic, _ = peel_shape(cfg, model, points, 0.43, None)
     assert diagnostic["max_discrete_divergence"] < 1e-8
     assert diagnostic["effective_raw_rank"] == cfg.modes
+
+
+def test_published_best_result_report() -> None:
+    report_path = ROOT / "reports" / "k256_re500_best_results.json"
+    report = json.loads(report_path.read_text(encoding="utf-8"))
+    config = json.loads(
+        (ROOT / "configs" / "k256_re500_published.json").read_text(encoding="utf-8")
+    )
+    assert report["status"] == "complete"
+    assert report["training"]["selected_epoch"] == 5000
+    assert report["training"]["validation_rank"] == 256
+    assert config["modes"] == 256
+    assert config["epochs"] == 5000
+    errors = report["evaluation"]["frame_velocity_errors"]
+    assert len(errors) == 30
+    assert np.isfinite(errors).all()
+    for artifact in report["evaluation"]["artifacts"].values():
+        assert (report_path.parent / artifact).resolve().is_file()

@@ -31,10 +31,6 @@ was resumed more than once, the accumulated active time stored in
     mean velocity error `5.808077%`; mean vorticity error `18.569974%`;
     total relative divergence `1.762272%`; modal relative divergence `0`;
     effective mass rank `96`.
-  - Vorticity-fit reconstruction at `alpha=0.40`, 17 Re=100 GT frames:
-    mean velocity error `9.552876%`; mean vorticity error `16.517892%`;
-    total relative divergence `1.772122%`; modal relative divergence `0`;
-    effective mass rank `96`.
 
 - [2D_airfoil](BasisNet/cases/2D_airfoil/README.md)
 
@@ -46,17 +42,16 @@ was resumed more than once, the accumulated active time stored in
     `(beta, alpha)=(0.50,+10 deg),(0.85,0 deg),(0.50,-10 deg)` have mean
     total/wake/fluctuation/wake-fluctuation velocity errors
     `1.887090% / 3.318033% / 26.720236% / 18.927503%`.
-  - The earlier K256 result remains documented as a legacy baseline inside
-    the case README; it is no longer the primary result.
 
 - [3D_periodic_free](BasisNet/cases/3D_periodic_free/README.md)
 
   - Training: 256 modes, 4,096 collocation points/epoch, 10,000 epochs.
   - Training time: accumulated active time `54:44:12` across six recorded
     training segments.
-  - Lowest validation value: epoch 9,800; validation loss
-    `0.1127998991`; train loss `0.1128278521`; validation `max |G-I| =
-    1.443289932e-15`; maximum discrete divergence `0`; rank `256/256`.
+  - Published checkpoint: epoch 10,000, selected by the lowest independent
+    Taylor--Green reconstruction error; validation loss `0.1138864481`;
+    validation `max |G-I| = 2.348815586e-15`; maximum discrete divergence
+    `0`; rank `256/256`.
   - Epoch-10,000 checkpoint, oscillatory ABC, `k=1`, Re=500, 50 frames:
     projection mean velocity
     error `0.235647%`; output-grid mean/maximum velocity error
@@ -74,12 +69,11 @@ was resumed more than once, the accumulated active time stored in
   - Training: 256 modes, 512 collocation points/epoch, 5,000 epochs.
   - Training time: `01:07:59` wall time
     (`2026-07-18 21:06:19` to `2026-07-18 22:14:18`).
-  - Lowest validation value: epoch 4,700; validation loss
-    `1.898210114`; train loss `2.110306882`; validation `max |G-I| =
-    8.881784197e-16`; validation maximum discrete divergence
-    `8.881784197e-16`; rank `256/256`.
-  - Evaluated checkpoint: epoch 5,000, `alpha=0.1`, Re=500, 30 frames,
-    17,919 projection points.
+  - Published checkpoint: epoch 5,000, selected by the lowest output-grid
+    mean error among completed non-smoke wake evaluations; validation loss
+    `1.902128108`; validation `max |G-I| = 1.110223025e-15`; validation
+    maximum discrete divergence `4.440892099e-16`; rank `256/256`.
+  - Evaluation: `alpha=0.1`, Re=500, 30 frames, 17,919 projection points.
   - Projection mean velocity error `16.512132%`; output-grid
     mean/maximum velocity error `17.110033% / 17.164747%`;
     reconstruction time `49.879134 s`; basis rank `256/256`.

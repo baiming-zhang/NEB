@@ -1,0 +1,57 @@
+{
+  "schema_version": 1,
+  "recorded_on": "2026-08-07",
+  "status": "complete",
+  "selection": "validation_best_checkpoint_with_completed_independent_gt_evaluation",
+  "training": {
+    "config": "../configs/k96_final.json",
+    "modes": 96,
+    "epoch_budget": 5000,
+    "selected_epoch": 4950,
+    "selected_checkpoint_sha256": "6a80c0611d5ce749474a3863f5733dbfa8566650da9b965aee6707390fedda6f",
+    "published_config_sha256": "53779af2a8ae8ace6cf1e3b0afa79b58ab6e230ad10c854b00c20c644d968612",
+    "source_run_config_sha256": "cf82d1ad0788f7eec91aee97df54d263d643324689969e791c53dafbc2d15ef3",
+    "objective": "velocity_rayleigh / 80",
+    "validation_loss": 0.30509892667915955,
+    "validation_rank": 96,
+    "validation_orthogonality_error": 2.1840168562548e-15,
+    "completed_active_seconds": 50356.15205539996
+  },
+  "evaluation": {
+    "checkpoint_epoch": 4950,
+    "coefficient_fit": "velocity_l2_only",
+    "gt": {
+      "source": "independent_Re100_Navier_Stokes_HDF5",
+      "reynolds_number": 100,
+      "frames_per_case": 17,
+      "purpose": "independent_post_freeze_reference_only"
+    },
+    "cases": [
+      {
+        "alpha": 0.15,
+        "effective_mass_rank": 96,
+        "velocity_error": 0.06464751086690847,
+        "vorticity_error": 0.21566557437438333,
+        "total_relative_divergence": 0.01606905263950225,
+        "modal_relative_divergence": 0.0
+      },
+      {
+        "alpha": 0.4,
+        "effective_mass_rank": 96,
+        "velocity_error": 0.0580807729240726,
+        "vorticity_error": 0.1856997418875946,
+        "total_relative_divergence": 0.017622724733090567,
+        "modal_relative_divergence": 0.0
+      }
+    ],
+    "mean_errors": {
+      "velocity_error": 0.06136414189549054,
+      "vorticity_error": 0.20068265813098897
+    },
+    "artifacts": {
+      "best_reconstruction_png": "../assets/k96_best/best_reconstruction_alpha_0p40.png",
+      "error_summary_png": "../assets/k96_best/error_summary.png",
+      "error_summary_pdf": "../assets/k96_best/error_summary.pdf"
+    }
+  }
+}

@@ -72,8 +72,8 @@ and Ritz postprocessing retain their documented semantics.
 ## Cases
 
 - [2D_karman](cases/2D_karman/README.md): a translating cylinder in a
-  two-dimensional channel, K=96 learned modes, and Re=100 wake
-  reconstruction.
+  two-dimensional channel, K=96 learned modes, and a completed two-location
+  Re=100 wake benchmark with `6.13641%` mean velocity error.
 - [2D_airfoil](cases/2D_airfoil/README.md): a jointly thickness/angle
   parameterized analytic airfoil, K=1024 shared modes, a velocity-only
   Rayleigh objective, and a completed three-case reconstruction benchmark
@@ -81,10 +81,11 @@ and Ritz postprocessing retain their documented semantics.
 - [3D_periodic_free](cases/3D_periodic_free/README.md): K=256
   hard-discrete-divergence-free modes on a periodic cube without obstacles,
   with independent forced Taylor--Green and oscillatory ABC reconstruction
-  benchmarks.
+  benchmarks (`1.09998%` and `0.246989%` mean velocity error).
 - [3D_parametric_wake](cases/3D_parametric_wake/README.md): K=256
   conditional hard-discrete-divergence-free modes for a continuously
-  parameterized sphere-to-cube obstacle in a body-force-driven periodic wake.
+  parameterized sphere-to-cube obstacle; the best completed Re=500 wake
+  benchmark has `17.1100%` output-grid mean velocity error.
 
 Case-specific configurations, scripts, tests, and documentation are kept
 inside each case directory so that experiments remain reproducible and
@@ -97,5 +98,6 @@ Run case-level verification from the repository root:
 python -m pytest -q BasisNet/cases/2D_karman/tests
 python -m pytest -q BasisNet/cases/2D_airfoil/tests
 python -m pytest -q BasisNet/cases/3D_periodic_free/tests
+python -m pytest -q BasisNet/cases/3D_parametric_wake/tests
 python -m ruff check BasisNet/cases
 ```
