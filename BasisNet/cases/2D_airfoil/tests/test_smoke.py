@@ -26,11 +26,15 @@ from eigenfluid_sss.basisnet.airfoil2d.training import (
 def test_final_protocol_config():
     case_root = Path(__file__).resolve().parents[1]
     values = json.loads(
-        (case_root / "configs" / "k256_final.json").read_text(
-            encoding="utf-8"
-        )
+        (case_root / "configs" / "k256_final.json").read_text(encoding="utf-8")
     )
-    cfg = Config(**{key: value for key, value in values.items() if key in Config.__dataclass_fields__})
+    cfg = Config(
+        **{
+            key: value
+            for key, value in values.items()
+            if key in Config.__dataclass_fields__
+        }
+    )
     assert values["modes"] == 256
     assert values["epochs"] == 10000
     assert values["mlp_compute_dtype"] == "float16"
@@ -57,17 +61,18 @@ def test_final_protocol_config():
 def test_k1024_protocols_and_preliminary_report():
     case_root = Path(__file__).resolve().parents[1]
     hybrid = json.loads(
-        (
-            case_root
-            / "configs"
-            / "k1024_c2_sobol_10000_fp16_hybrid50.json"
-        ).read_text(encoding="utf-8")
+        (case_root / "configs" / "k1024_c2_sobol_10000_fp16_hybrid50.json").read_text(
+            encoding="utf-8"
+        )
     )
     velocity = json.loads(
         (
-            case_root
-            / "configs"
-            / "k1024_c2_sobol_1000_fp16_velocity_only.json"
+            case_root / "configs" / "k1024_c2_sobol_1000_fp16_velocity_only.json"
+        ).read_text(encoding="utf-8")
+    )
+    vorticity = json.loads(
+        (
+            case_root / "configs" / "k1024_c2_sobol_10000_fp16_vorticity100.json"
         ).read_text(encoding="utf-8")
     )
     assert hybrid["modes"] == velocity["modes"] == 1024
@@ -80,13 +85,33 @@ def test_k1024_protocols_and_preliminary_report():
     assert hybrid["hybrid_velocity_weight"] == 0.5
     assert hybrid["hybrid_vorticity_weight"] == 0.5
     assert hybrid["hybrid_vorticity_anchor_points"] == 512
-    assert velocity["basis_objective"] == "velocity_rayleigh"
+    assert velocity["basis_objective"] == "velocity_vorticity_hybrid"
+    assert velocity["hybrid_velocity_weight"] == 1.0
+    assert velocity["hybrid_vorticity_weight"] == 0.0
     assert velocity["epochs"] == 1000
+    assert vorticity["basis_objective"] == "velocity_vorticity_hybrid"
+    assert vorticity["hybrid_velocity_weight"] == 0.0
+    assert vorticity["hybrid_vorticity_weight"] == 1.0
+
+    run_only = {
+        "epochs",
+        "early_stopping_patience_epochs",
+        "result_root",
+    }
+    objective_only = {
+        "hybrid_velocity_weight",
+        "hybrid_vorticity_weight",
+    }
+    common_keys = set(hybrid) - run_only - objective_only
+    assert common_keys == set(velocity) - run_only - objective_only
+    assert common_keys == set(vorticity) - run_only - objective_only
+    for key in common_keys:
+        assert hybrid[key] == velocity[key] == vorticity[key], key
 
     report = json.loads(
-        (
-            case_root / "reports" / "k1024_preliminary_results.json"
-        ).read_text(encoding="utf-8")
+        (case_root / "reports" / "k1024_preliminary_results.json").read_text(
+            encoding="utf-8"
+        )
     )
     assert report["status"] == "preliminary"
     assert report["training"]["hybrid_velocity_vorticity"]["selected_epoch"] == 650
@@ -118,20 +143,19 @@ def test_default_training_draw_is_4096_mesh_free_points():
     # scrambled-Sobol coordinates are essentially unique along both axes.
     assert len(np.unique(points[:, 0])) > 4000
     assert len(np.unique(points[:, 1])) > 4000
-    assert np.all(
-        airfoil_level_numpy(cfg, points, beta=0.35, alpha_deg=-4.0) > 0.0
-    )
+    assert np.all(airfoil_level_numpy(cfg, points, beta=0.35, alpha_deg=-4.0) > 0.0)
 
 
 def test_c2_ellipse_surface_and_rotation():
     cfg = Config()
     beta, alpha_deg = 0.4, -7.0
     s = np.linspace(0.0, 1.0, 17)
-    thickness = cfg.thickness_min + (
-        cfg.thickness_max - cfg.thickness_min
-    ) * beta
-    half = 0.5 * thickness * cfg.chord * np.sqrt(
-        np.maximum(0.0, 1.0 - (2.0 * s - 1.0) ** 2)
+    thickness = cfg.thickness_min + (cfg.thickness_max - cfg.thickness_min) * beta
+    half = (
+        0.5
+        * thickness
+        * cfg.chord
+        * np.sqrt(np.maximum(0.0, 1.0 - (2.0 * s - 1.0) ** 2))
     )
     angle = np.deg2rad(-alpha_deg)
     xb = s * cfg.chord
@@ -166,9 +190,7 @@ def test_forward_uses_beta_and_alpha():
 
 def test_top_and_bottom_are_natural_free_boundaries():
     cfg = Config()
-    points = torch.tensor(
-        [[8.0, cfg.ymin], [8.0, cfg.ymax]], dtype=torch.float32
-    )
+    points = torch.tensor([[8.0, cfg.ymin], [8.0, cfg.ymax]], dtype=torch.float32)
     beta = torch.full((2, 1), 0.5)
     alpha = torch.zeros((2, 1))
     envelope = hard_open_outlet_envelope(cfg, points, beta, alpha)
@@ -192,9 +214,7 @@ def test_generalized_eigenproblem():
     stiffness = np.diag([3.0, 4.0, 5.0])
     values, vectors = generalized_symmetric_eig(stiffness, mass, 3)
     assert np.all(np.diff(values) >= 0.0)
-    assert np.allclose(
-        vectors.T @ mass @ vectors, np.eye(3), atol=1.0e-8
-    )
+    assert np.allclose(vectors.T @ mass @ vectors, np.eye(3), atol=1.0e-8)
 
 
 def test_independent_ns_smoke(tmp_path):
@@ -234,8 +254,7 @@ def test_monotone_high_angle_field_is_rejected_as_gt():
     xgrid, ygrid = np.meshgrid(x, y)
     points = np.column_stack((xgrid.ravel(), ygrid.ravel()))
     fluid = (
-        airfoil_level_numpy(cfg, points, beta=0.5, alpha_deg=10.0)
-        .reshape(xgrid.shape)
+        airfoil_level_numpy(cfg, points, beta=0.5, alpha_deg=10.0).reshape(xgrid.shape)
         > 0.0
     )
     velocity = np.zeros((2, *xgrid.shape), dtype=np.float32)
