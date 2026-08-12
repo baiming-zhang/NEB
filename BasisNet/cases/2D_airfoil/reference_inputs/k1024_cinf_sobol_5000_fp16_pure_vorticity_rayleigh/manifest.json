@@ -1,0 +1,29 @@
+{
+  "config": "C:\\Users\\admin\\Desktop\\Eigenbasis\\EigenFluid-SSS-publish-rollout30\\BasisNet\\cases\\2D_airfoil\\configs\\k1024_cinf_sobol_5000_fp16_pure_vorticity_rayleigh.json",
+  "config_repository_path": "cases\\2D_airfoil\\configs\\k1024_cinf_sobol_5000_fp16_pure_vorticity_rayleigh.json",
+  "initializer": "numpy_pcg64_v1",
+  "initial_first_layer_gain": 2.0,
+  "initial_hidden_layer_gain": 2.0,
+  "initial_output_layer_gain": 1.0,
+  "sampler": "scipy_scrambled_sobol_uniform_physical_fluid_area_v1",
+  "quadrature_measure": "physical_fluid_area",
+  "geometry": "cinf_ellipse",
+  "envelope": "cinf_farfield_freestream",
+  "basis_objective": "pure_vorticity_rayleigh",
+  "loss_terms": [
+    "unscaled_vorticity_rayleigh"
+  ],
+  "finite_difference_used": false,
+  "spatial_ad": "analytic_compact_symmetric_xy_jet3",
+  "parameter_backward": "handwritten_reverse_jet3",
+  "precision": {
+    "neural_network_forward": "float16",
+    "all_other_numerical_paths": "float32"
+  },
+  "initial_checkpoint": "initial_epoch0000.npz",
+  "initial_sha256": "b1eb27bbc8f1c6f7dc5ece82ac852dd3f2842952c1dcd48d6acdb0e0b68f69a5",
+  "fixed_validation": "fixed_validation_scipy_sobol_v1.npz",
+  "fixed_validation_sha256": "078fbaf46b6fc2a04ee66595c7c47788ae9a528c7af597b76b045d14a84aeb16",
+  "training_uses_pytorch": false,
+  "automatic_differentiation_used": false
+}
