@@ -1,1 +1,0 @@
-"""Parametric spatial basis learning."""

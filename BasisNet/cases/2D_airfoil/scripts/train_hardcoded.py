@@ -460,7 +460,7 @@ def main() -> None:
                 f"orth={diagnostic['orth_error']:.2e} "
                 f"rank={diagnostic['effective_raw_rank']}",
             )
-        elif epoch == 1 or epoch % cfg.validate_every == 0:
+        elif epoch % cfg.validate_every == 0:
             validation_source = validation_pack or sample_pack
             validation, details = validate(cfg, model, validation_source)
             row.update({

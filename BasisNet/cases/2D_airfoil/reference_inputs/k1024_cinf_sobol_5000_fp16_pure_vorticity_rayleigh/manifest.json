@@ -1,6 +1,6 @@
 {
-  "config": "C:\\Users\\admin\\Desktop\\Eigenbasis\\EigenFluid-SSS-publish-rollout30\\BasisNet\\cases\\2D_airfoil\\configs\\k1024_cinf_sobol_5000_fp16_pure_vorticity_rayleigh.json",
-  "config_repository_path": "cases\\2D_airfoil\\configs\\k1024_cinf_sobol_5000_fp16_pure_vorticity_rayleigh.json",
+  "config": "BasisNet/cases/2D_airfoil/configs/k1024_cinf_sobol_5000_fp16_pure_vorticity_rayleigh.json",
+  "config_repository_path": "BasisNet/cases/2D_airfoil/configs/k1024_cinf_sobol_5000_fp16_pure_vorticity_rayleigh.json",
   "initializer": "numpy_pcg64_v1",
   "initial_first_layer_gain": 2.0,
   "initial_hidden_layer_gain": 2.0,

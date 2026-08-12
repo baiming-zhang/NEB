@@ -377,6 +377,16 @@ def _expand_mode_axis(source: Jet3) -> Jet3:
     )
 
 
+def _stack_jets(items: list[Jet3]) -> Jet3:
+    """Stack independent mode jets without changing any numerical channel."""
+    return Jet3(
+        cp.stack([item.value for item in items]),
+        cp.stack([item.grad for item in items]),
+        cp.stack([item.hess for item in items]),
+        cp.stack([item.third for item in items]),
+    )
+
+
 def linear_forward_batch(
     source: Jet3,
     weights: cp.ndarray,
@@ -456,6 +466,47 @@ def linear_backward(
             _einsum(
                 "noi,of->nfi", adjoint.third, weight, compute_dtype=compute_dtype
             ),
+        ),
+        grad_weight,
+        grad_bias,
+    )
+
+
+def linear_backward_batch(
+    source: Jet3,
+    adjoint: Jet3,
+    weights: cp.ndarray,
+) -> tuple[Jet3, cp.ndarray, cp.ndarray]:
+    """FP32 transpose for several independent mode networks in one launch.
+
+    ``source`` may be shared across modes (the first encoding layer) or carry
+    a leading mode axis.  This is algebraically identical to repeated
+    ``linear_backward`` calls and creates no cross-mode contraction.
+    """
+    shared_source = source.value.ndim == 2
+    value_expression = "bno,nf->bof" if shared_source else "bno,bnf->bof"
+    channel_expression = (
+        "bnoi,nfi->bof" if shared_source else "bnoi,bnfi->bof"
+    )
+    grad_weight = cp.einsum(
+        value_expression, adjoint.value, source.value, dtype=F32
+    )
+    grad_weight += cp.einsum(
+        channel_expression, adjoint.grad, source.grad, dtype=F32
+    )
+    grad_weight += cp.einsum(
+        channel_expression, adjoint.hess, source.hess, dtype=F32
+    )
+    grad_weight += cp.einsum(
+        channel_expression, adjoint.third, source.third, dtype=F32
+    )
+    grad_bias = cp.sum(adjoint.value, axis=1, dtype=F32)
+    return (
+        Jet3(
+            cp.matmul(adjoint.value, weights, dtype=F32),
+            cp.einsum("bnoi,bof->bnfi", adjoint.grad, weights, dtype=F32),
+            cp.einsum("bnoi,bof->bnfi", adjoint.hess, weights, dtype=F32),
+            cp.einsum("bnoi,bof->bnfi", adjoint.third, weights, dtype=F32),
         ),
         grad_weight,
         grad_bias,
@@ -567,6 +618,7 @@ class HardcodedMode:
         compute_dtype: type[cp.generic],
     ):
         prefix = f"m{mode:03d}"
+        self.mode_index = mode
         self.compute_dtype = compute_dtype
         self.weights = [
             arrays[f"{prefix}.l{index}.weight"].astype(F32, copy=False)
@@ -835,6 +887,67 @@ class HardcodedModel:
                 result[f"{stem}.step"] = np.asarray(mode.steps[state_index], dtype=np.int64)
         return result
 
+    def backward_block(
+        self,
+        cfg: SimpleNamespace,
+        modes: list[HardcodedMode],
+        caches: list[Any],
+        field_adjoints: list[Jet3],
+    ) -> None:
+        """Run the handwritten reverse pass for a contiguous mode block.
+
+        All contractions remain mode-diagonal and FP32.  Batching changes
+        only kernel launch/GEMM granularity; each mode keeps its own master
+        weights and Adam state.
+        """
+        if not modes:
+            return
+        start = modes[0].mode_index
+        stop = start + len(modes)
+        if [mode.mode_index for mode in modes] != list(range(start, stop)):
+            raise RuntimeError("backward mode block must be contiguous")
+
+        envelope = caches[0][0]
+        output_input = _stack_jets([cache[1] for cache in caches])
+        layer_count = len(caches[0][2])
+        layers: list[tuple[Jet3, Jet3]] = []
+        for layer_index in range(layer_count):
+            sources = [cache[2][layer_index][0] for cache in caches]
+            source = sources[0] if layer_index == 0 else _stack_jets(sources)
+            preactivation = _stack_jets(
+                [cache[2][layer_index][1] for cache in caches]
+            )
+            layers.append((source, preactivation))
+
+        current = envelope_product_backward(
+            envelope, _stack_jets(field_adjoints)
+        )
+        current, output_weight, output_bias = linear_backward_batch(
+            output_input,
+            current,
+            self.shadow_weight_stacks[-1][start:stop].astype(F32),
+        )
+        weight_grads = [output_weight]
+        bias_grads = [output_bias]
+        for layer_index in range(layer_count - 1, -1, -1):
+            source, preactivation = layers[layer_index]
+            current = sine_backward(preactivation, current)
+            current, grad_weight, grad_bias = linear_backward_batch(
+                source,
+                current,
+                self.shadow_weight_stacks[layer_index][start:stop].astype(F32),
+            )
+            weight_grads.append(grad_weight)
+            bias_grads.append(grad_bias)
+        weight_grads.reverse()
+        bias_grads.reverse()
+
+        for local, mode in enumerate(modes):
+            gradients: list[cp.ndarray] = []
+            for grad_weight, grad_bias in zip(weight_grads, bias_grads):
+                gradients.extend([grad_weight[local], grad_bias[local]])
+            mode.adam_step(gradients, cfg)
+
 
 def cfg_namespace(config: dict[str, Any]) -> SimpleNamespace:
     return SimpleNamespace(**config)
@@ -1030,6 +1143,19 @@ def _pure_vorticity_rayleigh_peel_step(
     rayleighs: list[float] = []
     projection_ratios: list[float] = []
     orth_error = 0.0
+    backward_batch = max(1, int(getattr(cfg, "mode_backward_batch", 1)))
+    backward_modes: list[HardcodedMode] = []
+    backward_caches: list[Any] = []
+    backward_adjoints: list[Jet3] = []
+
+    def flush_backward_block() -> None:
+        if backward_modes:
+            model.backward_block(
+                cfg, backward_modes, backward_caches, backward_adjoints
+            )
+            backward_modes.clear()
+            backward_caches.clear()
+            backward_adjoints.clear()
 
     for mode_index, (mode, field, cache) in enumerate(
         model.forward_stream(cfg, points, beta, alpha, training)
@@ -1114,8 +1240,11 @@ def _pure_vorticity_rayleigh_peel_step(
             # omega_y = -(psi_xxy + psi_yyy)
             adjoint.third[:, 0, 1] = -grad_adjoint[:, 1]
             adjoint.third[:, 0, 3] = -grad_adjoint[:, 1]
-            gradients = mode.backward(cache, adjoint)
-            mode.adam_step(gradients, cfg)
+            backward_modes.append(mode)
+            backward_caches.append(cache)
+            backward_adjoints.append(adjoint)
+            if len(backward_modes) == backward_batch:
+                flush_backward_block()
 
         normalizer = cp.reciprocal(cp.sqrt(denominator))
         normalized_omega = residual_omega * normalizer
@@ -1137,6 +1266,8 @@ def _pure_vorticity_rayleigh_peel_step(
             if mode_index else 0.0
         )
         rayleighs.append(float(rayleigh.get()))
+
+    flush_backward_block()
 
     if raw_omega_matrix is not None:
         raw_gram = weight * (raw_omega_matrix.T @ raw_omega_matrix)

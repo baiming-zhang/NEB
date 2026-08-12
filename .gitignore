@@ -3,8 +3,15 @@ __pycache__/
 *.egg-info/
 .pytest_cache/
 .ruff_cache/
+.mypy_cache/
+.coverage
+htmlcov/
 .venv/
 venv/
+build/
+dist/
+tmp/
+output/
 
 results/
 data/raw/
@@ -16,10 +23,10 @@ checkpoints/
 *.hdf5
 *.npz
 *.mp4
-!BasisNet/cases/2D_airfoil/comparisons/rollout30_pure_vorticity_epoch5000/artifacts/airfoil_rollout30_gt_eigenfluid_laplacian_neural_kinematic_bases_10fps.mp4
 *.gif
 *.log
 *.pid
+*.ckpt
 
 .DS_Store
 Thumbs.db

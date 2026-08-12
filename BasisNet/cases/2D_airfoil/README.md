@@ -1,52 +1,74 @@
-# 2D airfoil
+# 2D parametric airfoil (CUDA)
 
-## Configurations
+This is the canonical EigenFluid-SSS airfoil implementation. The production
+trainer is an explicit CuPy fixed graph with a handwritten reverse pass; it
+does not use PyTorch autograd or finite-difference spatial derivatives.
 
-All three FP16 K1024 configurations use the same script, backend, seed, network, precision, sampling, optimizer, scheduler, quadrature, validation pack schema, and checkpoint format.
+## Canonical configuration
 
-| Configuration | Objective weights `(velocity, vorticity)` | Recorded checkpoint |
-|---|---:|---:|
-| [`velocity100`](configs/k1024_c2_sobol_1000_fp16_velocity_only.json) | `(1, 0)` | epoch 1000 |
-| [`hybrid50`](configs/k1024_c2_sobol_10000_fp16_hybrid50.json) | `(0.5, 0.5)` | epoch 650 |
-| [`vorticity100`](configs/k1024_c2_sobol_10000_fp16_vorticity100.json) | `(0, 1)` | epoch 5000 |
+[`k1024_cinf_sobol_5000_fp16_pure_vorticity_rayleigh.json`](configs/k1024_cinf_sobol_5000_fp16_pure_vorticity_rayleigh.json)
+defines the current run:
 
-Run-only differences: `epochs`, `early_stopping_patience_epochs`, `result_root`. The config-equivalence test is in [`test_smoke.py`](tests/test_smoke.py).
+- 1,024 learned modes and 5,000 epochs;
+- continuously varying C-infinity ellipse thickness and angle of attack;
+- scrambled Sobol samples over the physical fluid area;
+- analytic compact symmetric third-order spatial jets;
+- one unscaled pure-vorticity Rayleigh objective;
+- FP16 neural-network forward evaluation and FP32 for all other numerical
+  paths; and
+- deterministic initialization and fixed validation inputs.
 
-The tables below retain the measured historical checkpoints; they were not retrained after the config-schema cleanup.
+Earlier airfoil configurations remain available for controlled comparisons,
+but the configuration above is the publication default.
 
-## Three-frame reconstruction
+## Layout
 
-Mean relative L2 over `(beta, alpha) = (0.50,+10 deg), (0.85,0 deg), (0.50,-10 deg)`.
+```text
+2D_airfoil/
+|-- configs/           JSON run and reference-flow configurations
+|-- reference_inputs/  compact deterministic protocol metadata
+|-- scripts/           preparation, training, evaluation, and ROM rollout
+|-- src/               installable airfoil implementation
+`-- tests/             smoke, analytic-Jet3, and ROM tests
+```
 
-| Model | Velocity full | Velocity wake | Vorticity full | Vorticity wake |
-|---|---:|---:|---:|---:|
-| FP16 velocity 100% | 1.89% | 3.32% | 25.58% | 36.05% |
-| FP16 hybrid 50/50 | 1.95% | 3.51% | 27.15% | 39.78% |
-| FP64 velocity 100% | 1.82% | 3.44% | 23.65% | 36.80% |
-| **FP16 vorticity 100%** | **1.71%** | **3.11%** | **20.75%** | **32.68%** |
+Large generated `.npz` inputs are reproducible from the checked-in metadata
+and are deliberately not versioned.
 
-![Three-frame comparison](comparisons/rollout30_pure_vorticity_epoch5000/artifacts/airfoil_four_model_three_frame_l2_comparison_preview.png)
+## Install and verify
 
-## Rollout30
+From the repository root, install a CuPy build matching the local CUDA
+toolkit. For CUDA 12:
 
-| Method | Velocity full | Velocity wake | Vorticity full | Vorticity wake |
-|---|---:|---:|---:|---:|
-| **EigenFluid K1024** | **7.39% / 9.35%** | **16.14% / 21.89%** | **54.17% / 64.51%** | **78.58% / 98.25%** |
-| Laplacian K1024 | 17.53% / 20.17% | 26.76% / 30.15% | 91.85% / 97.38% | 100.76% / 107.55% |
-| NKB Eq. (8), K10 | 84.07% / 181.61% | 58.93% / 90.03% | 120.92% / 151.95% | 111.89% / 134.05% |
+```bash
+python -m pip install -e ".[dev,cuda12]"
+python -m pytest -q BasisNet/cases/2D_airfoil/tests
+python -m ruff check BasisNet/cases/2D_airfoil
+```
 
-[PDF](comparisons/rollout30_pure_vorticity_epoch5000/artifacts/airfoil_rollout30_gt_eigenfluid_laplacian_neural_kinematic_bases.pdf) · [MP4](comparisons/rollout30_pure_vorticity_epoch5000/artifacts/airfoil_rollout30_gt_eigenfluid_laplacian_neural_kinematic_bases_10fps.mp4) · [full bundle](comparisons/rollout30_pure_vorticity_epoch5000/README.md)
-
-![Rollout30](comparisons/rollout30_pure_vorticity_epoch5000/artifacts/airfoil_rollout30_gt_eigenfluid_laplacian_neural_kinematic_bases_preview.png)
-
-## Train
+## Prepare and train
 
 ```powershell
 $case = "BasisNet/cases/2D_airfoil"
-python "$case/scripts/prepare_hardcoded_run.py" --config "$case/configs/k1024_c2_sobol_10000_fp16_vorticity100.json" --output-dir "$case/results/vorticity100/reference_inputs"
-python -u "$case/scripts/train_hardcoded.py" --resume "$case/results/vorticity100/reference_inputs/initial_epoch0000.npz" --run-dir "$case/results/vorticity100/run_001" --epochs 5000 --validation-pack "$case/results/vorticity100/reference_inputs/fixed_validation_scipy_sobol_v1.npz" --archive-checkpoint-every 500 --early-stopping-patience-epochs 5000
+$config = "$case/configs/k1024_cinf_sobol_5000_fp16_pure_vorticity_rayleigh.json"
+$run = "$case/results/k1024_cinf_sobol_5000_fp16_pure_vorticity_rayleigh/run_001"
+
+python "$case/scripts/prepare_hardcoded_run.py" `
+  --config $config `
+  --output-dir "$run/reference_inputs"
+
+python -u "$case/scripts/train_hardcoded.py" `
+  --resume "$run/reference_inputs/initial_epoch0000.npz" `
+  --validation-pack "$run/reference_inputs/fixed_validation_scipy_sobol_v1.npz" `
+  --run-dir $run `
+  --epochs 5000
 ```
 
-```bash
-python -m pytest -q BasisNet/cases/2D_airfoil/tests
+For a one-epoch smoke run using the canonical wrapper:
+
+```powershell
+python "$case/scripts/train.py" --config $config --run-dir "$case/results/smoke" --self-test
 ```
+
+Training output, checkpoints, generated reference fields, plots, and videos
+remain local under ignored output directories.

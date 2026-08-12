@@ -274,6 +274,64 @@ def test_handwritten_jet3_reverse_matches_complex_step_parameter_gradient() -> N
     )
 
 
+def test_batched_linear_reverse_matches_independent_modes() -> None:
+    cp, backend = _cuda_backend()
+    rng = np.random.default_rng(20260812)
+    point_count, feature_count, output_count, mode_count = 5, 3, 2, 2
+
+    def random_jet(shape: tuple[int, ...]):
+        def array(*suffix: int):
+            return cp.asarray(
+                rng.normal(size=(*shape, *suffix)).astype(np.float32)
+            )
+
+        return backend.Jet3(array(), array(2), array(3), array(4))
+
+    shared_source = random_jet((point_count, feature_count))
+    batched_source = random_jet((mode_count, point_count, feature_count))
+    adjoint = random_jet((mode_count, point_count, output_count))
+    weights = cp.asarray(
+        rng.normal(size=(mode_count, output_count, feature_count)).astype(
+            np.float32
+        )
+    )
+
+    for source in (shared_source, batched_source):
+        batch_source_adjoint, batch_weight, batch_bias = (
+            backend.linear_backward_batch(source, adjoint, weights)
+        )
+        for index in range(mode_count):
+            source_for_mode = (
+                source if source.value.ndim == 2 else backend._slice_jet(source, index)
+            )
+            independent = backend.linear_backward(
+                source_for_mode,
+                backend._slice_jet(adjoint, index),
+                weights[index],
+                backend.F32,
+            )
+            source_adjoint, grad_weight, grad_bias = independent
+            for channel in ("value", "grad", "hess", "third"):
+                np.testing.assert_allclose(
+                    _numpy(cp, getattr(batch_source_adjoint, channel)[index]),
+                    _numpy(cp, getattr(source_adjoint, channel)),
+                    rtol=2e-6,
+                    atol=2e-6,
+                )
+            np.testing.assert_allclose(
+                _numpy(cp, batch_weight[index]),
+                _numpy(cp, grad_weight),
+                rtol=2e-6,
+                atol=2e-6,
+            )
+            np.testing.assert_allclose(
+                _numpy(cp, batch_bias[index]),
+                _numpy(cp, grad_bias),
+                rtol=2e-6,
+                atol=2e-6,
+            )
+
+
 def _python_identifiers(path: Path) -> set[str]:
     source = path.read_text(encoding="utf-8")
     return {
@@ -343,6 +401,9 @@ def test_pure_vorticity_config_has_one_unscaled_unregularized_objective() -> Non
     assert objective_keys == {"basis_objective"}
     assert config["basis_objective"] == "pure_vorticity_rayleigh"
     assert config["spatial_derivative_order"] == 3
+    assert config["epochs"] == 5000
+    assert config["validate_every"] == 500
+    assert config["probe_every"] == 0
 
     forbidden_keys = sorted(
         key
