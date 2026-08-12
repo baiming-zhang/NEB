@@ -404,6 +404,8 @@ def test_pure_vorticity_config_has_one_unscaled_unregularized_objective() -> Non
     assert config["epochs"] == 5000
     assert config["validate_every"] == 500
     assert config["probe_every"] == 0
+    assert config["mode_forward_batch"] > 0
+    assert 0 < config["mode_backward_batch"] <= config["mode_forward_batch"]
 
     forbidden_keys = sorted(
         key
