@@ -671,17 +671,13 @@ class HardcodedMode:
     def adam_step(self, gradients: list[cp.ndarray], cfg: SimpleNamespace) -> None:
         if len(gradients) != 2 * len(self.weights):
             raise RuntimeError("hardcoded reverse pass returned the wrong gradient count")
-        allow_zero_tensors = bool(
-            getattr(cfg, "allow_zero_gradient_tensors", False)
-        )
         for index, gradient in enumerate(gradients):
             if not bool(cp.all(cp.isfinite(gradient)).get()):
                 raise FloatingPointError(f"non-finite hardcoded gradient tensor {index}")
-            if (
-                not allow_zero_tensors
-                and float(cp.max(cp.abs(gradient)).get()) == 0.0
-            ):
-                raise FloatingPointError(f"zero hardcoded gradient tensor {index}")
+        # Individual tensors may be exactly zero along a Rayleigh quotient's
+        # scale/gauge-invariant directions.  Reject only an all-zero reverse
+        # pass below; Adam already leaves an individual zero-gradient tensor
+        # unchanged without introducing a new objective or heuristic.
         total = cp.asarray(0.0, dtype=F32)
         for item in gradients:
             total += cp.sum(item.astype(F32, copy=False) ** 2, dtype=F32)

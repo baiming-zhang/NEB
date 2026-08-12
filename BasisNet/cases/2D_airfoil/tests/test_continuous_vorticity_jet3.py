@@ -331,6 +331,12 @@ def test_production_training_path_has_no_discrete_spatial_derivative_or_torch() 
         )
 
 
+def test_reverse_guard_allows_rayleigh_invariant_zero_parameter_tensor() -> None:
+    source = BACKEND_PATH.read_text(encoding="utf-8")
+    assert "zero hardcoded gradient tensor" not in source
+    assert "zero or non-finite total hardcoded gradient" in source
+
+
 def test_pure_vorticity_config_has_one_unscaled_unregularized_objective() -> None:
     config = json.loads(PURE_CONFIG_PATH.read_text(encoding="utf-8"))
     objective_keys = {key for key in config if "objective" in key.lower()}
