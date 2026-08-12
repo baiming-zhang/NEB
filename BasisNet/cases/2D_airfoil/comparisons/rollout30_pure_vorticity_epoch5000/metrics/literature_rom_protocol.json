@@ -1,0 +1,13 @@
+{
+  "status": "complete",
+  "elapsed_seconds": 0.0,
+  "reused_complete_outputs": true,
+  "common_training_data": "41 D2Q9 TRT-LBM GT snapshots at 500-step spacing",
+  "common_evaluation": "independent 30-frame TRT-LBM trajectory initialized from the same epoch-5000 reconstructed velocity",
+  "rank_policy": "float64 spectral backward-error bound only",
+  "methods": {
+    "pod_galerkin": "Noack et al. POD-Galerkin projection of incompressible Navier-Stokes with outlet total-pressure term",
+    "exact_dmd": "Schmid exact projected DMD one-step map",
+    "quadratic_opinf": "McQuarrie-Huang-Willcox regularized continuous quadratic Operator Inference"
+  }
+}

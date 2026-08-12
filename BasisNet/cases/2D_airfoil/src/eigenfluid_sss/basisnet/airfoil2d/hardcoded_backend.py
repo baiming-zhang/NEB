@@ -512,7 +512,11 @@ class HardcodedMode:
     def forward(
         self, cfg: SimpleNamespace, points: np.ndarray, beta: float, alpha: float, cache: bool
     ) -> tuple[Jet2, Any]:
-        x, y = xy_jets(points)
+        # FP16 is used only for the hidden-layer shadows.  Keeping coordinates
+        # and boundary jets in FP32 prevents overflow in second derivatives on
+        # the 10-by-8 physical box.
+        coordinate_dtype = F32 if self.compute_dtype is F16 else self.compute_dtype
+        x, y = xy_jets(points, coordinate_dtype)
         envelope = envelope_jet(cfg, x, y, beta, alpha)
         current = encoding_jet(cfg, x, y, beta, alpha)
         layer_cache: list[tuple[Jet2, Jet2]] = []
@@ -668,7 +672,12 @@ class HardcodedModel:
         block_size = max(1, int(getattr(cfg, "mode_forward_batch", 1)))
         for start in range(0, len(self.modes), block_size):
             stop = min(start + block_size, len(self.modes))
-            x, y = xy_jets(points)
+            coordinate_dtype = (
+                F32
+                if self.modes[start].compute_dtype is F16
+                else self.modes[start].compute_dtype
+            )
+            x, y = xy_jets(points, coordinate_dtype)
             envelope = envelope_jet(cfg, x, y, beta, alpha)
             current = encoding_jet(cfg, x, y, beta, alpha)
             layer_cache: list[tuple[Jet2, Jet2]] = []

@@ -1,0 +1,59 @@
+{
+  "pdf": "<reproduced-artifact>/airfoil_four_model_three_frame_l2_comparison_vorticity_epoch5000.pdf",
+  "preview": "<reproduced-artifact>/airfoil_four_model_three_frame_l2_comparison_vorticity_epoch5000_preview.png",
+  "pages": [
+    "<reproduced-artifact>/page_01_overview.png",
+    "<reproduced-artifact>/page_02_top.png",
+    "<reproduced-artifact>/page_03_middle.png",
+    "<reproduced-artifact>/page_04_bottom.png"
+  ],
+  "models": [
+    {
+      "key": "fp16_velocity100",
+      "label": "FP16 velocity 100%",
+      "epoch": 1000,
+      "hours": 9.432
+    },
+    {
+      "key": "fp16_hybrid50",
+      "label": "FP16 velocity 50% + vorticity 50%",
+      "epoch": 650,
+      "hours": 3.898
+    },
+    {
+      "key": "fp64_velocity100",
+      "label": "FP64 velocity 100%",
+      "epoch": 5000,
+      "hours": 115.82
+    },
+    {
+      "key": "fp16_vorticity100",
+      "label": "FP16 vorticity 100%",
+      "epoch": 5000,
+      "hours": 29.431285652027768
+    }
+  ],
+  "frames": [
+    {
+      "key": "top",
+      "folder": "alpha_top_p10_beta050",
+      "title": "Upper frame: $\\beta=0.50$, $\\alpha=+10^\\circ$",
+      "alpha": 10.0,
+      "beta": 0.5
+    },
+    {
+      "key": "middle",
+      "folder": "alpha_middle_0_beta085",
+      "title": "Middle frame: $\\beta=0.85$, $\\alpha=0^\\circ$",
+      "alpha": 0.0,
+      "beta": 0.85
+    },
+    {
+      "key": "bottom",
+      "folder": "alpha_bottom_m10_beta050",
+      "title": "Lower frame: $\\beta=0.50$, $\\alpha=-10^\\circ$",
+      "alpha": -10.0,
+      "beta": 0.5
+    }
+  ]
+}

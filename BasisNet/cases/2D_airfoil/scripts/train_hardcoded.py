@@ -206,6 +206,7 @@ def main() -> None:
     parser.add_argument("--resume", type=Path, required=True)
     parser.add_argument("--run-dir", type=Path, required=True)
     parser.add_argument("--epochs", type=int)
+    parser.add_argument("--archive-checkpoint-every", type=int)
     parser.add_argument("--sample-pack", type=Path)
     parser.add_argument("--validation-pack", type=Path)
     parser.add_argument("--self-test-epochs", type=int, default=0)
@@ -250,6 +251,12 @@ def main() -> None:
     config_dict = metadata["config"]
     if args.epochs is not None:
         config_dict["epochs"] = args.epochs
+    if args.archive_checkpoint_every is not None:
+        if args.archive_checkpoint_every <= 0:
+            raise ValueError("--archive-checkpoint-every must be positive")
+        config_dict["archive_checkpoint_every"] = (
+            args.archive_checkpoint_every
+        )
     if args.learning_rate is not None:
         config_dict["learning_rate"] = args.learning_rate
     if args.vorticity_regularization_weight is not None:
@@ -465,6 +472,9 @@ def main() -> None:
             ),
         },
         "early_stopping_patience_epochs": cfg.early_stopping_patience_epochs,
+        "archive_checkpoint_every": int(
+            getattr(cfg, "archive_checkpoint_every", 0)
+        ),
         "lr_scheduler": {
             "type": "validation_plateau",
             "patience_epochs": cfg.lr_scheduler_patience_epochs,
@@ -797,6 +807,28 @@ def main() -> None:
                 args.run_dir / "checkpoints" / "hardcoded_latest.npz",
                 model, config_dict, epoch, best_validation, training_state,
             )
+            archive_every = int(
+                getattr(cfg, "archive_checkpoint_every", 0)
+            )
+            if archive_every > 0 and epoch % archive_every == 0:
+                archive_path = (
+                    args.run_dir
+                    / "checkpoints"
+                    / f"hardcoded_epoch{epoch:04d}.npz"
+                )
+                save_neutral(
+                    archive_path,
+                    model,
+                    config_dict,
+                    epoch,
+                    best_validation,
+                    training_state,
+                )
+                append_log(
+                    args.run_dir,
+                    f"archived checkpoint epoch={epoch:04d} "
+                    f"path={archive_path}",
+                )
             save_history(args.run_dir, history)
         if (
             args.self_test_epochs <= 0

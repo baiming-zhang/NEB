@@ -1,0 +1,473 @@
+{
+  "status": "complete",
+  "checkpoint": "<reproduced-artifact>/hardcoded_best_model.npz",
+  "gt": "<reproduced-artifact>/gt_000.npz",
+  "beta": 0.5,
+  "alpha_deg": 10.0,
+  "gt_frame_index": 20,
+  "snapshot_count": 41,
+  "phase": 0.5,
+  "ritz_rank": 1024,
+  "coefficient_fit": "velocity_l2",
+  "projection_ritz_orth_error": 0.41059452267675955,
+  "metrics": {
+    "projection_ritz_orth_error": 0.41059452267675955,
+    "velocity_error": 0.020049532875418663,
+    "vorticity_error": 0.2683342695236206,
+    "fluctuation_velocity_error": 0.26027992367744446,
+    "fluctuation_vorticity_error": 0.6068081259727478,
+    "wake_velocity_error": 0.03864336386322975,
+    "wake_vorticity_error": 0.40849563479423523,
+    "wake_fluctuation_velocity_error": 0.20781658589839935,
+    "wake_fluctuation_vorticity_error": 0.509977400302887
+  },
+  "gt_metadata": {
+    "solver": "D2Q9 TRT lattice Boltzmann Navier-Stokes",
+    "purpose": "independent post-freeze reference only",
+    "beta": 0.5,
+    "alpha_deg": 10.0,
+    "geometry": {
+      "seed": 20260801,
+      "modes": 1024,
+      "epochs": 10000,
+      "xmin": 0.0,
+      "xmax": 10.0,
+      "ymin": -4.0,
+      "ymax": 4.0,
+      "chord": 2.0,
+      "quarter_chord_x": 3.0,
+      "quarter_chord_y": 0.0,
+      "thickness_min": 0.08,
+      "thickness_max": 0.18,
+      "geometry_mode": "c2_ellipse",
+      "alpha_min_deg": -12.0,
+      "alpha_max_deg": 12.0,
+      "hidden": 64,
+      "hidden_layers": 4,
+      "frequencies": 6,
+      "points_per_step": 4096,
+      "validation_points": 4096,
+      "validation_beta_samples": 3,
+      "validation_alpha_samples": 3,
+      "probe_beta": 0.5,
+      "probe_alpha_deg": 6.0,
+      "probe_every": 100,
+      "validate_every": 50,
+      "checkpoint_every": 100,
+      "learning_rate": 0.0008,
+      "base_learning_rate": 0.0008,
+      "early_stopping_patience_epochs": 1000,
+      "lr_scheduler_patience_epochs": 200,
+      "lr_scheduler_factor": 0.5,
+      "min_learning_rate": 1e-06,
+      "lr_scheduler_relative_threshold": 0.0001,
+      "rayleigh_scale": 80.0,
+      "grad_clip": 5.0,
+      "mass_floor": 1e-10,
+      "endpoint_period": 20,
+      "envelope_mode": "farfield_freestream",
+      "sampling_mode": "mixed",
+      "global_fraction": 0.5,
+      "airfoil_fraction": 0.25,
+      "wake_fraction": 0.25,
+      "airfoil_band_chords": 0.55,
+      "wake_length_chords": 3.0,
+      "wake_half_height_chords": 0.55,
+      "result_root": "BasisNet/cases/2D_airfoil/results/k1024_c2_sobol_10000_fp16_hybrid50"
+    },
+    "solver_config": {
+      "nx": 1001,
+      "ny": 801,
+      "reynolds": 1500.0,
+      "lattice_inlet_speed": 0.08,
+      "steps": 60000,
+      "warmup_steps": 40000,
+      "snapshot_every": 500,
+      "collision_model": "trt",
+      "trt_magic_parameter": 0.1875,
+      "initial_perturbation_fraction": 0.01,
+      "warmup_inlet_perturbation_fraction": 0.02,
+      "warmup_inlet_perturbation_duration": 0.5,
+      "warmup_inlet_perturbation_period_chords": 2.0,
+      "require_separated_gt": true,
+      "device": "cuda"
+    },
+    "actual_device": "cuda",
+    "chord_nodes": 200.0,
+    "lattice_viscosity": 0.010666666666666666,
+    "relaxation_time": 0.532,
+    "odd_relaxation_time": 6.359374999999995,
+    "elapsed_seconds": 632.9277607999975,
+    "airflow": "uniform left-to-right atmospheric free stream",
+    "boundary": "no-slip airfoil; uniform free-stream top/bottom far field; open zero-gradient outlet",
+    "initial_disturbance": "deterministic localized cross-stream perturbation, 1.000% of inlet speed; initial condition only",
+    "warmup_inlet_disturbance": "2.000% cross-stream gust for the first 50.0% of warm-up only; zero during every saved GT frame",
+    "separation_diagnostics": {
+      "definition": {
+        "near_wall_band_chords": 0.08,
+        "wake_length_chords": 2.0,
+        "wake_half_height_chords": 0.65,
+        "reverse_flow_threshold_fraction": -0.01,
+        "coherent_vortex_min_nodes": 6
+      },
+      "frames": [
+        {
+          "near_wall_vorticity_p99": 4.572457313537598,
+          "wake_vorticity_rms": 0.11267639696598053,
+          "wake_reverse_flow_fraction": 0.005115384615384615,
+          "minimum_wake_u": -0.016209738329052925,
+          "positive_coherent_vortices": 2,
+          "negative_coherent_vortices": 3
+        },
+        {
+          "near_wall_vorticity_p99": 4.820286750793457,
+          "wake_vorticity_rms": 0.11384273320436478,
+          "wake_reverse_flow_fraction": 0.005740384615384615,
+          "minimum_wake_u": -0.018211817368865013,
+          "positive_coherent_vortices": 2,
+          "negative_coherent_vortices": 4
+        },
+        {
+          "near_wall_vorticity_p99": 4.819695472717285,
+          "wake_vorticity_rms": 0.11250524967908859,
+          "wake_reverse_flow_fraction": 0.004759615384615385,
+          "minimum_wake_u": -0.014254860579967499,
+          "positive_coherent_vortices": 3,
+          "negative_coherent_vortices": 3
+        },
+        {
+          "near_wall_vorticity_p99": 4.629952907562256,
+          "wake_vorticity_rms": 0.11328669637441635,
+          "wake_reverse_flow_fraction": 0.0036442307692307694,
+          "minimum_wake_u": -0.0052400617860257626,
+          "positive_coherent_vortices": 3,
+          "negative_coherent_vortices": 2
+        },
+        {
+          "near_wall_vorticity_p99": 4.40287971496582,
+          "wake_vorticity_rms": 0.10918377339839935,
+          "wake_reverse_flow_fraction": 0.003951923076923077,
+          "minimum_wake_u": -0.010307921096682549,
+          "positive_coherent_vortices": 2,
+          "negative_coherent_vortices": 2
+        },
+        {
+          "near_wall_vorticity_p99": 4.475747585296631,
+          "wake_vorticity_rms": 0.11199487745761871,
+          "wake_reverse_flow_fraction": 0.005192307692307692,
+          "minimum_wake_u": -0.015447540208697319,
+          "positive_coherent_vortices": 2,
+          "negative_coherent_vortices": 3
+        },
+        {
+          "near_wall_vorticity_p99": 4.788936138153076,
+          "wake_vorticity_rms": 0.1123661920428276,
+          "wake_reverse_flow_fraction": 0.0061730769230769235,
+          "minimum_wake_u": -0.01852712407708168,
+          "positive_coherent_vortices": 2,
+          "negative_coherent_vortices": 4
+        },
+        {
+          "near_wall_vorticity_p99": 4.882011413574219,
+          "wake_vorticity_rms": 0.11210137605667114,
+          "wake_reverse_flow_fraction": 0.005875,
+          "minimum_wake_u": -0.016215920448303223,
+          "positive_coherent_vortices": 3,
+          "negative_coherent_vortices": 3
+        },
+        {
+          "near_wall_vorticity_p99": 4.713351249694824,
+          "wake_vorticity_rms": 0.11172527819871902,
+          "wake_reverse_flow_fraction": 0.005480769230769231,
+          "minimum_wake_u": -0.009193189442157745,
+          "positive_coherent_vortices": 3,
+          "negative_coherent_vortices": 2
+        },
+        {
+          "near_wall_vorticity_p99": 4.464595317840576,
+          "wake_vorticity_rms": 0.10803321748971939,
+          "wake_reverse_flow_fraction": 0.004423076923076923,
+          "minimum_wake_u": -0.008526104502379894,
+          "positive_coherent_vortices": 2,
+          "negative_coherent_vortices": 2
+        },
+        {
+          "near_wall_vorticity_p99": 4.463669300079346,
+          "wake_vorticity_rms": 0.11070997267961502,
+          "wake_reverse_flow_fraction": 0.005413461538461539,
+          "minimum_wake_u": -0.01401856541633606,
+          "positive_coherent_vortices": 2,
+          "negative_coherent_vortices": 3
+        },
+        {
+          "near_wall_vorticity_p99": 4.774125099182129,
+          "wake_vorticity_rms": 0.11033625900745392,
+          "wake_reverse_flow_fraction": 0.006653846153846153,
+          "minimum_wake_u": -0.01863444782793522,
+          "positive_coherent_vortices": 2,
+          "negative_coherent_vortices": 4
+        },
+        {
+          "near_wall_vorticity_p99": 4.8708319664001465,
+          "wake_vorticity_rms": 0.11177883297204971,
+          "wake_reverse_flow_fraction": 0.007144230769230769,
+          "minimum_wake_u": -0.018675925210118294,
+          "positive_coherent_vortices": 3,
+          "negative_coherent_vortices": 3
+        },
+        {
+          "near_wall_vorticity_p99": 4.698258399963379,
+          "wake_vorticity_rms": 0.10975587368011475,
+          "wake_reverse_flow_fraction": 0.0069134615384615385,
+          "minimum_wake_u": -0.014598921872675419,
+          "positive_coherent_vortices": 3,
+          "negative_coherent_vortices": 2
+        },
+        {
+          "near_wall_vorticity_p99": 4.43556547164917,
+          "wake_vorticity_rms": 0.10729625821113586,
+          "wake_reverse_flow_fraction": 0.007028846153846154,
+          "minimum_wake_u": -0.006984537001699209,
+          "positive_coherent_vortices": 2,
+          "negative_coherent_vortices": 2
+        },
+        {
+          "near_wall_vorticity_p99": 4.509105205535889,
+          "wake_vorticity_rms": 0.10981074720621109,
+          "wake_reverse_flow_fraction": 0.006009615384615385,
+          "minimum_wake_u": -0.0128554105758667,
+          "positive_coherent_vortices": 2,
+          "negative_coherent_vortices": 2
+        },
+        {
+          "near_wall_vorticity_p99": 4.805453777313232,
+          "wake_vorticity_rms": 0.10958407819271088,
+          "wake_reverse_flow_fraction": 0.007096153846153846,
+          "minimum_wake_u": -0.018484164029359818,
+          "positive_coherent_vortices": 2,
+          "negative_coherent_vortices": 2
+        },
+        {
+          "near_wall_vorticity_p99": 4.81614351272583,
+          "wake_vorticity_rms": 0.11184829473495483,
+          "wake_reverse_flow_fraction": 0.007625,
+          "minimum_wake_u": -0.019721277058124542,
+          "positive_coherent_vortices": 2,
+          "negative_coherent_vortices": 3
+        },
+        {
+          "near_wall_vorticity_p99": 4.592864990234375,
+          "wake_vorticity_rms": 0.11055751144886017,
+          "wake_reverse_flow_fraction": 0.007125,
+          "minimum_wake_u": -0.016827600076794624,
+          "positive_coherent_vortices": 3,
+          "negative_coherent_vortices": 3
+        },
+        {
+          "near_wall_vorticity_p99": 4.363182067871094,
+          "wake_vorticity_rms": 0.10722023248672485,
+          "wake_reverse_flow_fraction": 0.007490384615384616,
+          "minimum_wake_u": -0.009154999628663063,
+          "positive_coherent_vortices": 2,
+          "negative_coherent_vortices": 2
+        },
+        {
+          "near_wall_vorticity_p99": 4.576645374298096,
+          "wake_vorticity_rms": 0.10988850891590118,
+          "wake_reverse_flow_fraction": 0.006384615384615384,
+          "minimum_wake_u": -0.012970835901796818,
+          "positive_coherent_vortices": 2,
+          "negative_coherent_vortices": 2
+        },
+        {
+          "near_wall_vorticity_p99": 4.825793266296387,
+          "wake_vorticity_rms": 0.10998479276895523,
+          "wake_reverse_flow_fraction": 0.007019230769230769,
+          "minimum_wake_u": -0.018831590190529823,
+          "positive_coherent_vortices": 2,
+          "negative_coherent_vortices": 2
+        },
+        {
+          "near_wall_vorticity_p99": 4.75528621673584,
+          "wake_vorticity_rms": 0.1123095378279686,
+          "wake_reverse_flow_fraction": 0.007298076923076923,
+          "minimum_wake_u": -0.01987096108496189,
+          "positive_coherent_vortices": 2,
+          "negative_coherent_vortices": 3
+        },
+        {
+          "near_wall_vorticity_p99": 4.481672763824463,
+          "wake_vorticity_rms": 0.11259337514638901,
+          "wake_reverse_flow_fraction": 0.006326923076923077,
+          "minimum_wake_u": -0.016112638637423515,
+          "positive_coherent_vortices": 3,
+          "negative_coherent_vortices": 3
+        },
+        {
+          "near_wall_vorticity_p99": 4.32350492477417,
+          "wake_vorticity_rms": 0.1080675721168518,
+          "wake_reverse_flow_fraction": 0.006480769230769231,
+          "minimum_wake_u": -0.007162914611399174,
+          "positive_coherent_vortices": 2,
+          "negative_coherent_vortices": 2
+        },
+        {
+          "near_wall_vorticity_p99": 4.574660778045654,
+          "wake_vorticity_rms": 0.11096431314945221,
+          "wake_reverse_flow_fraction": 0.005557692307692308,
+          "minimum_wake_u": -0.013653362169861794,
+          "positive_coherent_vortices": 2,
+          "negative_coherent_vortices": 2
+        },
+        {
+          "near_wall_vorticity_p99": 4.8379058837890625,
+          "wake_vorticity_rms": 0.11119607090950012,
+          "wake_reverse_flow_fraction": 0.006548076923076923,
+          "minimum_wake_u": -0.01919512078166008,
+          "positive_coherent_vortices": 2,
+          "negative_coherent_vortices": 4
+        },
+        {
+          "near_wall_vorticity_p99": 4.751742839813232,
+          "wake_vorticity_rms": 0.11276104301214218,
+          "wake_reverse_flow_fraction": 0.0064423076923076925,
+          "minimum_wake_u": -0.019032558426260948,
+          "positive_coherent_vortices": 2,
+          "negative_coherent_vortices": 3
+        },
+        {
+          "near_wall_vorticity_p99": 4.4367780685424805,
+          "wake_vorticity_rms": 0.11335164308547974,
+          "wake_reverse_flow_fraction": 0.004961538461538462,
+          "minimum_wake_u": -0.01356115285307169,
+          "positive_coherent_vortices": 3,
+          "negative_coherent_vortices": 3
+        },
+        {
+          "near_wall_vorticity_p99": 4.32494592666626,
+          "wake_vorticity_rms": 0.10941587388515472,
+          "wake_reverse_flow_fraction": 0.0044423076923076925,
+          "minimum_wake_u": -0.008358140476047993,
+          "positive_coherent_vortices": 3,
+          "negative_coherent_vortices": 2
+        },
+        {
+          "near_wall_vorticity_p99": 4.530355453491211,
+          "wake_vorticity_rms": 0.11165765672922134,
+          "wake_reverse_flow_fraction": 0.005028846153846154,
+          "minimum_wake_u": -0.014149079099297523,
+          "positive_coherent_vortices": 2,
+          "negative_coherent_vortices": 2
+        },
+        {
+          "near_wall_vorticity_p99": 4.822549343109131,
+          "wake_vorticity_rms": 0.11337326467037201,
+          "wake_reverse_flow_fraction": 0.0059807692307692305,
+          "minimum_wake_u": -0.01918659918010235,
+          "positive_coherent_vortices": 2,
+          "negative_coherent_vortices": 4
+        },
+        {
+          "near_wall_vorticity_p99": 4.805480003356934,
+          "wake_vorticity_rms": 0.11281544715166092,
+          "wake_reverse_flow_fraction": 0.00575,
+          "minimum_wake_u": -0.01790054887533188,
+          "positive_coherent_vortices": 3,
+          "negative_coherent_vortices": 3
+        },
+        {
+          "near_wall_vorticity_p99": 4.525796890258789,
+          "wake_vorticity_rms": 0.11358140408992767,
+          "wake_reverse_flow_fraction": 0.0040384615384615385,
+          "minimum_wake_u": -0.011335726827383041,
+          "positive_coherent_vortices": 3,
+          "negative_coherent_vortices": 3
+        },
+        {
+          "near_wall_vorticity_p99": 4.336035251617432,
+          "wake_vorticity_rms": 0.1100815162062645,
+          "wake_reverse_flow_fraction": 0.0029326923076923076,
+          "minimum_wake_u": -0.008746556006371975,
+          "positive_coherent_vortices": 3,
+          "negative_coherent_vortices": 2
+        },
+        {
+          "near_wall_vorticity_p99": 4.501246929168701,
+          "wake_vorticity_rms": 0.11154469102621078,
+          "wake_reverse_flow_fraction": 0.004759615384615385,
+          "minimum_wake_u": -0.014124931767582893,
+          "positive_coherent_vortices": 2,
+          "negative_coherent_vortices": 2
+        },
+        {
+          "near_wall_vorticity_p99": 4.769025802612305,
+          "wake_vorticity_rms": 0.11391828209161758,
+          "wake_reverse_flow_fraction": 0.005798076923076923,
+          "minimum_wake_u": -0.018707027658820152,
+          "positive_coherent_vortices": 2,
+          "negative_coherent_vortices": 4
+        },
+        {
+          "near_wall_vorticity_p99": 4.860712051391602,
+          "wake_vorticity_rms": 0.11234559118747711,
+          "wake_reverse_flow_fraction": 0.005625,
+          "minimum_wake_u": -0.017389969900250435,
+          "positive_coherent_vortices": 3,
+          "negative_coherent_vortices": 3
+        },
+        {
+          "near_wall_vorticity_p99": 4.659414768218994,
+          "wake_vorticity_rms": 0.11335520446300507,
+          "wake_reverse_flow_fraction": 0.003951923076923077,
+          "minimum_wake_u": -0.010744761675596237,
+          "positive_coherent_vortices": 3,
+          "negative_coherent_vortices": 3
+        },
+        {
+          "near_wall_vorticity_p99": 4.401690483093262,
+          "wake_vorticity_rms": 0.1091272383928299,
+          "wake_reverse_flow_fraction": 0.003067307692307692,
+          "minimum_wake_u": -0.008008415810763836,
+          "positive_coherent_vortices": 3,
+          "negative_coherent_vortices": 2
+        },
+        {
+          "near_wall_vorticity_p99": 4.4494218826293945,
+          "wake_vorticity_rms": 0.11085676401853561,
+          "wake_reverse_flow_fraction": 0.004663461538461538,
+          "minimum_wake_u": -0.013376682996749878,
+          "positive_coherent_vortices": 2,
+          "negative_coherent_vortices": 2
+        }
+      ],
+      "temporal_wake_vorticity_rms": 0.08910556137561798,
+      "maximum_reverse_flow_fraction": 0.007625,
+      "maximum_coherent_vortex_count": 6,
+      "separation_expected": true,
+      "separated_gt_quality_pass": true,
+      "separated_gt_quality_rule": "|alpha|>=8 deg requires reverse fraction >=1e-3, at least 3 coherent wake vortices, and temporal wake vorticity RMS >=2e-3"
+    }
+  },
+  "velocity_optimal_figure": "<reproduced-artifact>/velocity_optimal_comparison.png",
+  "vorticity_optimal_figure": null,
+  "sample": "<reproduced-artifact>/reconstruction_sample.npz",
+  "basis_lowest6": {
+    "contact_sheet": "<reproduced-artifact>/contact_sheet.png",
+    "summary": {
+      "beta": 0.5,
+      "alpha_deg": 10.0,
+      "eigenvalues": [
+        0.6131948088021689,
+        0.9588142134283459,
+        1.3908084867230934,
+        1.6583244992045607,
+        2.159117080984477,
+        2.3764795401040355
+      ],
+      "rank": 1024,
+      "definition": "six smallest generalized Ritz eigenvalues",
+      "basis_coordinate_system": "mass_orthogonal_ritz",
+      "ritz_mass_orthogonality_error": 9.181544413650045e-13
+    }
+  }
+}
