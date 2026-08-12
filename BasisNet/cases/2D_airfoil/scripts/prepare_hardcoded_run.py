@@ -1,4 +1,4 @@
-"""Create a no-PyTorch epoch-0 model and immutable validation set."""
+"""Create the continuous-Jet3 epoch-0 model and validation quadrature."""
 
 from __future__ import annotations
 
@@ -42,6 +42,25 @@ def main() -> None:
     parser.add_argument("--output-dir", type=Path, required=True)
     args = parser.parse_args()
     config = json.loads(args.config.read_text(encoding="utf-8"))
+    if config.get("basis_objective") != "pure_vorticity_rayleigh":
+        raise ValueError("only pure_vorticity_rayleigh inputs may be prepared")
+    if config.get("sampling_mode") != "uniform_fluid_area_sobol":
+        raise ValueError("sampling must be uniform physical-fluid-area Sobol")
+    if int(config.get("spatial_derivative_order", -1)) != 3:
+        raise ValueError("continuous vorticity Rayleigh requires analytic Jet3")
+    if config.get("mlp_compute_dtype") != "float16":
+        raise ValueError("only the neural-network forward may use FP16")
+    for key in (
+        "mlp_accumulation_dtype",
+        "jet_dtype",
+        "parameter_backward_dtype",
+        "quadrature_dtype",
+        "ritz_dtype",
+        "master_weight_dtype",
+        "optimizer_dtype",
+    ):
+        if config.get(key) != "float32":
+            raise ValueError(f"{key} must be float32")
     cfg = cfg_namespace(config)
     rng = np.random.default_rng(cfg.seed)
     arrays: dict[str, np.ndarray] = {}
@@ -85,14 +104,21 @@ def main() -> None:
     initial.with_suffix(".json").write_text(
         json.dumps(
             {
-                "format": "eigenfluid_airfoil_hardcoded_v2",
+                "format": "eigenfluid_airfoil_continuous_jet3_v1",
                 "source": "NumPy PCG64 deterministic initialization",
                 "epoch": 0,
                 "best_validation": float("inf"),
                 "config": config,
                 "training_uses_pytorch": False,
-                "spatial_ad": "hardcoded_xy_jet2",
-                "parameter_backward": "hardcoded_reverse_jet2",
+                "automatic_differentiation_used": False,
+                "finite_difference_used": False,
+                "spatial_ad": "analytic_compact_symmetric_xy_jet3",
+                "parameter_backward": "handwritten_reverse_jet3",
+                "loss_terms": ["unscaled_vorticity_rayleigh"],
+                "precision": {
+                    "neural_network_forward": "float16",
+                    "all_other_numerical_paths": "float32"
+                },
                 "training_state": {
                     "current_learning_rate": cfg.learning_rate,
                     "best_validation_epoch": 0,
@@ -130,8 +156,12 @@ def main() -> None:
         validation,
         {
             "validation_points": validation_points,
-            "validation_beta": np.asarray([pair[0] for pair in pairs]),
-            "validation_alpha": np.asarray([pair[1] for pair in pairs]),
+            "validation_beta": np.asarray(
+                [pair[0] for pair in pairs], dtype=np.float32
+            ),
+            "validation_alpha": np.asarray(
+                [pair[1] for pair in pairs], dtype=np.float32
+            ),
             "probe_points": fluid_points(
                 cfg,
                 cfg.validation_points,
@@ -141,19 +171,55 @@ def main() -> None:
             ).astype(np.float32),
         },
     )
+    # The generated NPZ packs are intentionally ignored by Git.  Keep the
+    # small sidecars versioned so a user can verify or regenerate the exact
+    # inputs without downloading model files.
+    validation.with_suffix(".json").write_text(
+        json.dumps(
+            {
+                "format": "eigenfluid_airfoil_continuous_validation_v1",
+                "config": config,
+                "validation_shape_count": len(pairs),
+                "validation_points_per_shape": cfg.validation_points,
+                "validation_pairs": [
+                    {"beta": beta, "alpha_deg": alpha}
+                    for beta, alpha in pairs
+                ],
+                "probe_beta": cfg.probe_beta,
+                "probe_alpha_deg": cfg.probe_alpha_deg,
+                "sampler": "scipy_scrambled_sobol_uniform_physical_fluid_area_v1",
+                "dtype": "float32",
+            },
+            indent=2,
+        ),
+        encoding="utf-8",
+    )
     manifest = {
         "config": str(args.config.resolve()),
+        "config_repository_path": str(args.config.resolve().relative_to(CASE_ROOT.parent.parent)),
         "initializer": "numpy_pcg64_v1",
         "initial_first_layer_gain": first_layer_gain,
         "initial_hidden_layer_gain": hidden_layer_gain,
         "initial_output_layer_gain": output_layer_gain,
-        "sampler": "scipy_scrambled_sobol_v1",
-        "geometry": "c2_ellipse",
-        "initial_checkpoint": str(initial.resolve()),
+        "sampler": "scipy_scrambled_sobol_uniform_physical_fluid_area_v1",
+        "quadrature_measure": "physical_fluid_area",
+        "geometry": "cinf_ellipse",
+        "envelope": "cinf_farfield_freestream",
+        "basis_objective": "pure_vorticity_rayleigh",
+        "loss_terms": ["unscaled_vorticity_rayleigh"],
+        "finite_difference_used": False,
+        "spatial_ad": "analytic_compact_symmetric_xy_jet3",
+        "parameter_backward": "handwritten_reverse_jet3",
+        "precision": {
+            "neural_network_forward": "float16",
+            "all_other_numerical_paths": "float32"
+        },
+        "initial_checkpoint": initial.name,
         "initial_sha256": digest(initial),
-        "fixed_validation": str(validation.resolve()),
+        "fixed_validation": validation.name,
         "fixed_validation_sha256": digest(validation),
         "training_uses_pytorch": False,
+        "automatic_differentiation_used": False,
     }
     (args.output_dir / "manifest.json").write_text(
         json.dumps(manifest, indent=2), encoding="utf-8"

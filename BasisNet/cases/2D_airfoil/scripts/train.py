@@ -1,7 +1,7 @@
-"""Canonical fixed-graph training entry point for the 2D airfoil case.
+"""Canonical continuous-Jet3 pure-vorticity training entry point.
 
 The public command mirrors ``2D_karman/scripts/train.py`` while delegating
-the implementation to the explicit CuPy forward/reverse pass.  A new run
+the implementation to explicit CuPy kernels and a handwritten reverse pass.  A new run
 creates its deterministic epoch-0 state and immutable validation pack before
 starting training.  Resumed runs reuse those artifacts.
 """
@@ -34,6 +34,10 @@ def main() -> None:
     args = parser.parse_args()
 
     config = json.loads(args.config.read_text(encoding="utf-8"))
+    if config.get("basis_objective") != "pure_vorticity_rayleigh":
+        raise ValueError(
+            "the canonical trainer accepts pure_vorticity_rayleigh only"
+        )
     target_epochs = int(args.epochs or config["epochs"])
     inputs = args.run_dir / "reference_inputs"
     validation = inputs / "fixed_validation_scipy_sobol_v1.npz"

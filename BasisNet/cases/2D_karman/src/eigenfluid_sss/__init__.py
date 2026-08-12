@@ -1,1 +1,0 @@
-"""EigenFluid-SSS research software."""

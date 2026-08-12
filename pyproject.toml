@@ -5,21 +5,23 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "eigenfluid-sss"
 version = "0.1.0"
-description = "Spatial spectral subspace learning and reduced fluid dynamics"
+description = "CUDA EigenFluid-SSS implementation for a parametric 2D airfoil"
 requires-python = ">=3.11"
 dependencies = [
   "h5py>=3.10",
   "matplotlib>=3.8",
   "numpy>=1.26",
+  "Pillow>=10",
   "scipy>=1.12",
   "torch>=2.5",
 ]
 
 [project.optional-dependencies]
+cuda12 = ["cupy-cuda12x>=13"]
 dev = ["pytest>=8", "ruff>=0.6"]
 
 [tool.setuptools.packages.find]
-where = ["BasisNet/cases/2D_karman/src"]
+where = ["BasisNet/cases/2D_airfoil/src"]
 include = ["eigenfluid_sss*"]
 
 [tool.ruff]
@@ -27,4 +29,4 @@ line-length = 88
 target-version = "py311"
 
 [tool.pytest.ini_options]
-testpaths = ["BasisNet/cases/2D_karman/tests"]
+testpaths = ["BasisNet/cases/2D_airfoil/tests"]

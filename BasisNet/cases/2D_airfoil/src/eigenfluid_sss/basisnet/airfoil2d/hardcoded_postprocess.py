@@ -60,19 +60,31 @@ def ritz_fluid_points(
 
 
 def generalized_symmetric_eig(
-    stiffness: np.ndarray, mass: np.ndarray, modes: int
+    stiffness: np.ndarray,
+    mass: np.ndarray,
+    modes: int,
+    *,
+    sample_rows: int | None = None,
 ) -> tuple[np.ndarray, np.ndarray, int]:
+    """Solve ``K c = lambda M c`` on the backward-resolved mass range."""
+
     mass = 0.5 * (mass + mass.T)
     stiffness = 0.5 * (stiffness + stiffness.T)
     values, vectors = np.linalg.eigh(mass)
-    floor = max(float(values[-1]) * 1.0e-10, 1.0e-14)
+    largest = max(float(values[-1]), 0.0)
+    rows = len(values) if sample_rows is None else int(sample_rows)
+    floor = np.finfo(np.float64).eps * max(rows, len(values)) * largest
     keep = values > floor
+    if not np.any(keep):
+        raise np.linalg.LinAlgError(
+            "mass matrix has no backward-resolved direction"
+        )
     whitener = vectors[:, keep] / np.sqrt(values[keep])[None, :]
     reduced = whitener.T @ stiffness @ whitener
     reduced_values, reduced_vectors = np.linalg.eigh(
         0.5 * (reduced + reduced.T)
     )
-    order = np.argsort(reduced_values)[:modes]
+    order = np.argsort(reduced_values)[: min(int(modes), int(np.sum(keep)))]
     return (
         reduced_values[order],
         whitener @ reduced_vectors[:, order],

@@ -34,6 +34,7 @@
   "probe_every": 100,
   "validate_every": 50,
   "checkpoint_every": 100,
+  "archive_checkpoint_every": 500,
   "learning_rate": 0.0008,
   "base_learning_rate": 0.0008,
   "early_stopping_patience_epochs": 1000,

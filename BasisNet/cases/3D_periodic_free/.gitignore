@@ -1,6 +1,0 @@
-__pycache__/
-*.py[cod]
-data/
-results/
-*.h5
-*.mp4
