@@ -6,9 +6,9 @@ param(
 
 $ErrorActionPreference = "Stop"
 $case = Join-Path $Worktree "BasisNet\cases\2D_airfoil"
-$config = Join-Path $case "configs\k1024_cinf_sobol_5000_fp16_pure_vorticity_rayleigh.json"
-$inputs = Join-Path $case "reference_inputs\k1024_cinf_sobol_5000_fp16_pure_vorticity_rayleigh"
-$run = Join-Path $case "results\k1024_cinf_sobol_5000_fp16_pure_vorticity_rayleigh\$RunName"
+$config = Join-Path $case "configs\k1024_ncl_cinf_sobol_10000_fp16_pure_vorticity_rayleigh.json"
+$inputs = Join-Path $case "reference_inputs\k1024_ncl_cinf_sobol_10000_fp16_pure_vorticity_rayleigh"
+$run = Join-Path $case "results\k1024_ncl_cinf_sobol_10000_fp16_pure_vorticity_rayleigh\$RunName"
 $trainer = Join-Path $case "scripts\train_hardcoded.py"
 $checkpoint = Join-Path $inputs "initial_epoch0000.npz"
 $validation = Join-Path $inputs "fixed_validation_scipy_sobol_v1.npz"
@@ -29,7 +29,7 @@ if (Test-Path -LiteralPath $run) {
 $matches = Get-CimInstance Win32_Process | Where-Object {
     $_.CommandLine -and
     $_.CommandLine.Contains("train_hardcoded.py") -and
-    $_.CommandLine.Contains("k1024_cinf_sobol_5000_fp16_pure_vorticity_rayleigh")
+    $_.CommandLine.Contains("k1024_ncl_cinf_sobol_10000_fp16_pure_vorticity_rayleigh")
 }
 if ($matches) {
     throw "Matching continuous-vorticity trainer is already running"

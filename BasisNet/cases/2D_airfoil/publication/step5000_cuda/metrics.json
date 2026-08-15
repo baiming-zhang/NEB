@@ -1,0 +1,100 @@
+{
+  "format": "eigenfluid_airfoil_ncl_continuous_jet3_step5000_publication_v1",
+  "checkpoint": {
+    "optimizer_step": 5000,
+    "best_validation": 101.65489959716797,
+    "best_validation_step": 4500,
+    "checkpoint_in_repository": false
+  },
+  "protocol": {
+    "seed": 20260801,
+    "modes": 1024,
+    "modes_per_optimizer_step": 1024,
+    "points_per_step": 4096,
+    "field_representation": "ncl_antisymmetric_tensor_2d",
+    "spatial_derivatives": "analytic_compact_symmetric_jet3",
+    "parameter_backward": "handwritten_reverse_jet3",
+    "basis_objective": "pure_vorticity_rayleigh_unscaled",
+    "training_uses_pytorch": false,
+    "automatic_differentiation_used": false,
+    "finite_difference_used": false,
+    "mlp_operands": "float16",
+    "mlp_accumulation": "float32",
+    "all_other_numerical_paths": "float32"
+  },
+  "evaluation": {
+    "phase": 0.5,
+    "coefficient_fit": "velocity_l2",
+    "ritz_quadrature": 4096,
+    "cases": [
+      {
+        "alpha_deg": 10.0,
+        "beta": 0.5,
+        "ritz_rank": 1024,
+        "velocity_relative_l2": 0.022120079025626183,
+        "wake_velocity_relative_l2": 0.04743368551135063,
+        "vorticity_relative_l2": 0.26652178168296814,
+        "first_nine_eigenvalues": [
+          0.6322359669636953,
+          0.9340850249631156,
+          1.364475908840534,
+          1.612183359698563,
+          2.0884179525502073,
+          2.2732947632931473,
+          2.43760989455387,
+          2.535570628921611,
+          2.625147016321567
+        ]
+      },
+      {
+        "alpha_deg": 0.0,
+        "beta": 0.85,
+        "ritz_rank": 1024,
+        "velocity_relative_l2": 0.013972794637084007,
+        "wake_velocity_relative_l2": 0.025856228545308113,
+        "vorticity_relative_l2": 0.16641204059123993,
+        "first_nine_eigenvalues": [
+          0.6569426784455669,
+          0.929632123069384,
+          1.3879251632568215,
+          1.6300307312204723,
+          2.163691496785212,
+          2.2530425815908064,
+          2.4415502876743966,
+          2.5245929795478737,
+          2.590141312218259
+        ]
+      },
+      {
+        "alpha_deg": -10.0,
+        "beta": 0.5,
+        "ritz_rank": 1024,
+        "velocity_relative_l2": 0.02089971862733364,
+        "wake_velocity_relative_l2": 0.043797124177217484,
+        "vorticity_relative_l2": 0.26448574662208557,
+        "first_nine_eigenvalues": [
+          0.6103398115038604,
+          0.9311540808791187,
+          1.3855305061951118,
+          1.6076401158843607,
+          2.085642071624477,
+          2.2842495090695865,
+          2.436104884412019,
+          2.519111496158878,
+          2.657858408414831
+        ]
+      }
+    ]
+  },
+  "network_ablation": {
+    "variants": [
+      "relu_raw_xyz",
+      "relu_posenc",
+      "siren_raw_xyz",
+      "siren_posenc"
+    ],
+    "all_pass": true,
+    "native_cuda_reference": "dense_symmetric_jet3",
+    "topology": [12, 32, 32, 32, 2]
+  }
+}

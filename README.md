@@ -5,9 +5,9 @@ two-dimensional parametric airfoil case.
 
 ## Published case
 
-| Case | Backend | Basis | Status |
+| Case | Backend | Basis | Results |
 | --- | --- | ---: | --- |
-| [2D airfoil](BasisNet/cases/2D_airfoil/README.md) | CuPy/CUDA, explicit forward and handwritten reverse pass | K=1024 | Available |
+| [2D airfoil](BasisNet/cases/2D_airfoil/README.md) | CuPy/CUDA, explicit forward and handwritten reverse pass | K=1024 | [step 5000](BasisNet/cases/2D_airfoil/publication/step5000_cuda/README.md) |
 | 2D ten circles | CUDA | - | Planned |
 | 3D ten balls | CUDA | - | Planned |
 
@@ -32,5 +32,5 @@ python -m pytest -q
 python -m ruff check BasisNet/cases/2D_airfoil
 ```
 
-Generated samples, checkpoints, logs, frames, and videos are intentionally
-excluded from Git.
+Curated metrics, figures, and reports are versioned. Generated samples,
+checkpoints, logs, frames, and videos remain excluded from Git.

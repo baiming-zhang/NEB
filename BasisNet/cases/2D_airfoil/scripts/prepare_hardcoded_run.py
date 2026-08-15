@@ -1,4 +1,4 @@
-"""Create the continuous-Jet3 epoch-0 model and validation quadrature."""
+"""Create the 2D-NCL continuous-Jet3 epoch-0 model and validation quadrature."""
 
 from __future__ import annotations
 
@@ -48,6 +48,10 @@ def main() -> None:
         raise ValueError("sampling must be uniform physical-fluid-area Sobol")
     if int(config.get("spatial_derivative_order", -1)) != 3:
         raise ValueError("continuous vorticity Rayleigh requires analytic Jet3")
+    if config.get("field_representation") != "ncl_antisymmetric_tensor_2d":
+        raise ValueError("2D inputs require the antisymmetric NCL tensor potential")
+    if int(config.get("modes_per_optimizer_step", -1)) != int(config["modes"]):
+        raise ValueError("the epoch-0 pack must target one complete-K optimizer step")
     if config.get("mlp_compute_dtype") != "float16":
         raise ValueError("only the neural-network forward may use FP16")
     for key in (
@@ -104,7 +108,7 @@ def main() -> None:
     initial.with_suffix(".json").write_text(
         json.dumps(
             {
-                "format": "eigenfluid_airfoil_continuous_jet3_v1",
+                "format": "eigenfluid_airfoil_ncl_continuous_jet3_v1",
                 "source": "NumPy PCG64 deterministic initialization",
                 "epoch": 0,
                 "best_validation": float("inf"),
@@ -113,6 +117,7 @@ def main() -> None:
                 "automatic_differentiation_used": False,
                 "finite_difference_used": False,
                 "spatial_ad": "analytic_compact_symmetric_xy_jet3",
+                "field_representation": "ncl_antisymmetric_tensor_2d",
                 "parameter_backward": "handwritten_reverse_jet3",
                 "loss_terms": ["unscaled_vorticity_rayleigh"],
                 "precision": {
@@ -205,6 +210,8 @@ def main() -> None:
         "quadrature_measure": "physical_fluid_area",
         "geometry": "cinf_ellipse",
         "envelope": "cinf_farfield_freestream",
+        "field_representation": "ncl_antisymmetric_tensor_2d",
+        "modes_per_optimizer_step": cfg.modes,
         "basis_objective": "pure_vorticity_rayleigh",
         "loss_terms": ["unscaled_vorticity_rayleigh"],
         "finite_difference_used": False,

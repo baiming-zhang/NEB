@@ -395,17 +395,41 @@ def test_reverse_guard_allows_rayleigh_invariant_zero_parameter_tensor() -> None
     assert "zero or non-finite total hardcoded gradient" in source
 
 
+def test_full_k_optimizer_step_is_not_a_cache_minibatch() -> None:
+    source = BACKEND_PATH.read_text(encoding="utf-8")
+    trainer = TRAINER_PATH.read_text(encoding="utf-8")
+    assert "complete causal least-squares peeling" in source
+    assert "model.forward_mode_block(" in source
+    assert "complete_gradients: list[cp.ndarray] | None = None" in source
+    assert "model.adam_step_all(complete_gradients, cfg)" in source
+    assert "for point_start in range(0, n, point_block)" in source
+    assert "cache_block_is_optimizer_minibatch" in trainer
+    assert "point_stream_is_mode_minibatch" in trainer
+    assert "checkpoint_due = (" in trainer
+    assert "epoch % cfg.checkpoint_every == 0" in trainer
+    assert "epoch == stop_epoch" in trainer
+
+
 def test_pure_vorticity_config_has_one_unscaled_unregularized_objective() -> None:
-    config = json.loads(PURE_CONFIG_PATH.read_text(encoding="utf-8"))
+    config_path = (
+        PURE_CONFIG_PATH.parent
+        / "k1024_ncl_cinf_sobol_10000_fp16_pure_vorticity_rayleigh.json"
+    )
+    config = json.loads(config_path.read_text(encoding="utf-8"))
     objective_keys = {key for key in config if "objective" in key.lower()}
     assert objective_keys == {"basis_objective"}
     assert config["basis_objective"] == "pure_vorticity_rayleigh"
     assert config["spatial_derivative_order"] == 3
-    assert config["epochs"] == 5000
+    assert config["epochs"] == 10000
     assert config["validate_every"] == 500
     assert config["probe_every"] == 0
-    assert config["mode_forward_batch"] > 0
-    assert 0 < config["mode_backward_batch"] <= config["mode_forward_batch"]
+    assert config["checkpoint_every"] == 256
+    assert config["archive_checkpoint_every"] == 256
+    assert config["field_representation"] == "ncl_antisymmetric_tensor_2d"
+    assert config["modes_per_optimizer_step"] == config["modes"] == 1024
+    assert config["mode_forward_batch"] == config["modes"]
+    assert config["mode_backward_batch"] == config["modes"]
+    assert config["point_stream_batch"] > 0
 
     forbidden_keys = sorted(
         key

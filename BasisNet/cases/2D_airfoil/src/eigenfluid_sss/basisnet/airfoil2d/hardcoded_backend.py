@@ -210,7 +210,8 @@ def cinf_double_zero_envelope(level: Jet3) -> Jet3:
 
     Fluid samples satisfy ``level >= 0``.  No ``max`` or branch is applied to
     the differentiable expression: ``q**2 / (1 + q**2)`` is C-infinity and
-    enforces both streamfunction and its normal derivative at ``q=0`` while
+    enforces both the independent antisymmetric tensor component and its
+    normal derivative at ``q=0`` while
     retaining a nonzero second derivative (and hence wall vorticity).
     """
     squared = level.square()
@@ -236,7 +237,8 @@ def envelope_jet(
             2.0 * (y - cfg.ymin) / (cfg.ymax - cfg.ymin)
             - 1.0
         )
-        # This is a double-zero envelope for the *perturbation* streamfunction.
+        # This is a double-zero envelope for the independent perturbation
+        # component A_12=-A_21 of the 2D antisymmetric NCL potential.
         # The reconstructed total field still contains the uniform free stream,
         # so y=ymin/ymax are far-field free-stream boundaries, not no-slip walls.
         farfield = positive_envelope((1.0 - yn.pow(2)) / 0.25)
@@ -799,6 +801,83 @@ class HardcodedModel:
                 stack[mode_index] for stack in self.shadow_bias_stacks
             ]
 
+        # Keep one contiguous mode-major copy of every FP32 master/Adam tensor.
+        # The K axis is never an optimizer minibatch: all K entries are updated
+        # together after the complete physical adjoint has been assembled.
+        self.master_weight_stacks = [
+            cp.stack([mode.weights[layer] for mode in self.modes]).astype(F32)
+            for layer in range(layer_count)
+        ]
+        self.master_bias_stacks = [
+            cp.stack([mode.biases[layer] for mode in self.modes]).astype(F32)
+            for layer in range(layer_count)
+        ]
+        parameter_count = 2 * layer_count
+        self.exp_avg_stacks = [
+            cp.stack([mode.exp_avg[index] for mode in self.modes]).astype(F32)
+            for index in range(parameter_count)
+        ]
+        self.exp_avg_sq_stacks = [
+            cp.stack([mode.exp_avg_sq[index] for mode in self.modes]).astype(F32)
+            for index in range(parameter_count)
+        ]
+        for mode_index, mode in enumerate(self.modes):
+            mode.weights = [stack[mode_index] for stack in self.master_weight_stacks]
+            mode.biases = [stack[mode_index] for stack in self.master_bias_stacks]
+            mode.exp_avg = [stack[mode_index] for stack in self.exp_avg_stacks]
+            mode.exp_avg_sq = [stack[mode_index] for stack in self.exp_avg_sq_stacks]
+        optimizer_steps = {
+            step for mode in self.modes for step in mode.steps
+        }
+        if len(optimizer_steps) != 1:
+            raise RuntimeError(
+                "full-K Adam state is not synchronized across every mode/parameter: "
+                f"found steps={sorted(optimizer_steps)}"
+            )
+
+    def forward_mode_block(
+        self,
+        cfg: SimpleNamespace,
+        points: np.ndarray,
+        beta: float,
+        alpha: float,
+        start: int,
+        stop: int,
+        cache: bool,
+    ) -> tuple[Jet3, Any]:
+        """Evaluate a contiguous mode block on the supplied spatial points."""
+        if not (0 <= start < stop <= len(self.modes)):
+            raise ValueError("invalid mode block")
+        coordinate_dtype = (
+            F32
+            if self.modes[start].compute_dtype is F16
+            else self.modes[start].compute_dtype
+        )
+        x, y = xy_jets(points, coordinate_dtype)
+        envelope = envelope_jet(cfg, x, y, beta, alpha)
+        current = encoding_jet(cfg, x, y, beta, alpha)
+        layer_cache: list[tuple[Jet3, Jet3]] = []
+        for layer in range(cfg.hidden_layers):
+            before = current
+            preactivation = linear_forward_batch(
+                before,
+                self.shadow_weight_stacks[layer][start:stop],
+                self.shadow_bias_stacks[layer][start:stop],
+                self.modes[start].compute_dtype,
+            )
+            current = sine_forward(preactivation)
+            if cache:
+                layer_cache.append((before, preactivation))
+        output_input = current
+        raw = linear_forward_batch(
+            output_input,
+            self.shadow_weight_stacks[-1][start:stop],
+            self.shadow_bias_stacks[-1][start:stop],
+            self.modes[start].compute_dtype,
+        )
+        field = _expand_mode_axis(envelope) * raw
+        return field, (envelope, output_input, layer_cache) if cache else None
+
     def forward_stream(
         self,
         cfg: SimpleNamespace,
@@ -810,42 +889,12 @@ class HardcodedModel:
         block_size = max(1, int(getattr(cfg, "mode_forward_batch", 1)))
         for start in range(0, len(self.modes), block_size):
             stop = min(start + block_size, len(self.modes))
-            coordinate_dtype = (
-                F32
-                if self.modes[start].compute_dtype is F16
-                else self.modes[start].compute_dtype
+            field, block_cache = self.forward_mode_block(
+                cfg, points, beta, alpha, start, stop, cache
             )
-            x, y = xy_jets(points, coordinate_dtype)
-            envelope = envelope_jet(cfg, x, y, beta, alpha)
-            current = encoding_jet(cfg, x, y, beta, alpha)
-            layer_cache: list[tuple[Jet3, Jet3]] = []
-            for layer in range(cfg.hidden_layers):
-                before = current
-                preactivation = linear_forward_batch(
-                    before,
-                    self.shadow_weight_stacks[layer][start:stop],
-                    self.shadow_bias_stacks[layer][start:stop],
-                    (
-                        F32
-                        if self.shadow_weight_stacks[layer].dtype == F32
-                        else self.modes[start].compute_dtype
-                    ),
-                )
-                current = sine_forward(preactivation)
-                if cache:
-                    layer_cache.append((before, preactivation))
-            output_input = current
-            raw = linear_forward_batch(
-                output_input,
-                self.shadow_weight_stacks[-1][start:stop],
-                self.shadow_bias_stacks[-1][start:stop],
-                (
-                    F32
-                    if self.shadow_weight_stacks[-1].dtype == F32
-                    else self.modes[start].compute_dtype
-                ),
+            envelope, output_input, layer_cache = (
+                block_cache if cache else (None, None, None)
             )
-            field = _expand_mode_axis(envelope) * raw
             for local, mode_index in enumerate(range(start, stop)):
                 if cache:
                     individual_layers = []
@@ -893,7 +942,7 @@ class HardcodedModel:
         modes: list[HardcodedMode],
         caches: list[Any],
         field_adjoints: list[Jet3],
-    ) -> None:
+    ) -> list[list[cp.ndarray]]:
         """Run the handwritten reverse pass for a contiguous mode block.
 
         All contractions remain mode-diagonal and FP32.  Batching changes
@@ -901,7 +950,7 @@ class HardcodedModel:
         weights and Adam state.
         """
         if not modes:
-            return
+            return []
         start = modes[0].mode_index
         stop = start + len(modes)
         if [mode.mode_index for mode in modes] != list(range(start, stop)):
@@ -942,11 +991,106 @@ class HardcodedModel:
         weight_grads.reverse()
         bias_grads.reverse()
 
-        for local, mode in enumerate(modes):
+        block_gradients: list[list[cp.ndarray]] = []
+        for local, _mode in enumerate(modes):
             gradients: list[cp.ndarray] = []
             for grad_weight, grad_bias in zip(weight_grads, bias_grads):
                 gradients.extend([grad_weight[local], grad_bias[local]])
-            mode.adam_step(gradients, cfg)
+            block_gradients.append(gradients)
+        return block_gradients
+
+    def backward_stacked(
+        self,
+        start: int,
+        stop: int,
+        cache: Any,
+        field_adjoint: Jet3,
+    ) -> list[cp.ndarray]:
+        """Handwritten Jet3 reverse for a mode-major block."""
+        envelope, output_input, layers = cache
+        current = envelope_product_backward(envelope, field_adjoint)
+        current, output_weight, output_bias = linear_backward_batch(
+            output_input, current, self.shadow_weight_stacks[-1][start:stop].astype(F32)
+        )
+        weight_grads = [output_weight]
+        bias_grads = [output_bias]
+        for layer_index in range(len(layers) - 1, -1, -1):
+            source, preactivation = layers[layer_index]
+            current = sine_backward(preactivation, current)
+            current, grad_weight, grad_bias = linear_backward_batch(
+                source,
+                current,
+                self.shadow_weight_stacks[layer_index][start:stop].astype(F32),
+            )
+            weight_grads.append(grad_weight)
+            bias_grads.append(grad_bias)
+        weight_grads.reverse()
+        bias_grads.reverse()
+        gradients: list[cp.ndarray] = []
+        for grad_weight, grad_bias in zip(weight_grads, bias_grads):
+            gradients.extend((grad_weight, grad_bias))
+        return gradients
+
+    def adam_step_all(self, gradients: list[cp.ndarray], cfg: SimpleNamespace) -> None:
+        """Advance every one of the K independent Adam states exactly once."""
+        parameters: list[cp.ndarray] = []
+        for weight, bias in zip(self.master_weight_stacks, self.master_bias_stacks):
+            parameters.extend((weight, bias))
+        if len(gradients) != len(parameters):
+            raise RuntimeError("full-K reverse returned the wrong gradient count")
+        total = cp.zeros(len(self.modes), dtype=F32)
+        valid = cp.asarray(True)
+        for gradient in gradients:
+            valid &= cp.all(cp.isfinite(gradient))
+            total += cp.sum(
+                gradient * gradient,
+                axis=tuple(range(1, gradient.ndim)),
+                dtype=F32,
+            )
+        norms = cp.sqrt(total)
+        valid &= cp.all(cp.isfinite(norms) & (norms > 0.0))
+        if not bool(valid.get()):
+            raise FloatingPointError("full-K reverse produced invalid mode gradients")
+        scales = cp.minimum(
+            F32(1.0), F32(cfg.grad_clip) / cp.maximum(norms, F32(1e-30))
+        )
+        beta1, beta2, epsilon = F32(0.9), F32(0.999), F32(1.0e-8)
+        optimizer_steps = {step for mode in self.modes for step in mode.steps}
+        if len(optimizer_steps) != 1:
+            raise RuntimeError("full-K Adam clocks diverged before the optimizer commit")
+        next_step = optimizer_steps.pop() + 1
+        for index, (parameter, gradient) in enumerate(zip(parameters, gradients)):
+            shaped_scale = scales.reshape(
+                (len(self.modes),) + (1,) * (gradient.ndim - 1)
+            )
+            gradient = gradient * shaped_scale
+            self.exp_avg_stacks[index] *= beta1
+            self.exp_avg_stacks[index] += (F32(1.0) - beta1) * gradient
+            self.exp_avg_sq_stacks[index] *= beta2
+            self.exp_avg_sq_stacks[index] += (
+                (F32(1.0) - beta2) * gradient * gradient
+            )
+            correction1 = 1.0 - 0.9 ** next_step
+            correction2 = 1.0 - 0.999 ** next_step
+            denominator = cp.sqrt(
+                self.exp_avg_sq_stacks[index] / correction2
+            ) + epsilon
+            parameter -= (
+                (cfg.learning_rate / correction1)
+                * self.exp_avg_stacks[index]
+                / denominator
+            )
+        for mode in self.modes:
+            for index in range(len(mode.steps)):
+                mode.steps[index] = next_step
+        for shadow, master in zip(
+            self.shadow_weight_stacks, self.master_weight_stacks
+        ):
+            shadow[...] = master
+        for shadow, master in zip(
+            self.shadow_bias_stacks, self.master_bias_stacks
+        ):
+            shadow[...] = master
 
 
 def cfg_namespace(config: dict[str, Any]) -> SimpleNamespace:
@@ -1073,9 +1217,12 @@ def airfoil_area(cfg: SimpleNamespace, beta: float) -> float:
 def vorticity_and_gradient(field: Jet3) -> tuple[cp.ndarray, cp.ndarray]:
     """Return analytic vorticity and its analytic spatial gradient.
 
-    For the divergence-free velocity `u=(psi_y,-psi_x)`,
-    `omega=-Delta psi`.  No positional or physical coordinate is shifted:
-    every derivative comes from the compact continuous Jet3.
+    ``field`` is the sole independent component ``a=A_12=-A_21`` of the 2D
+    antisymmetric NCL tensor.  Row-wise divergence gives
+    ``u=(a_y,-a_x)``, hence ``omega=-Delta(a)``.  This is a tensor-potential
+    parameterization, not a sampled streamfunction solve.  No positional or
+    physical coordinate is shifted: every derivative comes directly from
+    the compact continuous Jet3.
     """
     omega = -(field.hess[..., 0] + field.hess[..., 2])
     grad_omega = cp.stack(
@@ -1097,13 +1244,20 @@ def _pure_vorticity_rayleigh_peel_step(
     training: bool,
     full_diagnostics: bool,
 ) -> dict[str, Any]:
-    """One residual-peeling step for the sole objective K_omega/M_omega.
+    """One full-K optimizer step for the sole objective K_omega/M_omega.
 
-    M_omega = integral omega**2 and K_omega = integral |grad omega|**2
-    are assembled in FP32 on equal-area physical-fluid Sobol samples.  The
-    mass projection, reorthogonalization, Rayleigh derivative and rank
-    diagnostic are likewise entirely FP32.  There are no neighbour samples,
-    finite differences, velocity terms, normalizing scales or regularizers.
+    The step follows the same three-phase contract as the 3D production path:
+    (1) evaluate all K raw modes without reverse caches, (2) perform one
+    complete causal least-squares peeling and form all K physical adjoints,
+    and (3) recompute full-K spatial point blocks for handwritten reverse.
+    Adam is
+    committed only after gradients for every one of the K modes are present
+    and finite.  Cache blocking is therefore not an optimizer mini-batch.
+
+    M_omega = integral omega**2 and K_omega = integral |grad omega|**2 are
+    assembled in FP32 on equal-area physical-fluid Sobol samples.  There are
+    no neighbour samples, finite differences, velocity terms, normalizing
+    scales, auxiliary losses, regularizers, or orthogonality penalties.
     """
     if str(getattr(cfg, "geometry_mode", "")) != "cinf_ellipse":
         raise ValueError("pure vorticity Jet3 requires geometry_mode='cinf_ellipse'")
@@ -1135,38 +1289,47 @@ def _pure_vorticity_rayleigh_peel_step(
         1, int(getattr(cfg, "reorthogonalization_passes", 2))
     )
 
-    basis_omega = cp.empty((n, modes), dtype=F32)
-    basis_grad_omega = cp.empty((2 * n, modes), dtype=F32)
-    raw_omega_matrix = (
-        cp.empty((n, modes), dtype=F32) if full_diagnostics else None
-    )
-    rayleighs: list[float] = []
-    projection_ratios: list[float] = []
-    orth_error = 0.0
-    backward_batch = max(1, int(getattr(cfg, "mode_backward_batch", 1)))
-    backward_modes: list[HardcodedMode] = []
-    backward_caches: list[Any] = []
-    backward_adjoints: list[Jet3] = []
-
-    def flush_backward_block() -> None:
-        if backward_modes:
-            model.backward_block(
-                cfg, backward_modes, backward_caches, backward_adjoints
-            )
-            backward_modes.clear()
-            backward_caches.clear()
-            backward_adjoints.clear()
-
-    for mode_index, (mode, field, cache) in enumerate(
-        model.forward_stream(cfg, points, beta, alpha, training)
-    ):
+    # Phase 1: preserve the complete K mode axis and stream only the additive
+    # spatial quadrature axis.  This is one optimizer step, never a mode batch.
+    raw_omega = cp.empty((n, modes), dtype=F32)
+    raw_grad_omega_tensor = cp.empty((n, 2, modes), dtype=F32)
+    point_block = max(1, int(getattr(cfg, "point_stream_batch", 128)))
+    for point_start in range(0, n, point_block):
+        point_stop = min(point_start + point_block, n)
+        field, _cache = model.forward_mode_block(
+            cfg,
+            points[point_start:point_stop],
+            beta,
+            alpha,
+            0,
+            modes,
+            False,
+        )
         omega_field, grad_omega_field = vorticity_and_gradient(field)
-        omega = omega_field[:, 0].astype(F32, copy=False)
-        grad_omega = grad_omega_field[:, 0].astype(F32, copy=False)
-        grad_omega_flat = grad_omega.reshape(-1)
-        if raw_omega_matrix is not None:
-            raw_omega_matrix[:, mode_index] = omega
+        raw_omega[point_start:point_stop] = omega_field[:, :, 0].T
+        raw_grad_omega_tensor[point_start:point_stop] = (
+            grad_omega_field[:, :, 0, :].transpose(1, 2, 0)
+        )
+    raw_grad_omega = raw_grad_omega_tensor.reshape(2 * n, modes)
 
+    # Phase 2: one complete causal least-squares peeling over K=1024.  The
+    # previous prefix is always the entire already-resolved prefix; block size
+    # never truncates this dependency.
+    basis_omega = cp.empty_like(raw_omega)
+    basis_grad_omega = cp.empty_like(raw_grad_omega)
+    adjoint_raw_omega = cp.empty_like(raw_omega) if training else None
+    adjoint_raw_grad_omega = cp.empty_like(raw_grad_omega) if training else None
+    # Accumulate scalar diagnostics on the device.  A host transfer inside
+    # this causal loop would serialize CUDA once per mode without adding any
+    # numerical check that cannot be performed after the full prefix exists.
+    mass_values = cp.empty(modes, dtype=F32)
+    stiffness_values = cp.empty(modes, dtype=F32)
+    rayleigh_values = cp.empty(modes, dtype=F32)
+    projection_values = cp.empty(modes, dtype=F32)
+    orth_values = cp.empty(modes, dtype=F32)
+    for mode_index in range(modes):
+        omega = raw_omega[:, mode_index]
+        grad_omega_flat = raw_grad_omega[:, mode_index]
         residual_omega = omega.copy()
         residual_grad_omega = grad_omega_flat.copy()
         coefficients = cp.zeros((mode_index,), dtype=F32)
@@ -1185,24 +1348,13 @@ def _pure_vorticity_rayleigh_peel_step(
         stiffness = weight * cp.dot(
             residual_grad_omega, residual_grad_omega
         )
-        if not bool(cp.isfinite(mass).get()) or not bool(
-            cp.isfinite(stiffness).get()
-        ):
-            raise FloatingPointError(
-                f"mode {mode_index} has non-finite analytic vorticity forms"
-            )
-        if float(mass.get()) <= float(mass_floor.get()):
-            raise FloatingPointError(
-                f"mode {mode_index} is unresolved in the vorticity mass metric: "
-                f"M={float(mass.get()):.8e}"
-            )
+        mass_values[mode_index] = mass
+        stiffness_values[mode_index] = stiffness
         denominator = mass
         rayleigh = stiffness / denominator
+        rayleigh_values[mode_index] = rayleigh
 
-        requires_grad = training and mode_index >= int(
-            getattr(cfg, "freeze_prefix_modes", 0)
-        )
-        if requires_grad:
+        if training:
             adjoint_omega = (
                 -2.0
                 * stiffness
@@ -1224,27 +1376,10 @@ def _pure_vorticity_rayleigh_peel_step(
                         weight * (previous_omega @ coefficient_adjoint)
                     )
 
-            adjoint = Jet3(
-                cp.zeros_like(field.value, dtype=F32),
-                cp.zeros_like(field.grad, dtype=F32),
-                cp.zeros_like(field.hess, dtype=F32),
-                cp.zeros_like(field.third, dtype=F32),
-            )
-            # omega = -(psi_xx + psi_yy)
-            adjoint.hess[:, 0, 0] = -adjoint_omega
-            adjoint.hess[:, 0, 2] = -adjoint_omega
-            grad_adjoint = adjoint_grad_omega.reshape(n, 2)
-            # omega_x = -(psi_xxx + psi_xyy)
-            adjoint.third[:, 0, 0] = -grad_adjoint[:, 0]
-            adjoint.third[:, 0, 2] = -grad_adjoint[:, 0]
-            # omega_y = -(psi_xxy + psi_yyy)
-            adjoint.third[:, 0, 1] = -grad_adjoint[:, 1]
-            adjoint.third[:, 0, 3] = -grad_adjoint[:, 1]
-            backward_modes.append(mode)
-            backward_caches.append(cache)
-            backward_adjoints.append(adjoint)
-            if len(backward_modes) == backward_batch:
-                flush_backward_block()
+            if adjoint_raw_omega is None or adjoint_raw_grad_omega is None:
+                raise RuntimeError("full-K physical adjoint buffers were not allocated")
+            adjoint_raw_omega[:, mode_index] = adjoint_omega
+            adjoint_raw_grad_omega[:, mode_index] = adjoint_grad_omega
 
         normalizer = cp.reciprocal(cp.sqrt(denominator))
         normalized_omega = residual_omega * normalizer
@@ -1253,24 +1388,96 @@ def _pure_vorticity_rayleigh_peel_step(
         basis_grad_omega[:, mode_index] = normalized_grad_omega
 
         normalized_mass = mass / denominator
-        orth_error = max(
-            orth_error, abs(float(normalized_mass.get()) - 1.0)
-        )
+        orth_value = cp.abs(normalized_mass - F32(1.0))
         if mode_index:
             overlap = weight * (previous_omega.T @ normalized_omega)
-            orth_error = max(
-                orth_error, float(cp.max(cp.abs(overlap)).get())
-            )
-        projection_ratios.append(
-            float((cp.dot(coefficients, coefficients) / denominator).get())
-            if mode_index else 0.0
+            orth_value = cp.maximum(orth_value, cp.max(cp.abs(overlap)))
+        orth_values[mode_index] = orth_value
+        projection_values[mode_index] = (
+            cp.dot(coefficients, coefficients) / denominator
+            if mode_index else F32(0.0)
         )
-        rayleighs.append(float(rayleigh.get()))
 
-    flush_backward_block()
+    scalar_diagnostics = cp.asnumpy(
+        cp.stack(
+            (
+                mass_values,
+                stiffness_values,
+                rayleigh_values,
+                projection_values,
+                orth_values,
+            )
+        )
+    )
+    invalid = ~np.all(np.isfinite(scalar_diagnostics[:3]), axis=0)
+    unresolved = scalar_diagnostics[0] <= np.float32(cfg.mass_floor)
+    if np.any(invalid | unresolved):
+        mode_index = int(np.flatnonzero(invalid | unresolved)[0])
+        if invalid[mode_index]:
+            raise FloatingPointError(
+                f"mode {mode_index} has non-finite analytic vorticity forms"
+            )
+        raise FloatingPointError(
+            f"mode {mode_index} is unresolved in the vorticity mass metric: "
+            f"M={scalar_diagnostics[0, mode_index]:.8e}"
+        )
+    rayleighs = scalar_diagnostics[2].tolist()
+    projection_ratios = scalar_diagnostics[3].tolist()
+    orth_error = float(np.max(scalar_diagnostics[4]))
 
-    if raw_omega_matrix is not None:
-        raw_gram = weight * (raw_omega_matrix.T @ raw_omega_matrix)
+    # Phase 3: preserve the complete K axis and stream only spatial points.
+    # The accumulated gradient covers all 4096 quadrature points before one
+    # Adam commit advances every independent mode state exactly once.
+    if training:
+        if adjoint_raw_omega is None or adjoint_raw_grad_omega is None:
+            raise RuntimeError("full-K physical adjoints are missing")
+        complete_gradients: list[cp.ndarray] | None = None
+        adjoint_grad_tensor = adjoint_raw_grad_omega.reshape(n, 2, modes)
+        for point_start in range(0, n, point_block):
+            point_stop = min(point_start + point_block, n)
+            _field, cache = model.forward_mode_block(
+                cfg,
+                points[point_start:point_stop],
+                beta,
+                alpha,
+                0,
+                modes,
+                True,
+            )
+            if cache is None:
+                raise RuntimeError("full-K point-streamed reverse cache is missing")
+            chunk = point_stop - point_start
+            physical_adjoint = Jet3(
+                cp.zeros((modes, chunk, 1), dtype=F32),
+                cp.zeros((modes, chunk, 1, 2), dtype=F32),
+                cp.zeros((modes, chunk, 1, 3), dtype=F32),
+                cp.zeros((modes, chunk, 1, 4), dtype=F32),
+            )
+            omega_adjoint = adjoint_raw_omega[point_start:point_stop].T
+            gradient_adjoint = adjoint_grad_tensor[
+                point_start:point_stop
+            ].transpose(2, 0, 1)
+            # omega = -(a_xx + a_yy), a=A_12=-A_21.
+            physical_adjoint.hess[:, :, 0, 0] = -omega_adjoint
+            physical_adjoint.hess[:, :, 0, 2] = -omega_adjoint
+            # omega_x = -(a_xxx + a_xyy)
+            physical_adjoint.third[:, :, 0, 0] = -gradient_adjoint[:, :, 0]
+            physical_adjoint.third[:, :, 0, 2] = -gradient_adjoint[:, :, 0]
+            # omega_y = -(a_xxy + a_yyy)
+            physical_adjoint.third[:, :, 0, 1] = -gradient_adjoint[:, :, 1]
+            physical_adjoint.third[:, :, 0, 3] = -gradient_adjoint[:, :, 1]
+            gradients = model.backward_stacked(0, modes, cache, physical_adjoint)
+            if complete_gradients is None:
+                complete_gradients = [gradient.copy() for gradient in gradients]
+            else:
+                for total, gradient in zip(complete_gradients, gradients):
+                    total += gradient
+        if complete_gradients is None:
+            raise RuntimeError("full-K point-streamed reverse produced no gradients")
+        model.adam_step_all(complete_gradients, cfg)
+
+    if full_diagnostics:
+        raw_gram = weight * (raw_omega.T @ raw_omega)
         raw_gram = np.float32(0.5) * (raw_gram + raw_gram.T)
         eigenvalues = cp.linalg.eigvalsh(raw_gram)
         largest = cp.maximum(cp.abs(eigenvalues[-1]), mass_floor)

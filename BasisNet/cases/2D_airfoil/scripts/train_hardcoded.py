@@ -1,4 +1,4 @@
-"""Train the continuous-Jet3 pure-vorticity Rayleigh airfoil basis.
+"""Train the 2D NCL continuous-Jet3 pure-vorticity Rayleigh airfoil basis.
 
 This entry point deliberately supports one mathematical objective only.  It
 uses the explicit CuPy kernels and handwritten parameter reverse pass in
@@ -66,6 +66,7 @@ FP32_CONFIG_KEYS = (
 )
 HISTORY_KEYS = [
     "epoch",
+    "optimizer_step",
     "seconds",
     "beta",
     "alpha_deg",
@@ -131,13 +132,15 @@ def save_neutral(
         np.savez(stream, **model.arrays())
     os.replace(temporary, path)
     metadata = {
-        "format": "eigenfluid_airfoil_continuous_jet3_v1",
+        "format": "eigenfluid_airfoil_ncl_continuous_jet3_v1",
         "epoch": epoch,
+        "optimizer_step": epoch,
         "best_validation": best_validation,
         "config": config,
         "training_uses_pytorch": False,
         "automatic_differentiation_used": False,
         "spatial_ad": "analytic_compact_symmetric_xy_jet3",
+        "field_representation": "ncl_antisymmetric_tensor_2d",
         "parameter_backward": "handwritten_reverse_jet3",
         "training_state": training_state,
     }
@@ -164,6 +167,23 @@ def save_history(run_dir: Path, history: list[dict[str, Any]]) -> None:
         )
 
 
+def save_optimizer_progress(run_dir: Path, row: dict[str, Any]) -> None:
+    """Atomically publish scalar progress without touching numerical state."""
+    target = run_dir / "optimizer_step_progress.json"
+    temporary = target.with_suffix(".json.tmp")
+    payload = {
+        "optimizer_step": int(row["optimizer_step"]),
+        "seconds": float(row["seconds"]),
+        "train_vorticity_rayleigh": float(row["train_vorticity_rayleigh"]),
+        "train_orth_error": float(row["train_orth_error"]),
+        "train_rank": int(row["train_rank"]),
+        "learning_rate": float(row["learning_rate"]),
+        "updated_unix_seconds": time.time(),
+    }
+    temporary.write_text(json.dumps(payload, indent=2), encoding="utf-8")
+    os.replace(temporary, target)
+
+
 def validate_config(config: dict[str, Any]) -> None:
     if config.get("basis_objective") != OBJECTIVE:
         raise ValueError(
@@ -183,6 +203,12 @@ def validate_config(config: dict[str, Any]) -> None:
         raise ValueError("pure-vorticity Jet3 training requires a C-infinity envelope")
     if int(config.get("spatial_derivative_order", -1)) != 3:
         raise ValueError("analytic third spatial derivatives are required")
+    if config.get("field_representation") != "ncl_antisymmetric_tensor_2d":
+        raise ValueError("2D training requires the antisymmetric NCL tensor potential")
+    if int(config.get("modes_per_optimizer_step", -1)) != int(config.get("modes", -2)):
+        raise ValueError("every optimizer step must contain the complete K mode axis")
+    if int(config.get("point_stream_batch", 0)) <= 0:
+        raise ValueError("point_stream_batch must be positive")
     if str(config.get("mlp_compute_dtype", "")).lower() != "float16":
         raise ValueError("the neural-network forward must use float16")
     wrong_precision = {
@@ -193,10 +219,10 @@ def validate_config(config: dict[str, Any]) -> None:
         raise ValueError(f"all non-network numerical paths must be float32: {wrong_precision}")
     if bool(config.get("fp32_boundary_layers", True)):
         raise ValueError("all neural-network layers, including first/output, must use FP16 shadows")
-    if int(config.get("checkpoint_every", 0)) != 100:
-        raise ValueError("hardcoded_latest checkpoint cadence must be 100 epochs")
-    if int(config.get("archive_checkpoint_every", 0)) != 500:
-        raise ValueError("permanent checkpoint cadence must be 500 epochs")
+    if int(config.get("checkpoint_every", 0)) != 256:
+        raise ValueError("latest checkpoint cadence must be 256 optimizer steps")
+    if int(config.get("archive_checkpoint_every", 0)) != 256:
+        raise ValueError("permanent checkpoint cadence must be 256 optimizer steps")
 
 
 def require_pure_diagnostic(item: dict[str, Any]) -> None:
@@ -349,8 +375,9 @@ def main() -> None:
     lr_reductions = int(restored.get("lr_reductions", 0))
 
     protocol = {
-        "algorithm": "fixed_order_residual_peeling_pure_vorticity_rayleigh",
+        "algorithm": "full_k_causal_peeling_pure_vorticity_rayleigh",
         "backend": "explicit_cupy_cuda_kernels",
+        "field_representation": "2D antisymmetric NCL tensor A_12=-A_21",
         "basis_objective": OBJECTIVE,
         "loss_terms": [
             {
@@ -385,6 +412,16 @@ def main() -> None:
         "fixed_mode_order": True,
         "mode_sorting_used": False,
         "previous_modes_detached": True,
+        "optimizer_step_contract": {
+            "modes_per_step": int(cfg.modes),
+            "raw_field_pass": "complete K without reverse cache",
+            "peeling": "complete causal least-squares prefix over K",
+            "reverse": "complete-K exact recomputation streamed only over additive spatial quadrature points",
+            "commit": "all K Adam states advance exactly once after complete gradient validation",
+            "cache_block_is_optimizer_minibatch": False,
+            "point_stream_is_mode_minibatch": False,
+            "point_stream_batch": int(cfg.point_stream_batch),
+        },
         "gradient_clipping": {
             "maximum_global_norm": cfg.grad_clip,
             "role": "finite-arithmetic safeguard only; not a loss term",
@@ -410,9 +447,9 @@ def main() -> None:
     )
     append_log(
         args.run_dir,
-        f"start continuous-Jet3 pure-vorticity no-PyTorch device=cuda "
+        f"start 2D-NCL continuous-Jet3 pure-vorticity no-PyTorch device=cuda "
         f"modes={cfg.modes} points={cfg.points_per_step} "
-        f"resume_epoch={metadata['epoch']} lr={current_lr:.6e}",
+        f"resume_optimizer_step={metadata['epoch']} lr={current_lr:.6e}",
     )
 
     started = time.perf_counter()
@@ -437,6 +474,7 @@ def main() -> None:
         require_pure_diagnostic(diagnostic)
         row: dict[str, Any] = {
             "epoch": epoch,
+            "optimizer_step": epoch,
             "seconds": time.perf_counter() - started,
             "beta": beta,
             "alpha_deg": alpha,
@@ -547,22 +585,38 @@ def main() -> None:
         row["resolved_raw_rank"] = diagnostic["effective_raw_rank"]
         row["requested_modes"] = int(diagnostic.get("requested_modes", cfg.modes))
         history.append(row)
+        save_optimizer_progress(args.run_dir, row)
         final_epoch = epoch
         state = training_state(
             current_lr, best_epoch, lr_reference_loss,
             lr_reference_epoch, lr_reductions,
         )
-        if args.self_test_epochs <= 0 and epoch % cfg.checkpoint_every == 0:
+        # Always persist the requested terminal step as well.  This is an I/O
+        # rule only: it does not alter sampling, loss evaluation, gradients,
+        # optimizer state, or the full-K Adam commit.
+        checkpoint_due = (
+            epoch == 1
+            or epoch % cfg.checkpoint_every == 0
+            or epoch == stop_epoch
+        )
+        if args.self_test_epochs <= 0 and checkpoint_due:
             save_neutral(
                 args.run_dir / "checkpoints" / "hardcoded_latest.npz",
                 model, config, epoch, best_validation, state,
             )
-            if epoch % cfg.archive_checkpoint_every == 0:
+            if (
+                epoch == 1
+                or epoch % cfg.archive_checkpoint_every == 0
+                or epoch == stop_epoch
+            ):
                 archive = (
-                    args.run_dir / "checkpoints" / f"hardcoded_epoch{epoch:04d}.npz"
+                    args.run_dir / "checkpoints" / f"hardcoded_step{epoch:05d}.npz"
                 )
                 save_neutral(archive, model, config, epoch, best_validation, state)
-                append_log(args.run_dir, f"archived checkpoint epoch={epoch:04d} path={archive}")
+                append_log(
+                    args.run_dir,
+                    f"archived checkpoint optimizer_step={epoch:05d} path={archive}",
+                )
             save_history(args.run_dir, history)
         if (
             args.self_test_epochs <= 0 and best_epoch > 0
@@ -595,7 +649,9 @@ def main() -> None:
     completion = {
         "complete": True,
         "final_epoch": final_epoch,
+        "final_optimizer_step": final_epoch,
         "configured_epochs": int(cfg.epochs),
+        "configured_optimizer_steps": int(cfg.epochs),
         "stopped_early": stopped_early,
         "best_validation": best_validation,
         "best_validation_epoch": best_epoch,

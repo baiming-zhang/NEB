@@ -26,6 +26,25 @@ def load_hardcoded_model(
     with np.load(checkpoint, allow_pickle=False) as archive:
         arrays = {name: archive[name] for name in archive.files}
     cfg = cfg_namespace(metadata["config"])
+    # Training evaluates all K modes together, but postprocessing has no
+    # cross-mode dependency until the completed field columns are assembled
+    # into the same dense mass/stiffness matrices.  Stream contiguous mode
+    # blocks here so a 4096-point Jet3 Ritz evaluation does not materialize
+    # K=1024 modes and all ten derivative channels in one CUDA allocation.
+    # This changes only evaluation memory scheduling: points, weights,
+    # precision, column order, and the final FP64 matrix algebra are unchanged.
+    cfg.mode_forward_batch = min(
+        int(getattr(cfg, "mode_forward_batch", 1)),
+        int(getattr(cfg, "postprocess_mode_forward_batch", 64)),
+    )
+    # These two values define only the reported wake subdomain.  The new
+    # uniform-area training config has no wake sampling term, so it correctly
+    # omits them; retain the established evaluation mask used by every prior
+    # 2D comparison when the checkpoint does not carry display metadata.
+    cfg.wake_length_chords = float(getattr(cfg, "wake_length_chords", 3.0))
+    cfg.wake_half_height_chords = float(
+        getattr(cfg, "wake_half_height_chords", 0.55)
+    )
     return cfg, HardcodedModel(cfg, arrays), metadata
 
 
@@ -110,7 +129,7 @@ def mode_fields(
         v_parts.append(cp.asnumpy(-field.grad[:, 0, 0]))
         omega_parts.append(
             cp.asnumpy(
-                -(field.hess[:, 0, 0, 0] + field.hess[:, 0, 1, 1])
+                -(field.hess[:, 0, 0] + field.hess[:, 0, 2])
             )
         )
     return (
@@ -154,7 +173,7 @@ def raw_fields(
             raw_u[start:stop, mode] = cp.asnumpy(field.grad[:, 0, 1])
             raw_v[start:stop, mode] = cp.asnumpy(-field.grad[:, 0, 0])
             raw_omega[start:stop, mode] = cp.asnumpy(
-                -(field.hess[:, 0, 0, 0] + field.hess[:, 0, 1, 1])
+                -(field.hess[:, 0, 0] + field.hess[:, 0, 2])
             )
     return raw_u, raw_v, raw_omega
 
@@ -193,10 +212,10 @@ def compute_ritz_basis(
         gradient[:, mode] = cp.asnumpy(
             cp.concatenate(
                 (
-                    hess[:, 1, 0],
-                    hess[:, 1, 1],
-                    -hess[:, 0, 0],
-                    -hess[:, 0, 1],
+                    hess[:, 1],
+                    hess[:, 2],
+                    -hess[:, 0],
+                    -hess[:, 1],
                 )
             )
         )

@@ -6,20 +6,22 @@ does not use PyTorch autograd or finite-difference spatial derivatives.
 
 ## Canonical configuration
 
-[`k1024_cinf_sobol_5000_fp16_pure_vorticity_rayleigh.json`](configs/k1024_cinf_sobol_5000_fp16_pure_vorticity_rayleigh.json)
+[`k1024_ncl_cinf_sobol_10000_fp16_pure_vorticity_rayleigh.json`](configs/k1024_ncl_cinf_sobol_10000_fp16_pure_vorticity_rayleigh.json)
 defines the current run:
 
-- 1,024 learned modes and 5,000 epochs;
+- 1,024 learned modes in every optimizer step;
+- 10,000 configured steps, with the published checkpoint evaluated at step 5,000;
 - continuously varying C-infinity ellipse thickness and angle of attack;
 - scrambled Sobol samples over the physical fluid area;
+- antisymmetric NCL tensor representation with `u = div(A)`;
 - analytic compact symmetric third-order spatial jets;
 - one unscaled pure-vorticity Rayleigh objective;
 - FP16 neural-network forward evaluation and FP32 for all other numerical
   paths; and
 - deterministic initialization and fixed validation inputs.
 
-Earlier airfoil configurations remain available for controlled comparisons,
-but the configuration above is the publication default.
+Step-5000 figures, metrics, modes, and the network-only Jet3 validation are in
+[`publication/step5000_cuda`](publication/step5000_cuda).
 
 ## Layout
 
@@ -50,8 +52,8 @@ python -m ruff check BasisNet/cases/2D_airfoil
 
 ```powershell
 $case = "BasisNet/cases/2D_airfoil"
-$config = "$case/configs/k1024_cinf_sobol_5000_fp16_pure_vorticity_rayleigh.json"
-$run = "$case/results/k1024_cinf_sobol_5000_fp16_pure_vorticity_rayleigh/run_001"
+$config = "$case/configs/k1024_ncl_cinf_sobol_10000_fp16_pure_vorticity_rayleigh.json"
+$run = "$case/results/k1024_ncl_cinf_sobol_10000_fp16_pure_vorticity_rayleigh/run_001"
 
 python "$case/scripts/prepare_hardcoded_run.py" `
   --config $config `
