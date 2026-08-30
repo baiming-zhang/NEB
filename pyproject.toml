@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "eigenfluid-sss"
 version = "0.1.0"
-description = "CUDA EigenFluid-SSS implementation for a parametric 2D airfoil"
+description = "Geometry-conditioned spectral bases and reduced fluid dynamics"
 requires-python = ">=3.11"
 dependencies = [
   "h5py>=3.10",
@@ -21,7 +21,7 @@ cuda12 = ["cupy-cuda12x>=13"]
 dev = ["pytest>=8", "ruff>=0.6"]
 
 [tool.setuptools.packages.find]
-where = ["BasisNet/cases/2D_airfoil/src"]
+where = ["cases/2D_airfoil/src"]
 include = ["eigenfluid_sss*"]
 
 [tool.ruff]
@@ -29,4 +29,6 @@ line-length = 88
 target-version = "py311"
 
 [tool.pytest.ini_options]
-testpaths = ["BasisNet/cases/2D_airfoil/tests"]
+# Case-local packages share the eigenfluid_sss namespace and are validated in
+# isolated pytest processes; the README lists the complete case matrix.
+testpaths = ["tests"]

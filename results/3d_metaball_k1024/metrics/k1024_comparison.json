@@ -1,0 +1,66 @@
+{
+  "benchmark": "3D three-metaball complete-vector K=1024 reconstruction",
+  "grid": [128, 128, 128],
+  "fluid_nodes": 1599754,
+  "modes_per_method": 1024,
+  "independent_coefficients_per_method": 1024,
+  "one_external_q_per_complete_mode": true,
+  "common_isovorticity_level": 13.97355266571045,
+  "common_isovorticity_policy": "one absolute GT nonzero q96.5 level for GT and all reconstructions",
+  "vorticity_evaluation": "identical second-order finite-difference curl on the full grid",
+  "methods": [
+    {
+      "method": "Strict FD-Lap RR",
+      "objective": "FD-Lap, e phi_D ~ d^2",
+      "derivative": "FD",
+      "time_from_zero_seconds": 31131.0252,
+      "time_components_hours": {
+        "1024_scalar_modes_from_zero": 8.1423055,
+        "vector_rr_and_reconstruction": 0.5052011
+      },
+      "velocity_relative_l2": 0.159648510806,
+      "vorticity_relative_l2_common_fd_curl": 0.570468657205
+    },
+    {
+      "method": "Potential-Rayleigh",
+      "objective": "integral |grad A|^2 / integral |A|^2",
+      "derivative": "Jet1",
+      "time_from_zero_seconds": 5040.41455,
+      "velocity_relative_l2": 0.178286141146,
+      "vorticity_relative_l2_common_fd_curl": 0.628824766622
+    },
+    {
+      "method": "Velocity-Rayleigh",
+      "objective": "integral |grad u|^2 / integral |u|^2",
+      "derivative": "Jet2",
+      "time_from_zero_seconds": 6745.14258,
+      "velocity_relative_l2": 0.280805,
+      "vorticity_relative_l2_common_fd_curl": 0.711087
+    },
+    {
+      "method": "Vorticity-Rayleigh",
+      "objective": "integral |grad omega|^2 / integral |omega|^2",
+      "derivative": "Jet3",
+      "time_from_zero_seconds": 9956.47070,
+      "velocity_relative_l2": 0.929106,
+      "vorticity_relative_l2_common_fd_curl": 1.183162
+    },
+    {
+      "method": "Vector/Hodge-Lap RR",
+      "objective": "integral |curl u|^2 / integral |u|^2",
+      "derivative": "Jet2",
+      "time_from_zero_seconds": 34.8818932,
+      "velocity_relative_l2": 0.566226920982,
+      "vorticity_relative_l2_common_fd_curl": 0.902976244185
+    }
+  ],
+  "excluded_artifacts": [
+    "training datasets",
+    "checkpoints",
+    "basis volumes",
+    "GT volumes",
+    "caches and logs",
+    "auxiliary diagnostic cases",
+    "PDF exports"
+  ]
+}
