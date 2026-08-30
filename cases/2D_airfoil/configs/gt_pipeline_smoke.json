@@ -1,0 +1,17 @@
+{
+  "nx": 121,
+  "ny": 97,
+  "reynolds": 200.0,
+  "lattice_inlet_speed": 0.05,
+  "steps": 40,
+  "warmup_steps": 20,
+  "snapshot_every": 10,
+  "collision_model": "trt",
+  "trt_magic_parameter": 0.1875,
+  "initial_perturbation_fraction": 0.01,
+  "warmup_inlet_perturbation_fraction": 0.02,
+  "warmup_inlet_perturbation_duration": 0.5,
+  "warmup_inlet_perturbation_period_chords": 2.0,
+  "require_separated_gt": false,
+  "device": "cuda"
+}

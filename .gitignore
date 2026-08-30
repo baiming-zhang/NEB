@@ -12,8 +12,20 @@ build/
 dist/
 tmp/
 output/
+3d_metaball_transfer/
+3d_metaball_transfer_ready.zip
 
-results/
+# Runtime experiment outputs stay local. The root-level results directory is
+# reserved for small, reviewed publication artifacts.
+/results/*
+!/results/README.md
+!/results/airfoil_k2048_rollout30/
+!/results/airfoil_k2048_rollout30/**
+!/results/2d_metaball_k1024_k2048/
+!/results/2d_metaball_k1024_k2048/**
+!/results/3d_metaball_k1024/
+!/results/3d_metaball_k1024/**
+cases/**/results/
 data/raw/
 data/cache/
 checkpoints/
@@ -27,6 +39,9 @@ checkpoints/
 *.log
 *.pid
 *.ckpt
+
+# The hashed K=2048 airfoil audit reference is force-tracked through Git LFS;
+# all other case-local runtime result trees remain ignored by the rules above.
 
 .DS_Store
 Thumbs.db
