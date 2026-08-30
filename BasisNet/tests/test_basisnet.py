@@ -123,6 +123,32 @@ def test_manifest_excludes_gt_and_mesh():
     assert not manifest["mesh_required"]
 
 
+def test_elu_activation_is_a_drop_in_ablation():
+    torch.manual_seed(5)
+    config = BasisNetConfig(
+        spatial_dim=2,
+        parameter_dim=0,
+        modes=2,
+        hidden=8,
+        hidden_layers=2,
+        frequencies=2,
+        bounds=((0.0, 1.0), (0.0, 1.0)),
+        periodic=False,
+        difference_step=0.02,
+        ordering="dynamic",
+        activation="elu",
+    )
+    model = BasisNet(config).double()
+    points = torch.rand(20, 2, dtype=torch.float64)
+    loss, diagnostics, output = sss_step(
+        model, points, torch.empty(0, dtype=torch.float64), 1.0 / len(points)
+    )
+    assert torch.isfinite(loss)
+    assert diagnostics["effective_raw_rank"] == config.modes
+    assert output["velocity"].shape == (20, 2, 2)
+    assert algorithm_manifest(config)["activation"] == "elu"
+
+
 def test_one_shot_inference_and_projection_close_the_workflow():
     torch.manual_seed(4)
     config = small_config(2)

@@ -71,6 +71,8 @@ and Ritz postprocessing retain their documented semantics.
 
 ## Cases
 
+- [2D_square_analytic](cases/2D_square_analytic/README.md): K=8 matched-seed
+  sine/ELU activation ablation against the closed-form unit-square spectrum.
 - [2D_karman](cases/2D_karman/README.md): a translating cylinder in a
   two-dimensional channel, K=96 learned modes, and Re=100 wake
   reconstruction.

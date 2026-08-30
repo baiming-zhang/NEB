@@ -9,6 +9,7 @@ frames, and videos are intentionally excluded from Git.
 
 | Case | Domain and target | Learned basis | Independent evaluation | Status |
 | --- | --- | ---: | --- | --- |
+| [2D_square_analytic](2D_square_analytic/README.md) | Unit square with exact Dirichlet streamfunction spectrum | K=8 | Closed-form sine eigenfunctions | Completed matched-seed sine/ELU activation ablation |
 | [2D_karman](2D_karman/README.md) | Translating cylinder in a 2D channel | K=96 | Re=100 Karman-wake HDF5 data | Reproducible workflow; no version-controlled reference metric yet |
 | [2D_airfoil](2D_airfoil/README.md) | Analytic thickness and angle jointly parameterized in a 2D far field | K=1024 | Independent Re=1500 D2Q9-TRT NS trajectories | Preliminary K1024 hybrid benchmark and matched velocity-only ablation |
 | [3D_periodic_free](3D_periodic_free/README.md) | Triply periodic cube without obstacles | K=256 | Exact forced Taylor--Green and oscillatory ABC GT | Completed and benchmarked |

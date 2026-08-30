@@ -30,6 +30,7 @@ from torch import nn
 Tensor = torch.Tensor
 Envelope = Callable[[Tensor, Tensor], Tensor]
 Ordering = Literal["fixed", "dynamic"]
+Activation = Literal["sine", "elu"]
 
 
 @dataclass(frozen=True)
@@ -53,6 +54,7 @@ class BasisNetConfig:
     mass_floor: float = 1.0e-12
     rayleigh_scale: float = 80.0
     grad_clip: float = 1.0
+    activation: Activation = "sine"
 
     def __post_init__(self) -> None:
         if self.spatial_dim not in (2, 3):
@@ -67,6 +69,8 @@ class BasisNetConfig:
             raise ValueError("difference_step and mass_floor must be positive")
         if self.ordering not in ("fixed", "dynamic"):
             raise ValueError("ordering must be 'fixed' or 'dynamic'")
+        if self.activation not in ("sine", "elu"):
+            raise ValueError("activation must be 'sine' or 'elu'")
 
     @property
     def potential_dim(self) -> int:
@@ -90,7 +94,12 @@ def _parameter_rows(parameters: Tensor, count: int, width: int) -> Tensor:
 
 
 class FourierSineMode(nn.Module):
-    """One independent potential field with Fourier features and sine layers."""
+    """One independent Fourier-feature potential field.
+
+    The historical class name is retained for checkpoint/API compatibility;
+    ``config.activation`` selects either the original sine hidden layers or
+    the ELU ablation.
+    """
 
     def __init__(self, config: BasisNetConfig) -> None:
         super().__init__()
@@ -124,7 +133,11 @@ class FourierSineMode(nn.Module):
     def forward(self, points: Tensor, parameters: Tensor) -> Tensor:
         value = self.encode(points, parameters)
         for layer in self.layers:
-            value = torch.sin(layer(value))
+            value = layer(value)
+            if self.config.activation == "sine":
+                value = torch.sin(value)
+            else:
+                value = torch.nn.functional.elu(value)
         return self.output(value)
 
 
@@ -622,6 +635,7 @@ def algorithm_manifest(config: BasisNetConfig) -> dict[str, Any]:
         "gt_or_supervision_used_in_basis_training": False,
         "mesh_required": False,
         "loss": "normalized Dirichlet/Rayleigh energy only",
+        "activation": config.activation,
     }
 
 

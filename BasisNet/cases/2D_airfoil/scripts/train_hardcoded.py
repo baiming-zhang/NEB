@@ -22,6 +22,10 @@ from eigenfluid_sss.basisnet.airfoil2d.hardcoded_backend import (  # noqa: E402
     continuous_parameters,
     fluid_points,
     peel_step,
+    uniform_fluid_points,
+)
+from eigenfluid_sss.basisnet.airfoil2d.hardcoded_postprocess import (  # noqa: E402
+    compute_certified_stokes_basis,
 )
 
 
@@ -99,6 +103,9 @@ def save_history(run_dir: Path, history: list[dict[str, Any]]) -> None:
         "validation_loss_p95", "validation_loss_max", "learning_rate",
         "best_validation_epoch", "early_stop_counter_epochs",
         "lr_plateau_counter_epochs",
+        "stokes_construction_quadrature", "stokes_certified_modes",
+        "stokes_min_construction_rank", "stokes_max_mass_defect",
+        "stokes_max_ritz_residual", "stokes_max_eigenvalue_drift",
     ]
     with (data / "hardcoded_training_history.csv").open(
         "w", newline="", encoding="utf-8"
@@ -184,7 +191,13 @@ def validate(
     ]
     for index, (beta, alpha) in enumerate(pairs):
         if sample_pack is None:
-            points = fluid_points(
+            point_generator = (
+                uniform_fluid_points
+                if str(getattr(cfg, "basis_objective", "velocity_rayleigh"))
+                == "stokes_certified"
+                else fluid_points
+            )
+            points = point_generator(
                 cfg, cfg.validation_points, beta, alpha, cfg.seed + 900_000 + index
             )
         else:
@@ -199,6 +212,114 @@ def validate(
             )
         )
     return aggregate(details), details
+
+
+def certify_validation_stokes(
+    cfg: Any,
+    model: HardcodedModel,
+    quadrature: int,
+) -> tuple[dict[str, Any], list[dict[str, Any]]]:
+    """Certify every configured parameter validation case independently."""
+
+    case_rows: list[dict[str, Any]] = []
+    for index, beta in enumerate(
+        np.linspace(0.0, 1.0, cfg.validation_beta_samples)
+    ):
+        for alpha_index, alpha in enumerate(
+            np.linspace(
+                cfg.alpha_min_deg,
+                cfg.alpha_max_deg,
+                cfg.validation_alpha_samples,
+            )
+        ):
+            case_index = index * cfg.validation_alpha_samples + alpha_index
+            certificate = compute_certified_stokes_basis(
+                model,
+                cfg,
+                float(beta),
+                float(alpha),
+                quadrature,
+                quadrature,
+                seed=cfg.seed + 2_000_000 + 10_007 * case_index,
+            )
+            certified = int(certificate["certified_count"])
+            mass_slice = certificate["mass_defect"][:certified, :certified]
+            case_rows.append(
+                {
+                    "beta": float(beta),
+                    "alpha_deg": float(alpha),
+                    "quadrature": int(quadrature),
+                    "construction_rank": int(
+                        certificate["construction_rank"]
+                    ),
+                    "certified_modes": certified,
+                    "max_mass_defect": (
+                        float(np.max(mass_slice)) if certified else float("inf")
+                    ),
+                    "max_ritz_residual": (
+                        float(
+                            np.max(
+                                certificate["ritz_residual_relative"][:certified]
+                            )
+                        )
+                        if certified
+                        else float("inf")
+                    ),
+                    "max_eigenvalue_drift": (
+                        float(
+                            np.max(
+                                certificate["eigenvalue_drift_relative"][
+                                    :certified
+                                ]
+                            )
+                        )
+                        if certified
+                        else float("inf")
+                    ),
+                    "mass_defect": certificate["mass_defect"].diagonal().tolist(),
+                    "mass_budget": certificate["mass_budget"].diagonal().tolist(),
+                    "ritz_residual_relative": certificate[
+                        "ritz_residual_relative"
+                    ].tolist(),
+                    "ritz_residual_budget": certificate[
+                        "ritz_residual_budget"
+                    ].tolist(),
+                    "eigenvalue_drift_relative": certificate[
+                        "eigenvalue_drift_relative"
+                    ].tolist(),
+                    "eigenvalue_drift_budget": certificate[
+                        "eigenvalue_drift_budget"
+                    ].tolist(),
+                }
+            )
+    finite_mass = [
+        item["max_mass_defect"]
+        for item in case_rows
+        if np.isfinite(item["max_mass_defect"])
+    ]
+    finite_residual = [
+        item["max_ritz_residual"]
+        for item in case_rows
+        if np.isfinite(item["max_ritz_residual"])
+    ]
+    finite_drift = [
+        item["max_eigenvalue_drift"]
+        for item in case_rows
+        if np.isfinite(item["max_eigenvalue_drift"])
+    ]
+    summary = {
+        "quadrature": int(quadrature),
+        "certified_modes": int(
+            min(item["certified_modes"] for item in case_rows)
+        ),
+        "min_construction_rank": int(
+            min(item["construction_rank"] for item in case_rows)
+        ),
+        "max_mass_defect": max(finite_mass, default=float("inf")),
+        "max_ritz_residual": max(finite_residual, default=float("inf")),
+        "max_eigenvalue_drift": max(finite_drift, default=float("inf")),
+    }
+    return summary, case_rows
 
 
 def main() -> None:
@@ -336,15 +457,38 @@ def main() -> None:
     )
     lr_reference_epoch = int(restored_state.get("lr_reference_epoch", 0))
     lr_reductions = int(restored_state.get("lr_reductions", 0))
+    certified_stokes = (
+        str(getattr(cfg, "basis_objective", "velocity_rayleigh"))
+        == "stokes_certified"
+    )
+    current_construction_quadrature = int(
+        restored_state.get(
+            "stokes_construction_quadrature",
+            getattr(cfg, "stokes_min_quadrature", cfg.points_per_step),
+        )
+    )
+    maximum_construction_quadrature = int(
+        getattr(cfg, "stokes_max_quadrature", current_construction_quadrature)
+    )
+    best_certified_count = int(
+        restored_state.get("best_certified_count", 0)
+    )
+    last_certified_count = int(
+        restored_state.get("last_certified_count", best_certified_count)
+    )
     if args.reset_validation_state:
         best_validation = float("inf")
         best_validation_epoch = start_epoch - 1
         lr_reference_loss = float("inf")
         lr_reference_epoch = start_epoch - 1
         lr_reductions = 0
+        best_certified_count = 0
+        last_certified_count = 0
     protocol = {
         "algorithm": (
-            "shared_velocity_vorticity_hybrid_residual_peeling"
+            "certified_variational_stokes_generalized_eigen_peeling"
+            if certified_stokes
+            else "shared_velocity_vorticity_hybrid_residual_peeling"
             if getattr(cfg, "basis_objective", "velocity_rayleigh")
             == "velocity_vorticity_hybrid"
             else "official_sss_fixed_order_residual_peeling_joint_beta_alpha"
@@ -390,11 +534,26 @@ def main() -> None:
         "freeze_prefix_modes": getattr(cfg, "freeze_prefix_modes", 0),
         "orthonormal_peeling_fast_path": getattr(
             cfg, "orthonormal_peeling_fast_path", False
-        ),
+        ) or certified_stokes,
         "mode_sorting_used": False,
         "least_squares_residual_peeling": True,
         "previous_modes_detached": True,
         "points_per_epoch": cfg.points_per_step,
+        "stokes_variational_problem": {
+            "enabled": certified_stokes,
+            "mass_form": "integral u dot v over physical fluid area",
+            "stiffness_form": "integral grad(u) colon grad(v) over physical fluid area",
+            "divergence_free": "exact curl of C2 streamfunction",
+            "quadrature": "uniform nested scrambled Sobol with solid rejection",
+            "minimum_points": current_construction_quadrature,
+            "maximum_points": maximum_construction_quadrature,
+            "adaptive_rule": (
+                "double after independent-grid certification failure; retain "
+                "only the backward-resolved certified spectral prefix"
+            ),
+            "rank_cutoff": "float64 Gram backward-error bound",
+            "empirical_regularization": False,
+        },
         "reference_sample_pack": (
             str(args.sample_pack.resolve()) if args.sample_pack is not None else None
         ),
@@ -495,7 +654,8 @@ def main() -> None:
     append_log(
         args.run_dir,
         f"start hardcoded-no-pytorch device=cuda modes={cfg.modes} "
-        f"points={cfg.points_per_step} resume_epoch={metadata['epoch']} "
+        f"points={current_construction_quadrature if certified_stokes else cfg.points_per_step} "
+        f"resume_epoch={metadata['epoch']} "
         f"lr={current_learning_rate:.6e} "
         f"vorticity_reg="
         f"{getattr(cfg, 'vorticity_regularization_weight', 0.0):.3e} "
@@ -510,7 +670,13 @@ def main() -> None:
     stopped_early = False
     final_epoch = int(metadata["epoch"])
     for epoch in range(start_epoch, stop_epoch + 1):
-        count = args.self_test_points if args.self_test_epochs > 0 else cfg.points_per_step
+        count = (
+            args.self_test_points
+            if args.self_test_epochs > 0
+            else current_construction_quadrature
+            if certified_stokes
+            else cfg.points_per_step
+        )
         if sample_pack is not None and args.self_test_epochs <= 0:
             pack_index = epoch - 1
             if pack_index >= len(sample_pack["train_beta"]):
@@ -520,7 +686,10 @@ def main() -> None:
             points = sample_pack["train_points"][pack_index]
         else:
             beta, alpha = continuous_parameters(cfg, epoch)
-            points = fluid_points(cfg, count, beta, alpha, cfg.seed + epoch * 1009)
+            point_generator = uniform_fluid_points if certified_stokes else fluid_points
+            points = point_generator(
+                cfg, count, beta, alpha, cfg.seed + epoch * 1009
+            )
         diagnostic = peel_step(
             cfg, model, points, beta, alpha, True,
             reference_model=reference_model,
@@ -570,6 +739,9 @@ def main() -> None:
             "train_rank": diagnostic["effective_raw_rank"],
             "backend": "hardcoded_cupy_no_pytorch",
             "learning_rate": current_learning_rate,
+            "stokes_construction_quadrature": (
+                current_construction_quadrature if certified_stokes else None
+            ),
         }
         if args.self_test_epochs > 0:
             append_log(
@@ -693,12 +865,103 @@ def main() -> None:
                     "validation_cases": case_rows,
                 }
             )
+            certify_every = int(
+                getattr(cfg, "stokes_certify_every", cfg.validate_every)
+            )
+            certification_due = certified_stokes and (
+                epoch == 1 or epoch % max(1, certify_every) == 0
+            )
+            if certification_due:
+                certification, certification_cases = certify_validation_stokes(
+                    cfg, model, current_construction_quadrature
+                )
+                last_certified_count = int(
+                    certification["certified_modes"]
+                )
+                row.update(
+                    {
+                        "stokes_certified_modes": last_certified_count,
+                        "stokes_min_construction_rank": certification[
+                            "min_construction_rank"
+                        ],
+                        "stokes_max_mass_defect": certification[
+                            "max_mass_defect"
+                        ],
+                        "stokes_max_ritz_residual": certification[
+                            "max_ritz_residual"
+                        ],
+                        "stokes_max_eigenvalue_drift": certification[
+                            "max_eigenvalue_drift"
+                        ],
+                    }
+                )
+                certification_payload = {
+                    "epoch": epoch,
+                    "objective": "variational_stokes_generalized_eigenproblem",
+                    "decision_rule": (
+                        "independent nested coarse/fine integration uncertainty "
+                        "plus float64 backward error"
+                    ),
+                    "summary": certification,
+                    "cases": certification_cases,
+                }
+                certification_path = (
+                    args.run_dir
+                    / "data"
+                    / f"stokes_certification_epoch{epoch:04d}.json"
+                )
+                certification_path.write_text(
+                    json.dumps(certification_payload, indent=2),
+                    encoding="utf-8",
+                )
+                latest_certification = (
+                    args.run_dir / "data" / "stokes_certification_latest.json"
+                )
+                latest_tmp = latest_certification.with_suffix(".json.tmp")
+                latest_tmp.write_text(
+                    json.dumps(certification_payload, indent=2),
+                    encoding="utf-8",
+                )
+                os.replace(latest_tmp, latest_certification)
+                append_log(
+                    args.run_dir,
+                    f"stokes certificate epoch={epoch:04d} "
+                    f"q={current_construction_quadrature} "
+                    f"certified={last_certified_count}/{cfg.modes} "
+                    f"rank={certification['min_construction_rank']}",
+                )
+                if (
+                    last_certified_count < cfg.modes
+                    and current_construction_quadrature
+                    < maximum_construction_quadrature
+                ):
+                    current_construction_quadrature = min(
+                        maximum_construction_quadrature,
+                        2 * current_construction_quadrature,
+                    )
+                    append_log(
+                        args.run_dir,
+                        "stokes quadrature refined for following epochs "
+                        f"to q={current_construction_quadrature}",
+                    )
             relative_threshold = cfg.lr_scheduler_relative_threshold
-            improved = float(validation["loss"]) < best_validation * (
+            validation_improved = float(validation["loss"]) < best_validation * (
                 1.0 - relative_threshold
+            )
+            improved = (
+                last_certified_count > best_certified_count
+                or (
+                    last_certified_count == best_certified_count
+                    and validation_improved
+                )
+                if certified_stokes
+                else validation_improved
             )
             if improved:
                 best_validation = float(validation["loss"])
+                best_certified_count = max(
+                    best_certified_count, last_certified_count
+                )
                 best_validation_epoch = epoch
                 lr_reference_loss = best_validation
                 lr_reference_epoch = epoch
@@ -714,6 +977,13 @@ def main() -> None:
                         "lr_reference_loss": lr_reference_loss,
                         "lr_reference_epoch": lr_reference_epoch,
                         "lr_reductions": lr_reductions,
+                        "stokes_construction_quadrature": (
+                            current_construction_quadrature
+                            if certified_stokes
+                            else None
+                        ),
+                        "best_certified_count": best_certified_count,
+                        "last_certified_count": last_certified_count,
                     },
                 )
             elif (
@@ -773,7 +1043,9 @@ def main() -> None:
                 if validation_pack is not None and "probe_points" in validation_pack
                 else sample_pack["probe_points"]
                 if sample_pack is not None and "probe_points" in sample_pack
-                else fluid_points(
+                else (
+                    uniform_fluid_points if certified_stokes else fluid_points
+                )(
                     cfg,
                     cfg.validation_points,
                     cfg.probe_beta,
@@ -805,6 +1077,11 @@ def main() -> None:
             "lr_reference_loss": lr_reference_loss,
             "lr_reference_epoch": lr_reference_epoch,
             "lr_reductions": lr_reductions,
+            "stokes_construction_quadrature": (
+                current_construction_quadrature if certified_stokes else None
+            ),
+            "best_certified_count": best_certified_count,
+            "last_certified_count": last_certified_count,
         }
         if (
             args.self_test_epochs <= 0
@@ -853,6 +1130,11 @@ def main() -> None:
             "lr_reference_loss": lr_reference_loss,
             "lr_reference_epoch": lr_reference_epoch,
             "lr_reductions": lr_reductions,
+            "stokes_construction_quadrature": (
+                current_construction_quadrature if certified_stokes else None
+            ),
+            "best_certified_count": best_certified_count,
+            "last_certified_count": last_certified_count,
             "stopped_early": stopped_early,
         },
     )

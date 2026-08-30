@@ -23,6 +23,7 @@ from eigenfluid_sss.basisnet.airfoil2d.hardcoded_backend import (  # noqa: E402
     inside_airfoil,
 )
 from eigenfluid_sss.basisnet.airfoil2d.hardcoded_postprocess import (  # noqa: E402
+    compute_certified_stokes_basis,
     compute_ritz_basis,
     load_hardcoded_model,
     project_ritz_scalar,
@@ -306,9 +307,32 @@ def reconstruct_case(
     fluid = ~solid
     xgrid, ygrid = np.meshgrid(x, y)
     points = np.column_stack((xgrid[fluid], ygrid[fluid])).astype(np.float32)
-    ritz = compute_ritz_basis(
-        model, cfg, beta, alpha, quadrature=quadrature
+    certified_stokes = (
+        str(getattr(cfg, "basis_objective", "velocity_rayleigh"))
+        == "stokes_certified"
     )
+    if certified_stokes:
+        ritz = compute_certified_stokes_basis(
+            model,
+            cfg,
+            beta,
+            alpha,
+            minimum_quadrature=max(
+                quadrature, int(getattr(cfg, "stokes_min_quadrature", quadrature))
+            ),
+            maximum_quadrature=max(
+                quadrature, int(getattr(cfg, "stokes_max_quadrature", quadrature))
+            ),
+        )
+        if int(ritz["certified_count"]) == 0:
+            raise RuntimeError(
+                "no Stokes mode passed independent-grid certification; "
+                "reconstruction is intentionally refused"
+            )
+    else:
+        ritz = compute_ritz_basis(
+            model, cfg, beta, alpha, quadrature=quadrature
+        )
     raw_u, raw_v, raw_omega = raw_fields(
         model, cfg, points, beta, alpha, batch
     )
@@ -322,12 +346,15 @@ def reconstruct_case(
     actual_u = actual_u_all[frame, fluid]
     actual_v = actual_v_all[frame, fluid]
     actual_omega = actual_omega_all[frame, fluid]
-    modal, raw_modal, projection_ritz_orth_error = project_ritz_velocity(
+    modal, raw_modal, projection_diagnostics = project_ritz_velocity(
         raw_u,
         raw_v,
         actual_u - mean_u,
         actual_v - mean_v,
         ritz["coefficients"],
+    )
+    projection_ritz_orth_error = float(
+        projection_diagnostics["orthogonality_error"]
     )
     predicted_u = mean_u + raw_u @ raw_modal
     predicted_v = mean_v + raw_v @ raw_modal
@@ -469,6 +496,22 @@ def reconstruct_case(
         coefficient_fit=np.asarray("velocity_l2"),
         basis_coordinate_system=np.asarray("mass_orthogonal_ritz"),
         projection_ritz_orth_error=np.float64(projection_ritz_orth_error),
+        projection_ritz_prewhiten_orth_error=np.float64(
+            projection_diagnostics["prewhiten_orthogonality_error"]
+        ),
+        projection_effective_rank=np.int32(projection_diagnostics["rank"]),
+        projection_discarded_rank=np.int32(
+            projection_diagnostics["discarded_rank"]
+        ),
+        projection_rank_tolerance=np.float64(
+            projection_diagnostics["rank_tolerance"]
+        ),
+        projection_gram_condition_number=np.float64(
+            projection_diagnostics["condition_number"]
+        ),
+        projection_solver=np.asarray(
+            "projection_grid_mass_whitened_moore_penrose"
+        ),
         velocity_error=np.float32(velocity_error),
         vorticity_error=np.float32(vorticity_error),
         fluctuation_velocity_error=np.float32(fluctuation_velocity_error),
@@ -486,6 +529,33 @@ def reconstruct_case(
         ritz_coefficients=ritz["coefficients"],
         ritz_rank=np.int32(ritz["rank"]),
     )
+    if certified_stokes:
+        certified = int(ritz["certified_count"])
+        payload.update(
+            stokes_certified_modes=np.int32(certified),
+            stokes_construction_rank=np.int32(ritz["construction_rank"]),
+            stokes_certification_quadrature=np.int32(ritz["quadrature"]),
+            stokes_maximum_quadrature_reached=np.bool_(
+                ritz["maximum_quadrature_reached"]
+            ),
+            stokes_mass_defect=ritz["mass_defect"][:certified, :certified],
+            stokes_mass_budget=ritz["mass_budget"][:certified, :certified],
+            stokes_ritz_residual_relative=ritz[
+                "ritz_residual_relative"
+            ][:certified],
+            stokes_ritz_residual_budget=ritz[
+                "ritz_residual_budget"
+            ][:certified],
+            stokes_eigenvalue_drift_relative=ritz[
+                "eigenvalue_drift_relative"
+            ][:certified],
+            stokes_eigenvalue_drift_budget=ritz[
+                "eigenvalue_drift_budget"
+            ][:certified],
+            spectral_subspace_policy=np.asarray(
+                "independent_nested_stokes_certified_prefix_only"
+            ),
+        )
     if not velocity_only:
         payload.update(
             vorticity_opt_u=grid(vorticity_opt_u),
@@ -553,13 +623,34 @@ def render_lowest_six(
     raw_u, raw_v, raw_omega = raw_fields(
         model, cfg, points, beta, alpha, int(settings["field_batch"])
     )
-    ritz = compute_ritz_basis(
-        model,
-        cfg,
-        beta,
-        alpha,
-        quadrature=int(settings["ritz_quadrature"]),
-    )
+    if str(getattr(cfg, "basis_objective", "velocity_rayleigh")) == "stokes_certified":
+        requested_quadrature = int(settings["ritz_quadrature"])
+        ritz = compute_certified_stokes_basis(
+            model,
+            cfg,
+            beta,
+            alpha,
+            minimum_quadrature=max(
+                requested_quadrature,
+                int(getattr(cfg, "stokes_min_quadrature", requested_quadrature)),
+            ),
+            maximum_quadrature=max(
+                requested_quadrature,
+                int(getattr(cfg, "stokes_max_quadrature", requested_quadrature)),
+            ),
+        )
+        if int(ritz["certified_count"]) < 6:
+            raise RuntimeError(
+                "fewer than six Stokes modes passed independent certification"
+            )
+    else:
+        ritz = compute_ritz_basis(
+            model,
+            cfg,
+            beta,
+            alpha,
+            quadrature=int(settings["ritz_quadrature"]),
+        )
     coefficients = ritz["coefficients"][:, :6]
     basis_u = raw_u @ coefficients
     basis_v = raw_v @ coefficients

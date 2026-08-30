@@ -515,7 +515,12 @@ class HardcodedMode:
     def forward(
         self, cfg: SimpleNamespace, points: np.ndarray, beta: float, alpha: float, cache: bool
     ) -> tuple[Jet2, Any]:
-        x, y = xy_jets(points, self.compute_dtype)
+        # The published FP16 protocol keeps coordinate/boundary jets in FP32
+        # and uses FP16 only for hidden-layer shadows.  Casting coordinates
+        # themselves to FP16 can overflow second derivatives on the 10x8 box
+        # and makes otherwise finite archived checkpoints produce NaNs.
+        coordinate_dtype = F32 if self.compute_dtype is F16 else self.compute_dtype
+        x, y = xy_jets(points, coordinate_dtype)
         envelope = envelope_jet(cfg, x, y, beta, alpha)
         current = encoding_jet(cfg, x, y, beta, alpha)
         layer_cache: list[tuple[Jet2, Jet2]] = []
@@ -682,7 +687,12 @@ class HardcodedModel:
         block_size = max(1, int(getattr(cfg, "mode_forward_batch", 1)))
         for start in range(0, len(self.modes), block_size):
             stop = min(start + block_size, len(self.modes))
-            x, y = xy_jets(points, self.modes[start].compute_dtype)
+            coordinate_dtype = (
+                F32
+                if self.modes[start].compute_dtype is F16
+                else self.modes[start].compute_dtype
+            )
+            x, y = xy_jets(points, coordinate_dtype)
             envelope = envelope_jet(cfg, x, y, beta, alpha)
             current = encoding_jet(cfg, x, y, beta, alpha)
             layer_cache: list[tuple[Jet2, Jet2]] = []
@@ -852,6 +862,37 @@ def fluid_points(
     return points[np.random.default_rng(seed).permutation(len(points))]
 
 
+def uniform_fluid_points(
+    cfg: SimpleNamespace,
+    count: int,
+    beta: float,
+    alpha: float,
+    seed: int,
+) -> np.ndarray:
+    """Return a nested, uniform Sobol quadrature of the fluid domain.
+
+    The legacy mixed sampler deliberately over-samples the wall and wake but
+    assigns every accepted point the same area weight.  That changes the
+    measure in both the mass and stiffness forms.  A variational Stokes
+    problem needs the physical area measure, so certified runs use a single
+    uniform proposal over the bounding box and reject solid points.  For a
+    fixed seed, the first ``count`` accepted points are a prefix of every
+    finer call, which gives the nested quadrature sequence used by the
+    a-posteriori certificate.
+    """
+
+    if count <= 0:
+        raise ValueError("uniform fluid quadrature count must be positive")
+    return _sobol_box(
+        cfg,
+        int(count),
+        (cfg.xmin, cfg.xmax, cfg.ymin, cfg.ymax),
+        int(seed),
+        beta,
+        alpha,
+    )
+
+
 def continuous_parameters(cfg: SimpleNamespace, epoch: int) -> tuple[float, float]:
     if cfg.endpoint_period > 0 and epoch % cfg.endpoint_period == 0:
         corners = (
@@ -907,6 +948,22 @@ def _velocity_peel_step(
     reference_model: HardcodedModel | None = None,
     full_diagnostics: bool = True,
 ) -> dict[str, Any]:
+    certified_stokes = (
+        str(getattr(cfg, "basis_objective", "velocity_rayleigh"))
+        == "stokes_certified"
+    )
+    if certified_stokes and any(
+        float(getattr(cfg, name, 0.0)) != 0.0
+        for name in (
+            "vorticity_regularization_weight",
+            "small_vorticity_regularization_weight",
+            "large_vorticity_preservation_weight",
+            "peeled_subspace_vorticity_regularization_weight",
+        )
+    ):
+        raise ValueError(
+            "stokes_certified forbids empirical vorticity/filter penalties"
+        )
     weight = ((cfg.xmax - cfg.xmin) * (cfg.ymax - cfg.ymin) - airfoil_area(cfg, beta)) / len(points)
     regularization_weight = float(
         getattr(cfg, "vorticity_regularization_weight", 0.0)
@@ -952,10 +1009,15 @@ def _velocity_peel_step(
         reference_stream = None
         stencil_weights = None
         valid_neighbour_fraction = 1.0
-    previous_v: list[cp.ndarray] = []
-    previous_g: list[cp.ndarray] = []
+    # Allocate the construction bases once.  Repeated ``cp.stack`` of an
+    # ever-growing Python list makes CuPy's memory pool retain many obsolete
+    # matrix sizes and can consume the full GPU before a single epoch ends.
+    # These column views are algebraically identical and keep peak memory
+    # proportional to the current quadrature rather than to its history.
+    basis_v = cp.empty((2 * n, cfg.modes), dtype=F64)
+    basis_g = cp.empty((4 * n, cfg.modes), dtype=F64)
     previous_omega_augmented: list[cp.ndarray] = []
-    raw_velocities: list[cp.ndarray] = []
+    raw_matrix = cp.empty((2 * n, cfg.modes), dtype=F64)
     energies: list[float] = []
     projections: list[float] = []
     enstrophy_ratios: list[float] = []
@@ -969,7 +1031,7 @@ def _velocity_peel_step(
     freeze_prefix_modes = int(getattr(cfg, "freeze_prefix_modes", 0))
     fast_orthonormal_projection = bool(
         getattr(cfg, "orthonormal_peeling_fast_path", False)
-    )
+    ) or certified_stokes
     for mode_index, (mode, field, cache) in enumerate(model.forward_stream(
         cfg, current_points, beta, alpha, training
     )):
@@ -980,23 +1042,41 @@ def _velocity_peel_step(
         psi_x = center_field.grad[:, 0, 0]
         psi_y = center_field.grad[:, 0, 1]
         velocity = cp.concatenate((psi_y, -psi_x)).astype(F64)
-        raw_velocities.append(velocity)
+        raw_matrix[:, mode_index] = velocity
         h = center_field.hess[:, 0]
         gradient = cp.concatenate((h[:, 1, 0], h[:, 1, 1], -h[:, 0, 0], -h[:, 0, 1])).astype(F64)
-        if previous_v:
-            u = cp.stack(previous_v, axis=1)
-            g = cp.stack(previous_g, axis=1)
+        if mode_index:
+            u = basis_v[:, :mode_index]
+            g = basis_g[:, :mode_index]
             lhs = (
                 None
                 if fast_orthonormal_projection
                 else weight * (u.T @ u)
             )
             rhs = weight * (u.T @ velocity)
-            coefficients = (
-                rhs
-                if fast_orthonormal_projection
-                else cp.linalg.solve(lhs, rhs)
-            )
+            if fast_orthonormal_projection:
+                coefficients = rhs
+            elif certified_stokes:
+                symmetric_lhs = 0.5 * (lhs + lhs.T)
+                lhs_values, lhs_vectors = cp.linalg.eigh(symmetric_lhs)
+                largest_lhs = cp.maximum(lhs_values[-1], 0.0)
+                lhs_tolerance = (
+                    np.finfo(np.float64).eps
+                    * max(2 * n, mode_index)
+                    * largest_lhs
+                )
+                keep_lhs = lhs_values > lhs_tolerance
+                if int(cp.count_nonzero(keep_lhs).get()) != mode_index:
+                    raise np.linalg.LinAlgError(
+                        "construction quadrature does not resolve the previous "
+                        f"Stokes mass space at mode {mode_index}"
+                    )
+                kept_vectors = lhs_vectors[:, keep_lhs]
+                coefficients = kept_vectors @ (
+                    (kept_vectors.T @ rhs) / lhs_values[keep_lhs]
+                )
+            else:
+                coefficients = cp.linalg.solve(lhs, rhs)
             reconstructed_v = u @ coefficients
             reconstructed_g = g @ coefficients
         else:
@@ -1008,7 +1088,22 @@ def _velocity_peel_step(
         residual_g = gradient - reconstructed_g
         mass = weight * cp.dot(residual_v, residual_v)
         stiffness = weight * cp.dot(residual_g, residual_g)
-        denominator = cp.maximum(mass, cfg.mass_floor)
+        if certified_stokes:
+            raw_mass = weight * cp.dot(velocity, velocity)
+            mass_tolerance = (
+                np.finfo(np.float64).eps
+                * max(2 * n, mode_index + 1)
+                * raw_mass
+            )
+            if not bool((mass > mass_tolerance).get()):
+                raise np.linalg.LinAlgError(
+                    "construction quadrature cannot resolve Stokes mode "
+                    f"{mode_index}: residual mass={float(mass.get()):.6e}, "
+                    f"backward-error bound={float(mass_tolerance.get()):.6e}"
+                )
+            denominator = mass
+        else:
+            denominator = cp.maximum(mass, cfg.mass_floor)
         rayleigh = stiffness / denominator
         residual_omega = (
             residual_g[2 * n : 3 * n] - residual_g[n : 2 * n]
@@ -1180,15 +1275,18 @@ def _velocity_peel_step(
                         omega_basis.T @ grad_residual_omega_augmented
                     )
             grad_velocity = grad_residual_v
-            if previous_v:
+            if mode_index:
                 grad_q = -(u.T @ grad_residual_v) - (g.T @ grad_residual_g)
                 if projection_coefficient_adjoint is not None:
                     grad_q += projection_coefficient_adjoint
-                projection_gradient = (
-                    grad_q
-                    if fast_orthonormal_projection
-                    else cp.linalg.solve(lhs.T, grad_q)
-                )
+                if fast_orthonormal_projection:
+                    projection_gradient = grad_q
+                elif certified_stokes:
+                    projection_gradient = kept_vectors @ (
+                        (kept_vectors.T @ grad_q) / lhs_values[keep_lhs]
+                    )
+                else:
+                    projection_gradient = cp.linalg.solve(lhs.T, grad_q)
                 grad_velocity = grad_velocity + weight * u @ projection_gradient
             network_dtype = _compute_dtype(cfg)
             adjoint_dtype = (
@@ -1245,8 +1343,8 @@ def _velocity_peel_step(
                 gradients = [gradient / loss_scale for gradient in gradients]
             mode.adam_step(gradients, cfg)
         normalizer = 1.0 / cp.sqrt(denominator)
-        previous_v.append(residual_v * normalizer)
-        previous_g.append(residual_g * normalizer)
+        basis_v[:, mode_index] = residual_v * normalizer
+        basis_g[:, mode_index] = residual_g * normalizer
         if peeled_subspace_weight > 0.0:
             previous_omega_augmented.append(normalized_omega_augmented)
         energies.append(float(rayleigh.get()))
@@ -1259,13 +1357,27 @@ def _velocity_peel_step(
         preservation_losses.append(float(preservation_loss.get()))
         peeled_subspace_ratios.append(float(peeled_subspace_ratio.get()))
         peeled_subspace_losses.append(float(peeled_subspace_loss.get()))
-    matrix = cp.stack(previous_v, axis=1)
-    gram = weight * matrix.T @ matrix
+        trim_every = int(getattr(cfg, "cuda_memory_pool_trim_modes", 0))
+        if certified_stokes and trim_every > 0 and (
+            (mode_index + 1) % trim_every == 0
+        ):
+            # CuPy caches the many Jet2 reverse-pass temporaries even though
+            # their shapes repeat.  Releasing only currently free pool blocks
+            # is numerically inert: live model/Adam/basis arrays keep their
+            # allocations, while adaptive quadrature retains usable headroom.
+            cp.get_default_memory_pool().free_all_blocks()
+    gram = weight * basis_v.T @ basis_v
     orth_error = float(cp.max(cp.abs(gram - cp.eye(cfg.modes, dtype=F64))).get())
-    raw_matrix = cp.stack(raw_velocities, axis=1)
     raw_gram = weight * raw_matrix.T @ raw_matrix
     eigenvalues = cp.linalg.eigvalsh(0.5 * (raw_gram + raw_gram.T))
-    threshold = cp.maximum(eigenvalues[-1], cfg.mass_floor) * 1.0e-8
+    if certified_stokes:
+        threshold = (
+            np.finfo(np.float64).eps
+            * max(2 * n, cfg.modes)
+            * cp.maximum(eigenvalues[-1], 0.0)
+        )
+    else:
+        threshold = cp.maximum(eigenvalues[-1], cfg.mass_floor) * 1.0e-8
     effective_rank = int(cp.sum(eigenvalues > threshold).get())
     return {
         "loss": float(
@@ -1677,7 +1789,7 @@ def peel_step(
             training,
             full_diagnostics,
         )
-    if objective != "velocity_rayleigh":
+    if objective not in ("velocity_rayleigh", "stokes_certified"):
         raise ValueError(f"unknown basis objective: {objective}")
     return _velocity_peel_step(
         cfg,

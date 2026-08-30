@@ -98,6 +98,30 @@ def test_k1024_protocols_and_preliminary_report():
             assert (case_root / "reports" / case[key]).resolve().is_file()
 
 
+def test_certified_stokes_protocol_has_no_empirical_smoothing_term():
+    case_root = Path(__file__).resolve().parents[1]
+    values = json.loads(
+        (
+            case_root
+            / "configs"
+            / "k1024_c2_stokes_certified_fp64_5000.json"
+        ).read_text(encoding="utf-8")
+    )
+    assert values["basis_objective"] == "stokes_certified"
+    assert values["sampling_mode"] == "uniform_nested_physical_area"
+    assert values["stokes_min_quadrature"] == 4096
+    assert values["stokes_max_quadrature"] > values["stokes_min_quadrature"]
+    assert values["mlp_compute_dtype"] == "float64"
+    assert values["modes"] == 1024
+    for name in (
+        "vorticity_regularization_weight",
+        "small_vorticity_regularization_weight",
+        "large_vorticity_preservation_weight",
+        "peeled_subspace_vorticity_regularization_weight",
+    ):
+        assert values[name] == 0.0
+
+
 def test_joint_geometry_and_sampling():
     cfg = Config()
     beta, alpha_deg = 0.7, 9.0

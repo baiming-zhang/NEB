@@ -150,6 +150,22 @@ def main() -> None:
         "projection_ritz_orth_error": float(
             sample["projection_ritz_orth_error"]
         ),
+        "projection_ritz_prewhiten_orth_error": float(
+            sample["projection_ritz_prewhiten_orth_error"]
+        ),
+        "projection_effective_rank": int(
+            sample["projection_effective_rank"]
+        ),
+        "projection_discarded_rank": int(
+            sample["projection_discarded_rank"]
+        ),
+        "projection_rank_tolerance": float(
+            sample["projection_rank_tolerance"]
+        ),
+        "projection_gram_condition_number": float(
+            sample["projection_gram_condition_number"]
+        ),
+        "projection_solver": str(sample["projection_solver"]),
         "metrics": scalar_metrics,
         "gt_metadata": gt_metadata,
         "velocity_optimal_figure": str(velocity_figure.resolve()),
@@ -170,6 +186,27 @@ def main() -> None:
             else None
         ),
     }
+    if "stokes_certified_modes" in sample:
+        summary["stokes_certificate"] = {
+            "certified_modes": int(sample["stokes_certified_modes"]),
+            "construction_rank": int(sample["stokes_construction_rank"]),
+            "quadrature": int(sample["stokes_certification_quadrature"]),
+            "maximum_quadrature_reached": bool(
+                sample["stokes_maximum_quadrature_reached"]
+            ),
+            "max_mass_defect": float(
+                np.max(sample["stokes_mass_defect"])
+            ),
+            "max_ritz_residual_relative": float(
+                np.max(sample["stokes_ritz_residual_relative"])
+            ),
+            "max_eigenvalue_drift_relative": float(
+                np.max(sample["stokes_eigenvalue_drift_relative"])
+            ),
+            "spectral_subspace_policy": str(
+                sample["spectral_subspace_policy"]
+            ),
+        }
     if not args.velocity_only:
         summary.update(
             vorticity_projection_rank=int(

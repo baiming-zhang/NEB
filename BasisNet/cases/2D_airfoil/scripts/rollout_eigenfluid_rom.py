@@ -269,9 +269,20 @@ def accumulate_raw_operators(
             model, cfg, points[start:stop], beta, alpha, field_batch
         )
         gpu_weight = cp.asarray(weights[start:stop])[:, None]
-        gpu_u = cp.asarray(raw_u)
-        gpu_v = cp.asarray(raw_v)
-        gpu_omega = cp.asarray(raw_omega)
+        if not (
+            np.isfinite(raw_u).all()
+            and np.isfinite(raw_v).all()
+            and np.isfinite(raw_omega).all()
+        ):
+            raise FloatingPointError(
+                f"non-finite raw basis field on full-grid chunk {start}:{stop}"
+            )
+        # Form the dense Gram operators in genuine FP64.  The archived MLP
+        # output remains FP32/FP16-protocol data, but its quadrature sum must
+        # not lose the smallest K1024 mass directions to FP32 accumulation.
+        gpu_u = cp.asarray(raw_u, dtype=cp.float64)
+        gpu_v = cp.asarray(raw_v, dtype=cp.float64)
+        gpu_omega = cp.asarray(raw_omega, dtype=cp.float64)
         mass_chunk = gpu_u.T @ (gpu_weight * gpu_u)
         mass_chunk += gpu_v.T @ (gpu_weight * gpu_v)
         stiffness_chunk = gpu_omega.T @ (gpu_weight * gpu_omega)
@@ -551,7 +562,10 @@ def build_rom_and_rollout(
         raise ValueError(f"unknown ROM integration rule: {integration}")
 
     eigenvalues, rotation, rank = generalized_symmetric_eig(
-        raw_stiffness, raw_mass, cfg.modes
+        raw_stiffness,
+        raw_mass,
+        cfg.modes,
+        sample_rows=(2 * len(points)),
     )
     if rank != cfg.modes or rotation.shape[1] != cfg.modes:
         raise RuntimeError(f"ROM quadrature rank is {rank}, expected {cfg.modes}")
@@ -592,9 +606,12 @@ def build_rom_and_rollout(
         basis_omega = gpu_raw_omega @ gpu_rotation
         del gpu_raw_u, gpu_raw_v, gpu_raw_omega
         cp.get_default_memory_pool().free_all_blocks()
-        mass_check = weight * (basis_u.T @ basis_u + basis_v.T @ basis_v)
+        mass_check = weight * (
+            basis_u.astype(cp.float64).T @ basis_u.astype(cp.float64)
+            + basis_v.astype(cp.float64).T @ basis_v.astype(cp.float64)
+        )
         orth_error = float(
-            cp.max(cp.abs(mass_check - cp.eye(cfg.modes, dtype=cp.float32))).get()
+            cp.max(cp.abs(mass_check - cp.eye(cfg.modes, dtype=cp.float64))).get()
         )
         volume_weights = weight
         mean_u, mean_v, mean_omega = interpolate_grid_fields(
@@ -831,6 +848,8 @@ def render_movies(
     rom_omega: np.ndarray,
     metrics: list[dict[str, float | int]],
     fps: int,
+    alpha_deg: float,
+    beta: float,
 ) -> tuple[Path, Path, Path]:
     velocity_frames = output_dir / "frames_velocity"
     vorticity_frames = output_dir / "frames_vorticity"
@@ -903,7 +922,8 @@ def render_movies(
             f"absolute speed error; relative L2={100 * float(row['velocity_error']):.2f}%",
         )
         figure.suptitle(
-            f"alpha=0 deg, beta=0.85 | forecast {index + 1:02d}/{len(metrics)} | "
+            f"alpha={alpha_deg:+.1f} deg, beta={beta:.2f} | "
+            f"forecast {index + 1:02d}/{len(metrics)} | "
             f"LBM step +{int(row['local_lbm_step'])}",
             fontsize=13,
         )
@@ -936,15 +956,16 @@ def render_movies(
             f"absolute vorticity error; relative L2={100 * float(row['vorticity_error']):.2f}%",
         )
         figure.suptitle(
-            f"alpha=0 deg, beta=0.85 | forecast {index + 1:02d}/{len(metrics)} | "
+            f"alpha={alpha_deg:+.1f} deg, beta={beta:.2f} | "
+            f"forecast {index + 1:02d}/{len(metrics)} | "
             f"LBM step +{int(row['local_lbm_step'])}",
             fontsize=13,
         )
         figure.savefig(vorticity_frames / f"frame_{index:03d}.png", dpi=120)
         plt.close(figure)
 
-    velocity_movie = output_dir / "alpha0_ns_vs_eigenfluid_velocity_10fps.mp4"
-    vorticity_movie = output_dir / "alpha0_ns_vs_eigenfluid_vorticity_10fps.mp4"
+    velocity_movie = output_dir / "ns_vs_eigenfluid_velocity_10fps.mp4"
+    vorticity_movie = output_dir / "ns_vs_eigenfluid_vorticity_10fps.mp4"
     encode_mp4(velocity_frames, velocity_movie, fps)
     encode_mp4(vorticity_frames, vorticity_movie, fps)
 
@@ -975,7 +996,7 @@ def render_movies(
         axis.set_ylabel("error (%)")
         axis.grid(alpha=0.25)
         axis.legend()
-    error_curve = output_dir / "alpha0_rollout_error_curves.png"
+    error_curve = output_dir / "eigenfluid_rollout_error_curves.png"
     figure.savefig(error_curve, dpi=160)
     plt.close(figure)
     return velocity_movie, vorticity_movie, error_curve
@@ -1025,10 +1046,10 @@ def main() -> None:
     with np.load(args.gt_source, allow_pickle=False) as archive:
         gt_source = {name: archive[name] for name in archive.files}
     gt_metadata = json.loads(str(gt_source["metadata"]))
-    if abs(float(sample["alpha_deg"])) > 1.0e-10:
-        raise ValueError("the fixed-geometry rollout requires alpha=0")
-    if abs(float(sample["beta"]) - 0.85) > 1.0e-6:
-        raise ValueError("the fixed-geometry rollout requires beta=0.85")
+    if abs(float(sample["alpha_deg"]) - float(gt_metadata["alpha_deg"])) > 1.0e-6:
+        raise ValueError("sample and GT alpha values differ")
+    if abs(float(sample["beta"]) - float(gt_metadata["beta"])) > 1.0e-6:
+        raise ValueError("sample and GT beta values differ")
     if not np.array_equal(sample["solid"], gt_source["solid"]):
         raise ValueError("sample and GT solid masks differ")
     solver = gt_metadata["solver_config"]
@@ -1112,7 +1133,7 @@ def main() -> None:
         wake,
         args.steps_per_frame,
     )
-    fields_path = args.output_dir / "alpha0_ns_vs_eigenfluid_rollout_fields.npz"
+    fields_path = args.output_dir / "ns_vs_eigenfluid_rollout_fields.npz"
     np.savez_compressed(
         fields_path,
         x=sample["x"],
@@ -1143,6 +1164,8 @@ def main() -> None:
         rom_omega,
         metrics,
         args.fps,
+        float(sample["alpha_deg"]),
+        float(sample["beta"]),
     )
     summary = {
         "status": "complete",

@@ -17,6 +17,7 @@ sys.path.insert(0, str(CASE_ROOT / "src"))
 from eigenfluid_sss.basisnet.airfoil2d.hardcoded_backend import (  # noqa: E402
     cfg_namespace,
     fluid_points,
+    uniform_fluid_points,
 )
 
 
@@ -113,9 +114,15 @@ def main() -> None:
             cfg.alpha_min_deg, cfg.alpha_max_deg, cfg.validation_alpha_samples
         )
     ]
+    point_generator = (
+        uniform_fluid_points
+        if str(getattr(cfg, "basis_objective", "velocity_rayleigh"))
+        == "stokes_certified"
+        else fluid_points
+    )
     validation_points = np.stack(
         [
-            fluid_points(
+            point_generator(
                 cfg,
                 cfg.validation_points,
                 beta,
@@ -132,7 +139,7 @@ def main() -> None:
             "validation_points": validation_points,
             "validation_beta": np.asarray([pair[0] for pair in pairs]),
             "validation_alpha": np.asarray([pair[1] for pair in pairs]),
-            "probe_points": fluid_points(
+            "probe_points": point_generator(
                 cfg,
                 cfg.validation_points,
                 cfg.probe_beta,
@@ -147,7 +154,11 @@ def main() -> None:
         "initial_first_layer_gain": first_layer_gain,
         "initial_hidden_layer_gain": hidden_layer_gain,
         "initial_output_layer_gain": output_layer_gain,
-        "sampler": "scipy_scrambled_sobol_v1",
+        "sampler": (
+            "uniform_nested_scipy_scrambled_sobol_v1"
+            if point_generator is uniform_fluid_points
+            else "scipy_scrambled_sobol_v1"
+        ),
         "geometry": "c2_ellipse",
         "initial_checkpoint": str(initial.resolve()),
         "initial_sha256": digest(initial),
