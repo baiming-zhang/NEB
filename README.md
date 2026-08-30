@@ -18,7 +18,6 @@ evaluation.
 | [2D Metaball](results/2D_Metaball/README.md) | K=2048, epoch 1000 | held-out streamfunction/velocity/vorticity rL2 `0.01183 / 0.06998 / 0.36447`; matched FD `0.01235 / 0.05674 / 0.51569` |
 | [3D Metaball](results/3D_Metaball/README.md) | K=1024 | five-method comparison on all `1,599,754` fluid nodes of a `128^3` grid |
 | [2D Airfoil](results/2D_Airfoil/README.md) | K=2048, 30 frames | mean velocity error `4.07%` for Potential-Rayleigh versus `22.01%` for matched FD Laplacian |
-| [3D Fan](cases/3D_Fan/METHOD.md) | K=1024 | analytic CUDA backend, rotating-frame evaluation, and complete field diagnostics |
 
 ## Repository layout
 
@@ -29,8 +28,7 @@ eigenfluid-sss/
 |   |-- 2D_Airfoil/
 |   |-- 2D_Metaball/
 |   |-- 2D_Square/
-|   |-- 3D_Metaball/
-|   `-- 3D_Fan/
+|   `-- 3D_Metaball/
 |-- results/           # publication metrics and figures
 |-- tests/
 |-- pyproject.toml
@@ -62,7 +60,6 @@ python -m pytest -q cases/2D_Square/tests
 python -m pytest -q cases/2D_Metaball/tests
 python -m pytest -q cases/3D_Metaball/tests
 python -m pytest -q cases/2D_Airfoil/tests
-python -m pytest -q cases/3D_Fan/tests
 python -m ruff check gen.py tests cases
 ```
 
