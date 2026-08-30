@@ -1,0 +1,108 @@
+{
+  "format": "eigenfluid_airfoil_continuous_validation_v1",
+  "config": {
+    "seed": 20260801,
+    "modes": 1024,
+    "epochs": 5000,
+    "xmin": 0.0,
+    "xmax": 10.0,
+    "ymin": -4.0,
+    "ymax": 4.0,
+    "chord": 2.0,
+    "quarter_chord_x": 3.0,
+    "quarter_chord_y": 0.0,
+    "thickness_min": 0.08,
+    "thickness_max": 0.18,
+    "geometry_mode": "cinf_ellipse",
+    "alpha_min_deg": -12.0,
+    "alpha_max_deg": 12.0,
+    "hidden": 64,
+    "hidden_layers": 4,
+    "frequencies": 6,
+    "mlp_compute_dtype": "float16",
+    "mlp_accumulation_dtype": "float32",
+    "fp32_boundary_layers": false,
+    "jet_dtype": "float32",
+    "parameter_backward_dtype": "float32",
+    "quadrature_dtype": "float32",
+    "ritz_dtype": "float32",
+    "master_weight_dtype": "float32",
+    "optimizer_dtype": "float32",
+    "initial_first_layer_gain": 2.0,
+    "initial_hidden_layer_gain": 2.0,
+    "initial_output_layer_gain": 1.0,
+    "mode_forward_batch": 32,
+    "mode_backward_batch": 32,
+    "reorthogonalization_passes": 2,
+    "points_per_step": 4096,
+    "validation_points": 4096,
+    "validation_beta_samples": 3,
+    "validation_alpha_samples": 3,
+    "probe_beta": 0.5,
+    "probe_alpha_deg": 6.0,
+    "probe_every": 0,
+    "validate_every": 500,
+    "checkpoint_every": 100,
+    "archive_checkpoint_every": 500,
+    "learning_rate": 0.0008,
+    "base_learning_rate": 0.0008,
+    "early_stopping_patience_epochs": 5000,
+    "lr_scheduler_patience_epochs": 200,
+    "lr_scheduler_factor": 0.5,
+    "min_learning_rate": 1e-06,
+    "lr_scheduler_relative_threshold": 0.0001,
+    "grad_clip": 5.0,
+    "mass_floor": 1e-10,
+    "endpoint_period": 20,
+    "envelope_mode": "cinf_farfield_freestream",
+    "sampling_mode": "uniform_fluid_area_sobol",
+    "quadrature_measure": "physical_fluid_area",
+    "basis_objective": "pure_vorticity_rayleigh",
+    "spatial_derivative_order": 3,
+    "result_root": "cases/2D_Airfoil/results/k1024_cinf_sobol_5000_fp16_pure_vorticity_rayleigh"
+  },
+  "validation_shape_count": 9,
+  "validation_points_per_shape": 4096,
+  "validation_pairs": [
+    {
+      "beta": 0.0,
+      "alpha_deg": -12.0
+    },
+    {
+      "beta": 0.0,
+      "alpha_deg": 0.0
+    },
+    {
+      "beta": 0.0,
+      "alpha_deg": 12.0
+    },
+    {
+      "beta": 0.5,
+      "alpha_deg": -12.0
+    },
+    {
+      "beta": 0.5,
+      "alpha_deg": 0.0
+    },
+    {
+      "beta": 0.5,
+      "alpha_deg": 12.0
+    },
+    {
+      "beta": 1.0,
+      "alpha_deg": -12.0
+    },
+    {
+      "beta": 1.0,
+      "alpha_deg": 0.0
+    },
+    {
+      "beta": 1.0,
+      "alpha_deg": 12.0
+    }
+  ],
+  "probe_beta": 0.5,
+  "probe_alpha_deg": 6.0,
+  "sampler": "scipy_scrambled_sobol_uniform_physical_fluid_area_v1",
+  "dtype": "float32"
+}

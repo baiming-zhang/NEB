@@ -3,9 +3,9 @@ requires = ["setuptools>=69"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "eigenfluid-sss"
+name = "eigenfluid"
 version = "0.1.0"
-description = "Geometry-conditioned spectral bases and reduced fluid dynamics"
+description = "Geometry-conditioned Eigenfluid Net for spectral fluid bases and reduced dynamics"
 requires-python = ">=3.11"
 dependencies = [
   "h5py>=3.10",
@@ -21,14 +21,14 @@ cuda12 = ["cupy-cuda12x>=13"]
 dev = ["pytest>=8", "ruff>=0.6"]
 
 [tool.setuptools.packages.find]
-where = ["cases/2D_airfoil/src"]
-include = ["eigenfluid_sss*"]
+where = ["cases/2D_Airfoil/src"]
+include = ["eigenfluid*"]
 
 [tool.ruff]
 line-length = 88
 target-version = "py311"
 
 [tool.pytest.ini_options]
-# Case-local packages share the eigenfluid_sss namespace and are validated in
+# Case-local packages share the eigenfluid namespace and are validated in
 # isolated pytest processes; the README lists the complete case matrix.
 testpaths = ["tests"]

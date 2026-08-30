@@ -1,1 +1,0 @@
-"""BasisNet fan case package."""

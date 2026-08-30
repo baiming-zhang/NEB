@@ -1,0 +1,713 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Eigenfluid · 四叶参数化风扇</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #17344d;
+      --muted: #607b91;
+      --line: #bfd5e5;
+      --line-strong: #7fa8c5;
+      --blue: #2f6fbb;
+      --blue-deep: #174f86;
+      --blue-soft: #dcecf7;
+      --cyan: #55a9c7;
+      --orange: #d98b3a;
+      --error: #b64242;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: transparent;
+      color: var(--ink);
+      font: 400 14px/1.45 Inter, "Noto Sans SC", ui-sans-serif, system-ui, sans-serif;
+    }
+    main { max-width: 1440px; margin: 0 auto; padding: 16px; }
+    .page-title {
+      margin: 0 0 14px;
+      color: var(--blue-deep);
+      text-align: center;
+      font-size: clamp(20px, 2.4vw, 28px);
+      font-weight: 500;
+    }
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(245px, 300px) 1fr;
+      gap: 18px;
+      align-items: start;
+    }
+    .controls {
+      background: transparent;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 16px;
+    }
+    .control { margin-bottom: 17px; }
+    .control:last-child { margin-bottom: 0; }
+    label {
+      display: flex;
+      justify-content: space-between;
+      gap: 14px;
+      margin-bottom: 7px;
+    }
+    output {
+      color: var(--blue);
+      font-variant-numeric: tabular-nums;
+    }
+    .prediction-status {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      min-height: 1.5em;
+      padding-top: 12px;
+      border-top: 1px solid var(--line);
+      color: var(--blue-deep);
+      font-variant-numeric: tabular-nums;
+    }
+    #statusTime {
+      margin-left: auto;
+      white-space: nowrap;
+    }
+    .prediction-status.is-busy { color: var(--orange); }
+    input[type="range"] {
+      width: 100%;
+      accent-color: var(--blue);
+    }
+    .stage { min-width: 0; }
+    #scene {
+      display: block;
+      width: 100%;
+      height: auto;
+      touch-action: none;
+      cursor: grab;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: transparent;
+    }
+    #scene.is-dragging { cursor: grabbing; }
+    .domain-surface {
+      fill: none;
+      stroke: none;
+    }
+    .domain-ring {
+      fill: #ffffff28;
+      stroke: var(--line-strong);
+      stroke-width: 1.2;
+    }
+    .domain-edge {
+      stroke: var(--line);
+      stroke-width: 1.1;
+      fill: none;
+    }
+    .axis-flow {
+      stroke: var(--orange);
+      stroke-width: 1.8;
+      fill: none;
+    }
+    .particle-trail {
+      stroke: var(--blue);
+      stroke-linecap: round;
+    }
+    .particle {
+      fill: var(--blue-deep);
+      stroke: #ffffff;
+      stroke-width: .45;
+    }
+    .blade {
+      fill: url(#bladeShade);
+      stroke: #656b70;
+      stroke-width: 1;
+    }
+    .blade-highlight {
+      fill: none;
+      stroke: #ffffffb8;
+      stroke-width: .75;
+    }
+    .hub {
+      fill: url(#hubShade);
+      stroke: #5d6368;
+      stroke-width: 1.2;
+    }
+    .hub-ring {
+      fill: none;
+      stroke: #71777b;
+      stroke-width: 1;
+    }
+    .error { color: var(--error); }
+    @media (max-width: 760px) {
+      main { padding: 13px; }
+      .layout { grid-template-columns: 1fr; }
+      .controls {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0 16px;
+      }
+    }
+    @media (max-width: 460px) {
+      .controls { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+<main>
+  <h1 class="page-title">四叶参数化风扇 Eigenfluid Basis 流场</h1>
+  <div class="layout">
+    <section class="controls" aria-label="参数控制">
+      <div class="control">
+        <label for="beta"><span>β(R) 叶尖安装角</span><output id="betaOut">23.0°</output></label>
+        <input id="beta" type="range" min="8" max="38" step="0.1" value="23">
+      </div>
+      <div class="control">
+        <label for="chord"><span>c(R) 叶尖弦长</span><output id="chordOut">0.280 R</output></label>
+        <input id="chord" type="range" min="0.16" max="0.40" step="0.002" value="0.28">
+      </div>
+      <div class="control">
+        <label for="thickness"><span>t/c 翼型厚度</span><output id="thicknessOut">0.140</output></label>
+        <input id="thickness" type="range" min="0.08" max="0.20" step="0.002" value="0.14">
+      </div>
+      <div class="control">
+        <label for="theta"><span>θ 已知旋转状态</span><output id="thetaOut">0°</output></label>
+        <input id="theta" type="range" min="0" max="360" step="1" value="0">
+      </div>
+      <div class="control">
+        <label for="rank"><span>主导 mode（低 λ 优先）</span><output id="rankOut">1 / 1024</output></label>
+        <input id="rank" type="range" min="1" max="1024" step="1" value="1">
+      </div>
+      <div id="status" class="prediction-status is-busy" role="status" aria-live="polite">
+        <span id="statusText">正在载入预测…</span>
+        <span id="statusTime"></span>
+      </div>
+    </section>
+    <section class="stage">
+      <svg id="scene" viewBox="0 0 1040 650" role="img" aria-labelledby="sceneTitle sceneDesc">
+        <title id="sceneTitle">可旋转三维圆筒流场中的四叶风扇基函数</title>
+        <desc id="sceneDesc">拖拽可旋转三维视角。左端入流、右端出流，显示所选基函数的三维矢量和无网格曲面叶片。</desc>
+        <defs>
+          <linearGradient id="bladeShade" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#dedede"/>
+            <stop offset=".28" stop-color="#c3c3c3"/>
+            <stop offset=".62" stop-color="#8d8d8d"/>
+            <stop offset="1" stop-color="#b8b8b8"/>
+          </linearGradient>
+          <linearGradient id="hubShade" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#d7d7d7"/>
+            <stop offset=".34" stop-color="#bdbdbd"/>
+            <stop offset=".72" stop-color="#858585"/>
+            <stop offset="1" stop-color="#adadad"/>
+          </linearGradient>
+          <marker id="fieldArrow" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+            <path d="M0,0 L8,4 L0,8 Z" fill="#2f6fbb"/>
+          </marker>
+          <marker id="inletArrow" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M0,0 L8,4 L0,8 Z" fill="#d98b3a"/>
+          </marker>
+        </defs>
+        <g id="cylinder"></g>
+        <g id="field"></g>
+        <g id="rotor"></g>
+        <g id="labels"></g>
+      </svg>
+    </section>
+  </div>
+</main>
+<script>
+(() => {
+  const $ = id => document.getElementById(id);
+  const controls = {
+    beta: $("beta"),
+    chord: $("chord"),
+    thickness: $("thickness"),
+    theta: $("theta"),
+    rank: $("rank")
+  };
+  const scene = $("scene");
+  const state = {
+    payload: null,
+    generation: 0,
+    timer: null,
+    camera: { yaw: -0.42, pitch: 0.24, zoom: 92 },
+    drag: null,
+    particles: [],
+    animationTime: null,
+    spawnOffset: 0
+  };
+  const NS = "http://www.w3.org/2000/svg";
+
+  const make = (tag, attrs = {}) => {
+    const node = document.createElementNS(NS, tag);
+    Object.entries(attrs).forEach(([key, value]) => node.setAttribute(key, value));
+    return node;
+  };
+
+  const clamp = (value, low, high) => Math.max(low, Math.min(high, value));
+
+  const rotateRotor = (p, theta) => {
+    const c = Math.cos(theta), s = Math.sin(theta);
+    return [p[0], c * p[1] - s * p[2], s * p[1] + c * p[2]];
+  };
+
+  function cameraCoordinates(p) {
+    const { yaw, pitch } = state.camera;
+    const cy = Math.cos(yaw), sy = Math.sin(yaw);
+    const cp = Math.cos(pitch), sp = Math.sin(pitch);
+    const horizontal = cy * p[0] - sy * p[1];
+    const depth0 = sy * p[0] + cy * p[1];
+    const depth = cp * depth0 - sp * p[2];
+    const vertical = sp * depth0 + cp * p[2];
+    return [horizontal, depth, vertical];
+  }
+
+  function project(p) {
+    const [horizontal, depth, vertical] = cameraCoordinates(p);
+    const perspective = 7.5 / Math.max(3.8, 7.5 - depth);
+    return {
+      x: 520 + state.camera.zoom * horizontal * perspective,
+      y: 325 - state.camera.zoom * vertical * perspective,
+      depth,
+      perspective
+    };
+  }
+
+  function pathFrom(points, close = true) {
+    const body = points
+      .map((point, index) => `${index ? "L" : "M"}${point.x.toFixed(1)},${point.y.toFixed(1)}`)
+      .join(" ");
+    return close ? `${body} Z` : body;
+  }
+
+  function convexHull(points) {
+    const sorted = points
+      .map(point => ({ x: point.x, y: point.y }))
+      .sort((a, b) => a.x - b.x || a.y - b.y);
+    if (sorted.length <= 2) return sorted;
+    const cross = (o, a, b) =>
+      (a.x - o.x) * (b.y - o.y) - (a.y - o.y) * (b.x - o.x);
+    const lower = [];
+    for (const point of sorted) {
+      while (lower.length >= 2 && cross(lower[lower.length - 2], lower[lower.length - 1], point) <= 0) {
+        lower.pop();
+      }
+      lower.push(point);
+    }
+    const upper = [];
+    for (let index = sorted.length - 1; index >= 0; index--) {
+      const point = sorted[index];
+      while (upper.length >= 2 && cross(upper[upper.length - 2], upper[upper.length - 1], point) <= 0) {
+        upper.pop();
+      }
+      upper.push(point);
+    }
+    lower.pop();
+    upper.pop();
+    return lower.concat(upper);
+  }
+
+  function ringPoints(x, radius, count = 72) {
+    return Array.from({ length: count }, (_, index) => {
+      const angle = 2 * Math.PI * index / count;
+      return [x, radius * Math.cos(angle), radius * Math.sin(angle)];
+    });
+  }
+
+  function updateOutputs() {
+    $("betaOut").value = `${Number(controls.beta.value).toFixed(1)}°`;
+    $("chordOut").value = `${Number(controls.chord.value).toFixed(3)} R`;
+    $("thicknessOut").value = Number(controls.thickness.value).toFixed(3);
+    $("thetaOut").value = `${controls.theta.value}°`;
+    $("rankOut").value = `${controls.rank.value} / 1024`;
+  }
+
+  function bladeSurface(bladeIndex, theta) {
+    const betaTip = Number(controls.beta.value) * Math.PI / 180;
+    const chordTip = Number(controls.chord.value);
+    const thickness = Number(controls.thickness.value);
+    const leading = [];
+    const trailing = [];
+    const centerline = [];
+    const phase = bladeIndex * Math.PI / 2 + theta;
+    const tangent = [-Math.sin(phase), Math.cos(phase)];
+    const radial = [Math.cos(phase), Math.sin(phase)];
+    for (let index = 0; index <= 30; index++) {
+      const span = index / 30;
+      const radius = .27 + .73 * span;
+      const smooth = span * span * (3 - 2 * span);
+      const chord = (.49 + (chordTip - .49) * smooth) * (1 - .2 * Math.pow(span, 10));
+      const beta = 54 * Math.PI / 180
+        + (betaTip - 54 * Math.PI / 180) * Math.pow(span, .82);
+      const sweep = .18 * span * span - .035 * span;
+      const rake = -.08 * span * span;
+      const half = .5 * chord;
+      const axialLead = rake - half * Math.sin(beta);
+      const axialTrail = rake + half * Math.sin(beta);
+      const tangentialLead = sweep - half * Math.cos(beta);
+      const tangentialTrail = sweep + half * Math.cos(beta);
+      const crown = thickness * chord * Math.sin(Math.PI * span) * .72;
+      leading.push([
+        axialLead - crown,
+        radial[0] * radius + tangent[0] * tangentialLead,
+        radial[1] * radius + tangent[1] * tangentialLead
+      ]);
+      trailing.push([
+        axialTrail + crown,
+        radial[0] * radius + tangent[0] * tangentialTrail,
+        radial[1] * radius + tangent[1] * tangentialTrail
+      ]);
+      centerline.push([
+        .5 * (axialLead + axialTrail) - .35 * crown,
+        radial[0] * radius + tangent[0] * sweep,
+        radial[1] * radius + tangent[1] * sweep
+      ]);
+    }
+    const projectedLeading = leading.map(project);
+    const projectedTrailing = trailing.map(project);
+    const polygon = projectedLeading.concat(projectedTrailing.reverse());
+    return {
+      polygon,
+      centerline: centerline.map(project),
+      depth: polygon.reduce((sum, point) => sum + point.depth, 0) / polygon.length
+    };
+  }
+
+  function drawDomain() {
+    const group = $("cylinder");
+    group.replaceChildren();
+    const inlet3d = ringPoints(-Math.PI, 2);
+    const outlet3d = ringPoints(Math.PI, 2);
+    const inlet = inlet3d.map(project);
+    const outlet = outlet3d.map(project);
+    const hull = convexHull(inlet.concat(outlet));
+    group.append(make("path", {
+      d: pathFrom(hull),
+      class: "domain-surface"
+    }));
+
+    const inletDepth = inlet.reduce((sum, point) => sum + point.depth, 0) / inlet.length;
+    const outletDepth = outlet.reduce((sum, point) => sum + point.depth, 0) / outlet.length;
+    const rings = [
+      { points: inlet, depth: inletDepth },
+      { points: outlet, depth: outletDepth }
+    ].sort((a, b) => a.depth - b.depth);
+    rings.forEach(ring => group.append(make("path", {
+      d: pathFrom(ring.points),
+      class: "domain-ring"
+    })));
+
+    const extremeIndices = [
+      inlet.reduce((best, point, index) => point.y < inlet[best].y ? index : best, 0),
+      inlet.reduce((best, point, index) => point.y > inlet[best].y ? index : best, 0)
+    ];
+    extremeIndices.forEach(index => {
+      group.append(make("path", {
+        d: pathFrom([inlet[index], outlet[index]], false),
+        class: "domain-edge"
+      }));
+    });
+
+    const axisStart = project([-Math.PI - .42, 0, 0]);
+    const axisEnd = project([Math.PI + .42, 0, 0]);
+    group.append(make("path", {
+      d: pathFrom([axisStart, axisEnd], false),
+      class: "axis-flow",
+      "marker-end": "url(#inletArrow)"
+    }));
+
+    $("labels").replaceChildren();
+  }
+
+  function recycleParticle(particle, index, stagger = false) {
+    if (!state.payload) return;
+    const points = state.payload.points;
+    const sourceIndex = (
+      index * 73 + state.spawnOffset * 29
+    ) % points.length;
+    const source = points[sourceIndex];
+    const phase = index * 2.399963229728653;
+    const jitter = .035 * Math.sin(index * 1.73 + state.spawnOffset);
+    particle.position = [
+      clamp(source[0] + jitter * Math.sin(phase), -Math.PI + .03, Math.PI - .03),
+      source[1] + jitter * Math.cos(phase),
+      source[2] + jitter * Math.sin(.7 * phase)
+    ];
+    particle.history = [particle.position.slice()];
+    particle.age = stagger ? (index % 31) * .11 : 0;
+    particle.life = 3.8 + (index % 17) * .17;
+    state.spawnOffset += 1;
+  }
+
+  function resetParticles() {
+    const group = $("field");
+    group.replaceChildren();
+    state.particles = [];
+    if (!state.payload) return;
+    const particleCount = 190;
+    for (let index = 0; index < particleCount; index++) {
+      const trail = make("path", { class: "particle-trail", fill: "none" });
+      const dot = make("circle", { class: "particle", r: 2.05 });
+      group.append(trail, dot);
+      const particle = {
+        position: [0, 0, 0],
+        history: [],
+        age: 0,
+        life: 1,
+        trail,
+        dot
+      };
+      recycleParticle(particle, index, true);
+      state.particles.push(particle);
+    }
+    drawParticles();
+  }
+
+  function interpolatedVelocity(position) {
+    const points = state.payload.points;
+    const vectors = state.payload.vectors;
+    const nearest = [
+      { distance: Infinity, index: 0 },
+      { distance: Infinity, index: 0 },
+      { distance: Infinity, index: 0 },
+      { distance: Infinity, index: 0 }
+    ];
+    for (let index = 0; index < points.length; index++) {
+      const dx = .55 * (position[0] - points[index][0]);
+      const dy = position[1] - points[index][1];
+      const dz = position[2] - points[index][2];
+      const distance = dx * dx + dy * dy + dz * dz;
+      if (distance >= nearest[3].distance) continue;
+      nearest[3] = { distance, index };
+      nearest.sort((a, b) => a.distance - b.distance);
+    }
+    const velocity = [0, 0, 0];
+    let totalWeight = 0;
+    nearest.forEach(item => {
+      const weight = 1 / (item.distance + .012);
+      totalWeight += weight;
+      velocity[0] += weight * vectors[item.index][0];
+      velocity[1] += weight * vectors[item.index][1];
+      velocity[2] += weight * vectors[item.index][2];
+    });
+    return velocity.map(value => value / totalWeight);
+  }
+
+  function drawParticles() {
+    if (!state.payload || !state.particles.length) return;
+    const theta = Number(controls.theta.value) * Math.PI / 180;
+    state.particles.forEach(particle => {
+      const trailPoints = particle.history.map(point =>
+        project(rotateRotor(point, theta))
+      );
+      const finish = project(rotateRotor(particle.position, theta));
+      const depthFactor = clamp((finish.depth + 4) / 8, 0, 1);
+      const lifeFade = clamp(
+        Math.min(particle.age, particle.life - particle.age) / .45,
+        0,
+        1
+      );
+      const opacity = (.24 + .72 * depthFactor) * lifeFade;
+      particle.trail.setAttribute(
+        "d",
+        pathFrom(trailPoints.concat(finish), false)
+      );
+      particle.trail.setAttribute("opacity", (.58 * opacity).toFixed(2));
+      particle.trail.setAttribute(
+        "stroke-width",
+        clamp(1.0 * finish.perspective, .65, 1.8).toFixed(2)
+      );
+      particle.dot.setAttribute("cx", finish.x.toFixed(1));
+      particle.dot.setAttribute("cy", finish.y.toFixed(1));
+      particle.dot.setAttribute("opacity", opacity.toFixed(2));
+      particle.dot.setAttribute(
+        "r",
+        clamp(2.0 * finish.perspective, 1.15, 3.1).toFixed(2)
+      );
+    });
+  }
+
+  function animateParticles(timestamp) {
+    if (state.animationTime === null) state.animationTime = timestamp;
+    const delta = clamp((timestamp - state.animationTime) / 1000, 0, .04);
+    state.animationTime = timestamp;
+    if (state.payload && state.particles.length) {
+      state.particles.forEach((particle, index) => {
+        const velocity = interpolatedVelocity(particle.position);
+        const speed = 1.55;
+        particle.position[0] += speed * delta * velocity[0];
+        particle.position[1] += speed * delta * velocity[1];
+        particle.position[2] += speed * delta * velocity[2];
+        particle.history.push(particle.position.slice());
+        if (particle.history.length > 56) particle.history.shift();
+        particle.age += delta;
+        const radiusSquared =
+          particle.position[1] * particle.position[1]
+          + particle.position[2] * particle.position[2];
+        if (
+          particle.age >= particle.life
+          || particle.position[0] <= -Math.PI
+          || particle.position[0] >= Math.PI
+          || radiusSquared >= 3.96
+        ) {
+          recycleParticle(particle, index);
+        }
+      });
+      drawParticles();
+    }
+    requestAnimationFrame(animateParticles);
+  }
+
+  function drawRotor(theta) {
+    const group = $("rotor");
+    group.replaceChildren();
+    const blades = [0, 1, 2, 3]
+      .map(index => bladeSurface(index, theta))
+      .sort((a, b) => a.depth - b.depth);
+    blades.forEach(blade => {
+      group.append(make("path", {
+        d: pathFrom(blade.polygon),
+        class: "blade"
+      }));
+      group.append(make("path", {
+        d: pathFrom(blade.centerline, false),
+        class: "blade-highlight"
+      }));
+    });
+
+    const rearRing = ringPoints(-.29, .27, 48).map(project);
+    const frontRing = ringPoints(.29, .27, 48).map(project);
+    const hubHull = convexHull(rearRing.concat(frontRing));
+    group.append(make("path", {
+      d: pathFrom(hubHull),
+      class: "hub"
+    }));
+    [rearRing, frontRing]
+      .sort((a, b) => {
+        const depthA = a.reduce((sum, point) => sum + point.depth, 0) / a.length;
+        const depthB = b.reduce((sum, point) => sum + point.depth, 0) / b.length;
+        return depthA - depthB;
+      })
+      .forEach(ring => group.append(make("path", {
+        d: pathFrom(ring),
+        class: "hub-ring"
+      })));
+  }
+
+  function render() {
+    const theta = Number(controls.theta.value) * Math.PI / 180;
+    drawDomain();
+    drawRotor(theta);
+    drawParticles();
+  }
+
+  async function infer(generation, isRecompute) {
+    if (generation !== state.generation) return;
+    const started = performance.now();
+    setPredictionStatus(isRecompute
+      ? "参数已更新，正在重新预测计算…"
+      : "正在载入预测…", null, "is-busy");
+    const params = new URLSearchParams({
+      beta: controls.beta.value,
+      chord: controls.chord.value,
+      thickness: controls.thickness.value,
+      rank: controls.rank.value
+    });
+    try {
+      const response = await fetch(`/api/mode?${params}`);
+      const payload = await response.json();
+      if (!response.ok) throw new Error(payload.error || "inference failed");
+      if (generation !== state.generation) return;
+      state.payload = payload;
+      resetParticles();
+      const elapsedMs = performance.now() - started;
+      setPredictionStatus(
+        isRecompute ? "重新预测完成" : "预测载入完成",
+        elapsedMs
+      );
+      render();
+    } catch (error) {
+      if (generation !== state.generation) return;
+      setPredictionStatus(error.message, null, "error");
+    }
+  }
+
+  function setPredictionStatus(message, elapsedMs = null, modifier = "") {
+    $("status").className = `prediction-status${modifier ? ` ${modifier}` : ""}`;
+    $("statusText").textContent = message;
+    $("statusTime").textContent =
+      elapsedMs === null ? "" : `${Math.round(elapsedMs)} ms`;
+  }
+
+  ["beta", "chord", "thickness", "rank"].forEach(name => {
+    controls[name].addEventListener("input", () => {
+      updateOutputs();
+      const generation = ++state.generation;
+      setPredictionStatus("参数已更新，正在重新预测计算…", null, "is-busy");
+      clearTimeout(state.timer);
+      state.timer = setTimeout(() => infer(generation, true), 320);
+      if (name !== "rank") render();
+    });
+  });
+  controls.theta.addEventListener("input", () => {
+    updateOutputs();
+    render();
+  });
+
+  scene.addEventListener("pointerdown", event => {
+    scene.setPointerCapture(event.pointerId);
+    state.drag = {
+      pointerId: event.pointerId,
+      x: event.clientX,
+      y: event.clientY,
+      yaw: state.camera.yaw,
+      pitch: state.camera.pitch
+    };
+    scene.classList.add("is-dragging");
+  });
+  scene.addEventListener("pointermove", event => {
+    if (!state.drag || event.pointerId !== state.drag.pointerId) return;
+    state.camera.yaw = state.drag.yaw + .008 * (event.clientX - state.drag.x);
+    state.camera.pitch = clamp(
+      state.drag.pitch - .008 * (event.clientY - state.drag.y),
+      -1.28,
+      1.28
+    );
+    render();
+  });
+  const endDrag = event => {
+    if (!state.drag || event.pointerId !== state.drag.pointerId) return;
+    state.drag = null;
+    scene.classList.remove("is-dragging");
+  };
+  scene.addEventListener("pointerup", endDrag);
+  scene.addEventListener("pointercancel", endDrag);
+  scene.addEventListener("wheel", event => {
+    event.preventDefault();
+    state.camera.zoom = clamp(
+      state.camera.zoom * Math.exp(-event.deltaY * .001),
+      65,
+      145
+    );
+    render();
+  }, { passive: false });
+
+  updateOutputs();
+  render();
+  const initialGeneration = ++state.generation;
+  infer(initialGeneration, false);
+  requestAnimationFrame(animateParticles);
+})();
+</script>
+</body>
+</html>
