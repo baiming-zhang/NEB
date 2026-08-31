@@ -1,0 +1,60 @@
+{
+  "algorithm": "geometry_rayleigh_residual_peeling_streamfunction_dirichlet_rayleigh",
+  "backend": "explicit_cupy_cuda_kernels",
+  "basis_objective": "streamfunction_dirichlet_rayleigh",
+  "loss_terms": [
+    {
+      "name": "streamfunction_rayleigh",
+      "formula": "integral(|grad(psi)|^2)/integral(psi^2)",
+      "coefficient": 1.0,
+      "scaled": false
+    }
+  ],
+  "auxiliary_loss_terms": [],
+  "finite_difference_used": false,
+  "positional_encoding_derivatives": "analytic through order 1",
+  "spatial_derivatives": "analytic Jet1 (value,x,y) in x,y",
+  "parameter_backward": "handwritten reverse Jet1; no tensor autograd graph",
+  "causal_sort_device": "gpu",
+  "optimizer_device": "gpu_batched_all_modes",
+  "training_step_host_diagnostic_transfers": 1,
+  "pytorch_imported_by_trainer": false,
+  "automatic_differentiation_used": false,
+  "precision": {
+    "neural_network_forward": "float32",
+    "spatial_jet": "float32",
+    "parameter_reverse": "float32",
+    "quadrature": "float32",
+    "ritz_and_reorthogonalization": "float32",
+    "master_weights": "float32",
+    "adam_state": "float32"
+  },
+  "sampling": {
+    "sequence": "IID PCG64 uniform random",
+    "measure": "uniform physical fluid area",
+    "points_per_epoch": 4096,
+    "importance_mixture": false,
+    "symmetry_augmentation": false
+  },
+  "fixed_mode_order": false,
+  "mode_sorting_used": true,
+  "mode_sorting_criterion": "detached unprojected streamfunction Rayleigh quotient on the current geometry and quadrature points",
+  "previous_modes_detached": true,
+  "rank_metric": "peeled basis columns only; raw rank excluded",
+  "gradient_clipping": {
+    "maximum_global_norm": 5.0,
+    "role": "finite-arithmetic safeguard only; not a loss term"
+  },
+  "checkpoint_every": 100,
+  "archive_checkpoint_every": 500,
+  "early_stopping_enabled": false,
+  "early_stopping_patience_epochs": null,
+  "lr_scheduler": {
+    "type": "cosine",
+    "patience_epochs": 50,
+    "factor": 0.5,
+    "minimum_learning_rate": 1e-06
+  },
+  "reference_sample_pack": null,
+  "fixed_validation_pack": "C:\\Users\\admin\\Desktop\\Eigenbasis\\_gitworktrees\\square-jet3-ablation\\GEN\\cases\\2D_Airfoil\\results\\siren_original_jet1_gpu_k128_to_k2048_e2000_sequence\\arms\\k2048\\inputs\\fixed_validation_iid_uniform_v1.npz"
+}
