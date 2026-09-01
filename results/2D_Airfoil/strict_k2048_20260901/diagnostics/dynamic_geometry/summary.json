@@ -1,0 +1,54 @@
+{
+  "status": "completed",
+  "completed_at": "2026-09-01T07:44:16.450237+08:00",
+  "states": 41,
+  "aggregate_errors": {
+    "velocity_error": {
+      "mean": 0.1348488691755999,
+      "p95": 0.16992745546511953,
+      "max": 0.1732471290065527,
+      "final": 0.16907901105137643
+    },
+    "vorticity_error": {
+      "mean": 1.3344990192550519,
+      "p95": 1.5556061073884053,
+      "max": 1.6327378541091737,
+      "final": 1.4488835838393923
+    },
+    "fluctuation_velocity_error": {
+      "mean": 1.3078259548568245,
+      "p95": 1.7345562557404555,
+      "max": 1.776841550135243,
+      "final": 1.744768553998872
+    },
+    "fluctuation_vorticity_error": {
+      "mean": 1.1171121606738914,
+      "p95": 1.28819548970694,
+      "max": 1.4488835838393923,
+      "final": 1.4488835838393923
+    },
+    "wake_velocity_error": {
+      "mean": 0.23107292378958008,
+      "p95": 0.31231563683385233,
+      "max": 0.3229848053753787,
+      "final": 0.31231563683385233
+    },
+    "wake_vorticity_error": {
+      "mean": 1.2860771441180299,
+      "p95": 1.4826153068992962,
+      "max": 1.528992344436385,
+      "final": 1.4024610049045625
+    },
+    "transport_error": {
+      "mean": 0.15712029558284046,
+      "p95": 0.24910570681095123,
+      "max": 0.2761456370353699,
+      "final": 0.04026822745800018
+    }
+  },
+  "total_wall_seconds": 4597.919919099892,
+  "total_basis_generation_seconds": 1036.4574137013406,
+  "total_rom_transport_and_advance_seconds": 505.17885640007444,
+  "total_reconstruction_seconds": 2908.1828237005975,
+  "fields": "C:\\Users\\admin\\Desktop\\Eigenbasis\\_gitworktrees\\square-jet3-ablation\\BasisNet\\cases\\2D_airfoil\\results\\airfoil_strict_velocity_vorticity_k2048_e2000_seed20260823_stable_mgs_v2\\dynamic_geometry_potential_k2048\\dynamic_potential_rollout_fields_stride2.npz"
+}

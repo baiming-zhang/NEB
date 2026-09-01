@@ -1,0 +1,84 @@
+{
+  "algorithm": "geometry_rayleigh_residual_peeling_velocity_rayleigh",
+  "backend": "explicit_cupy_cuda_kernels",
+  "basis_objective": "velocity_rayleigh",
+  "loss_terms": [
+    {
+      "name": "velocity_rayleigh",
+      "formula": "integral(|grad(u)|_F^2)/integral(|u|^2), u=(psi_y,-psi_x)",
+      "coefficient": 1.0,
+      "scaled": false
+    }
+  ],
+  "auxiliary_loss_terms": [],
+  "finite_difference_used": false,
+  "positional_encoding_derivatives": "analytic through order 2",
+  "spatial_derivatives": "compact analytic Jet2 (value, gradient, Hessian) in x,y",
+  "parameter_backward": "handwritten reverse Jet2; no tensor autograd graph",
+  "causal_sort_device": "gpu",
+  "optimizer_device": "gpu_batched_all_modes",
+  "training_step_host_diagnostic_transfers": 1,
+  "training_step_optimizer_host_transfers": 0,
+  "training_step_input_host_to_device_transfers": 0,
+  "diagnostic_host_transfers_per_step": 1,
+  "optimizer_host_transfers_per_step": 0,
+  "input_host_to_device_transfers_per_step": 0,
+  "sample_pack_device": "gpu_resident",
+  "sample_pack_startup_h2d_transfers": 1,
+  "sample_pack_startup_h2d_bytes": 65863680,
+  "sample_pack_load_seconds": 0.06306659989058971,
+  "sample_pack_upload_seconds": 0.14487920003011823,
+  "sample_pack_timing_excluded_from_training_elapsed_seconds": true,
+  "sample_pack_residency_scope": "train/validation/probe point tensors; beta/alpha remain locked NumPy host launch scalars and incur no bulk per-step copy",
+  "geometry_encoding_reused_across_mode_blocks": true,
+  "pytorch_imported_by_trainer": false,
+  "automatic_differentiation_used": false,
+  "precision": {
+    "neural_network_forward": "float32",
+    "spatial_jet": "float32",
+    "parameter_reverse": "float32",
+    "quadrature": "float32",
+    "ritz_and_reorthogonalization": "float32",
+    "master_weights": "float32",
+    "adam_state": "float32"
+  },
+  "sampling": {
+    "sequence": "IID PCG64 uniform random",
+    "measure": "uniform physical fluid area",
+    "points_per_epoch": 4096,
+    "importance_mixture": false,
+    "symmetry_augmentation": false
+  },
+  "fixed_mode_order": false,
+  "mode_sorting_used": true,
+  "mode_sorting_criterion": "detached unprojected velocity_R quotient on the current geometry and quadrature points",
+  "previous_modes_detached": true,
+  "peeling_passes": 2,
+  "invalid_candidate_policy": "reject before optimizer transaction",
+  "invalid_candidate_max_resamples": 0,
+  "peeling_relative_mass_floor": 1e-12,
+  "peeling_overlap_tolerance": 0.001,
+  "rank_metric": "peeled basis columns only; raw rank excluded",
+  "gradient_clipping": {
+    "maximum_global_norm": 5.0,
+    "role": "finite-arithmetic safeguard only; not a loss term"
+  },
+  "checkpoint_every": 100,
+  "archive_checkpoint_every": 500,
+  "extra_archive_epochs": [
+    500,
+    1000,
+    1500,
+    2000
+  ],
+  "early_stopping_enabled": false,
+  "early_stopping_patience_epochs": null,
+  "lr_scheduler": {
+    "type": "cosine",
+    "patience_epochs": 50,
+    "factor": 0.5,
+    "minimum_learning_rate": 1e-06
+  },
+  "reference_sample_pack": "C:\\Users\\admin\\Desktop\\Eigenbasis\\_gitworktrees\\square-jet3-ablation\\BasisNet\\cases\\2D_airfoil\\results\\airfoil_strict_velocity_vorticity_k2048_e2000_seed20260823_stable_mgs_v2\\paired_sample_packs\\seed_20260823\\paired_train_pcg64_iid_e2000_p4096.npz",
+  "fixed_validation_pack": "C:\\Users\\admin\\Desktop\\Eigenbasis\\_gitworktrees\\square-jet3-ablation\\BasisNet\\cases\\2D_airfoil\\results\\airfoil_strict_velocity_vorticity_k2048_e2000_seed20260823_stable_mgs_v2\\paired_sample_packs\\seed_20260823\\paired_validation_pcg64_iid_p4096.npz"
+}

@@ -16,6 +16,10 @@ Potential-Rayleigh and `22.01%` for FD Laplacian. Final-frame velocity error is
   comparison.
 - `figures/*.pdf`: fieldwise objective and reconstruction figures.
 - `MANIFEST.sha256`: bundle integrity hashes.
+- [`strict_k2048_20260901/`](strict_k2048_20260901/README.md): strict paired
+  Potential/Velocity/Vorticity K=2048 training, 54-row nested-prefix
+  reconstruction evaluation, physical and diagnostic rollouts, frozen
+  checkpoints, media, and the requested `dt=0.1` audit. Cubature is excluded.
 
 The source rollout is
 [`../../cases/2D_Airfoil/scripts/rollout_gt30_fd_vs_potential_k2048.py`](../../cases/2D_Airfoil/scripts/rollout_gt30_fd_vs_potential_k2048.py).

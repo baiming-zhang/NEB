@@ -1,0 +1,12 @@
+{
+  "complete": true,
+  "completed_at": "2026-09-01T00:09:52.207812+08:00",
+  "wall_seconds": 13014.198962500086,
+  "rows": 54,
+  "metrics_csv": "C:\\Users\\admin\\Desktop\\Eigenbasis\\_gitworktrees\\square-jet3-ablation\\BasisNet\\cases\\2D_airfoil\\results\\airfoil_strict_velocity_vorticity_k2048_e2000_seed20260823_stable_mgs_v2\\strict_prefix_evaluation_three_geometries\\strict_prefix_reconstruction_metrics.csv",
+  "geometry_summaries": [
+    "C:\\Users\\admin\\Desktop\\Eigenbasis\\_gitworktrees\\square-jet3-ablation\\BasisNet\\cases\\2D_airfoil\\results\\airfoil_strict_velocity_vorticity_k2048_e2000_seed20260823_stable_mgs_v2\\strict_prefix_evaluation_three_geometries\\up\\summary.json",
+    "C:\\Users\\admin\\Desktop\\Eigenbasis\\_gitworktrees\\square-jet3-ablation\\BasisNet\\cases\\2D_airfoil\\results\\airfoil_strict_velocity_vorticity_k2048_e2000_seed20260823_stable_mgs_v2\\strict_prefix_evaluation_three_geometries\\middle\\summary.json",
+    "C:\\Users\\admin\\Desktop\\Eigenbasis\\_gitworktrees\\square-jet3-ablation\\BasisNet\\cases\\2D_airfoil\\results\\airfoil_strict_velocity_vorticity_k2048_e2000_seed20260823_stable_mgs_v2\\strict_prefix_evaluation_three_geometries\\down\\summary.json"
+  ]
+}

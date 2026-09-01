@@ -2497,6 +2497,16 @@ def _pure_vorticity_rayleigh_peel_step(
     )
     weight = cp.asarray(area / np.float32(n), dtype=F32)
     mass_floor = float(cfg.mass_floor)
+    relative_mass_floor = float(
+        getattr(cfg, "peeling_relative_mass_floor", 1.0e-4)
+    )
+    overlap_tolerance = float(
+        getattr(cfg, "peeling_overlap_tolerance", 1.0e-3)
+    )
+    if not 0.0 < relative_mass_floor < 1.0:
+        raise ValueError("peeling_relative_mass_floor must be in (0,1)")
+    if not 0.0 < overlap_tolerance < 1.0:
+        raise ValueError("peeling_overlap_tolerance must be in (0,1)")
     passes = int(getattr(cfg, "reorthogonalization_passes", 2))
     if passes != 2:
         raise ValueError(
@@ -2544,7 +2554,9 @@ def _pure_vorticity_rayleigh_peel_step(
     stiffness_values = cp.empty(modes, dtype=F32)
     rayleigh_values = cp.empty(modes, dtype=F32)
     projection_values = cp.empty(modes, dtype=F32)
+    relative_mass_values = cp.empty(modes, dtype=F32)
     orth_values = cp.empty(modes, dtype=F32)
+    first_pass_overlap_values = cp.zeros(modes, dtype=F32)
     adjoint_raw_omega = cp.zeros_like(raw_omega) if training else None
     adjoint_raw_gradient = cp.zeros_like(raw_gradient) if training else None
     freeze_prefix = int(getattr(cfg, "freeze_prefix_modes", 0))
@@ -2555,8 +2567,15 @@ def _pure_vorticity_rayleigh_peel_step(
         if causal_rank:
             previous_omega = basis_omega[:, :causal_rank]
             previous_gradient = basis_gradient[:, :causal_rank]
-            for _ in range(passes):
+            for pass_index in range(passes):
                 increment = weight * (previous_omega.T @ residual_omega)
+                if pass_index == 1:
+                    first_pass_mass = weight * cp.dot(
+                        residual_omega, residual_omega
+                    )
+                    first_pass_overlap_values[causal_rank] = cp.max(
+                        cp.abs(increment)
+                    ) / cp.sqrt(cp.maximum(first_pass_mass, F32(mass_floor)))
                 coefficients += increment
                 residual_omega -= previous_omega @ increment
                 residual_gradient -= previous_gradient @ increment
@@ -2565,16 +2584,20 @@ def _pure_vorticity_rayleigh_peel_step(
 
         mass = weight * cp.dot(residual_omega, residual_omega)
         stiffness = weight * cp.dot(residual_gradient, residual_gradient)
-        rayleigh = stiffness / mass
+        network = causal_order_device[causal_rank]
+        relative_mass = mass / raw_mass[network]
+        safe_mass = cp.maximum(mass, F32(mass_floor))
+        rayleigh = stiffness / safe_mass
         mass_values[causal_rank] = mass
         stiffness_values[causal_rank] = stiffness
         rayleigh_values[causal_rank] = rayleigh
+        relative_mass_values[causal_rank] = relative_mass
 
         if training and causal_rank >= freeze_prefix:
             adjoint_omega = (
-                -2.0 * stiffness * weight / (mass * mass)
+                -2.0 * stiffness * weight / (safe_mass * safe_mass)
             ) * residual_omega
-            adjoint_gradient = (2.0 * weight / mass) * residual_gradient
+            adjoint_gradient = (2.0 * weight / safe_mass) * residual_gradient
             if causal_rank:
                 # Exact transpose of each detached MGS pass used by the
                 # historical implementation.
@@ -2588,11 +2611,10 @@ def _pure_vorticity_rayleigh_peel_step(
                     )
             if adjoint_raw_omega is None or adjoint_raw_gradient is None:
                 raise RuntimeError("Jet3 adjoint buffers were not allocated")
-            network = causal_order_device[causal_rank]
             adjoint_raw_omega[:, network] = adjoint_omega
             adjoint_raw_gradient[:, network] = adjoint_gradient
 
-        normalizer = cp.reciprocal(cp.sqrt(mass))
+        normalizer = cp.reciprocal(cp.sqrt(safe_mass))
         normalized_omega = residual_omega * normalizer
         normalized_gradient = residual_gradient * normalizer
         basis_omega[:, causal_rank] = normalized_omega
@@ -2604,7 +2626,7 @@ def _pure_vorticity_rayleigh_peel_step(
             orth_value = cp.maximum(orth_value, cp.max(cp.abs(overlap)))
         orth_values[causal_rank] = orth_value
         projection_values[causal_rank] = (
-            cp.dot(coefficients, coefficients) / mass
+            cp.dot(coefficients, coefficients) / safe_mass
             if causal_rank
             else F32(0.0)
         )
@@ -2621,8 +2643,12 @@ def _pure_vorticity_rayleigh_peel_step(
         & cp.isfinite(stiffness_values)
         & cp.isfinite(rayleigh_values)
         & cp.isfinite(projection_values)
+        & cp.isfinite(relative_mass_values)
         & cp.isfinite(orth_values)
+        & cp.isfinite(first_pass_overlap_values)
         & (mass_values > F32(mass_floor))
+        & (relative_mass_values >= F32(relative_mass_floor))
+        & (orth_values <= F32(overlap_tolerance))
     )
 
     # Phase 3: recompute cached contiguous network blocks.  Gradients are
@@ -2711,7 +2737,9 @@ def _pure_vorticity_rayleigh_peel_step(
                 stiffness_values,
                 rayleigh_values,
                 projection_values,
+                relative_mass_values,
                 orth_values,
+                first_pass_overlap_values,
                 peeled_by_network_device,
                 causal_order_device.astype(F32),
                 gradient_norms_device,
@@ -2729,7 +2757,9 @@ def _pure_vorticity_rayleigh_peel_step(
         stiffness_host,
         rayleigh_host,
         projection_host,
+        relative_mass_host,
         orth_host,
+        first_pass_overlap_host,
         peeled_by_network_host,
         causal_order_float,
         gradient_norms_host,
@@ -2754,17 +2784,25 @@ def _pure_vorticity_rayleigh_peel_step(
         & np.isfinite(stiffness_host)
         & np.isfinite(rayleigh_host)
         & np.isfinite(projection_host)
+        & np.isfinite(relative_mass_host)
         & np.isfinite(orth_host)
+        & np.isfinite(first_pass_overlap_host)
     )
-    unresolved_peeled = mass_host <= mass_floor
-    if np.any(invalid_peeled | unresolved_peeled):
-        causal_rank = int(np.flatnonzero(invalid_peeled | unresolved_peeled)[0])
+    collapsed = (mass_host <= mass_floor) | (
+        relative_mass_host < relative_mass_floor
+    )
+    nonorthogonal = orth_host > overlap_tolerance
+    rejected = invalid_peeled | collapsed | nonorthogonal
+    if np.any(rejected):
+        causal_rank = int(np.flatnonzero(rejected)[0])
         network = int(causal_order[causal_rank])
         raise FloatingPointError(
-            f"vorticity candidate {network + 1} "
-            f"(causal rank {causal_rank + 1}) is invalid: "
-            f"M={mass_host[causal_rank]:.8e}, "
-            f"K={stiffness_host[causal_rank]:.8e}"
+            f"vorticity candidate {network + 1} (causal rank "
+            f"{causal_rank + 1}) rejected after the two-pass peel: "
+            f"relative_mass={relative_mass_host[causal_rank]:.8e} "
+            f"(floor={relative_mass_floor:.8e}), "
+            f"overlap={orth_host[causal_rank]:.8e} "
+            f"(tolerance={overlap_tolerance:.8e}); no parameters updated"
         )
     if training and not bool(optimizer_committed_host[0]):
         active_host = np.zeros(modes, dtype=bool)
@@ -2815,6 +2853,16 @@ def _pure_vorticity_rayleigh_peel_step(
         "sorting_rayleigh_by_network": sorting_by_network,
         "spatial_jet_order_used": 3,
         "third_derivative_channels_allocated": 4,
+        "peeling_passes_used": passes,
+        "shared_triangular_transform_across_derivatives": True,
+        "peeling_relative_mass_floor": relative_mass_floor,
+        "peeling_overlap_tolerance": overlap_tolerance,
+        "min_relative_residual_mass": float(np.min(relative_mass_host)),
+        "max_post_first_pass_overlap": float(
+            np.max(first_pass_overlap_host)
+        ),
+        "max_post_peel_overlap": float(np.max(orth_host)),
+        "rejected_modes": 0,
         "causal_sort_device": "gpu",
         "diagnostic_host_transfers_per_step": 1,
         "optimizer_device": "gpu_batched_all_modes",

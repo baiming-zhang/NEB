@@ -1,0 +1,136 @@
+{
+  "format": "airfoil_potential_schedule_shared_pack_v2",
+  "created_at": "2026-08-30T23:20:16.331935+08:00",
+  "sampling_contract": {
+    "seed": 20260823,
+    "epochs": 2000,
+    "points_per_step": 4096,
+    "validation_points": 4096,
+    "validation_beta_samples": 3,
+    "validation_alpha_samples": 3,
+    "xmin": 0.0,
+    "xmax": 10.0,
+    "ymin": -4.0,
+    "ymax": 4.0,
+    "chord": 2.0,
+    "quarter_chord_x": 3.0,
+    "quarter_chord_y": 0.0,
+    "thickness_min": 0.08,
+    "thickness_max": 0.18,
+    "geometry_mode": "cinf_ellipse",
+    "alpha_min_deg": -12.0,
+    "alpha_max_deg": 12.0,
+    "endpoint_period": 20,
+    "sampling_mode": "uniform_random",
+    "quadrature_measure": "physical_fluid_area",
+    "probe_beta": 0.5,
+    "probe_alpha_deg": 6.0
+  },
+  "source_lock": {
+    "generator": {
+      "path": "C:\\Users\\admin\\Desktop\\Eigenbasis\\_gitworktrees\\square-jet3-ablation\\BasisNet\\cases\\2D_airfoil\\scripts\\generate_airfoil_strict_paired_pcg64_pack.py",
+      "sha256": "c73257f3e05be7c8a96c7a5e5b9aa68bddd59cc1b37c0bd3f07e2d76ecb26d2f"
+    },
+    "trainer": {
+      "path": "C:\\Users\\admin\\Desktop\\Eigenbasis\\_gitworktrees\\square-jet3-ablation\\BasisNet\\cases\\2D_airfoil\\scripts\\train_hardcoded.py",
+      "sha256": "6bf8ff9016c788641cde2bf748301146cdbfe07905df1cb4d1f7d4cce9ce79d2"
+    },
+    "backend": {
+      "path": "C:\\Users\\admin\\Desktop\\Eigenbasis\\_gitworktrees\\square-jet3-ablation\\BasisNet\\cases\\2D_airfoil\\src\\eigenfluid_sss\\basisnet\\airfoil2d\\hardcoded_backend.py",
+      "sha256": "5a6d8206a7ac8947b16ab264b3e1f41fcf5d8e94e2fc19f6db86dae15b62a29b"
+    },
+    "config": {
+      "path": "C:\\Users\\admin\\Desktop\\Eigenbasis\\_gitworktrees\\square-jet3-ablation\\BasisNet\\cases\\2D_airfoil\\results\\airfoil_strict_velocity_vorticity_k2048_e2000_seed20260823_stable_mgs_v2\\configs\\seed_20260823\\potential.json",
+      "sha256": "b07e22d465ff3c25a29e58a0b79cd237f98fe1f56abc3e3a059fd47ff05a7aee"
+    },
+    "runtime": {
+      "python": "3.13.7",
+      "python_implementation": "CPython",
+      "numpy": "2.2.6",
+      "scipy": "1.16.2"
+    }
+  },
+  "paired_objectives_read_identical_files": true,
+  "geometry_parameter_schedule": "potential_scrambled_sobol_seed_plus_700000_plus_epoch",
+  "fluid_point_sampler": "potential_numpy_default_rng_pcg64_iid_uniform_physical_fluid_area_v1",
+  "airfoil_rejection_note": "The completed Potential path rejects FP64 rectangle samples against the solid ellipse, replenishes from the same PCG64 stream, and casts the accepted coordinates to FP32 for training.",
+  "dtypes": {
+    "train_points": "float32",
+    "train_geometry_parameters": "float64",
+    "validation_and_probe": "float32"
+  },
+  "train_pack": {
+    "name": "paired_train_pcg64_iid_e2000_p4096.npz",
+    "sha256": "def358741bc579bf8f20266d5a61fc23fa386793512c7096d7c320b3735449a0",
+    "arrays": {
+      "train_points": {
+        "shape": [
+          2000,
+          4096,
+          2
+        ],
+        "dtype": "float32",
+        "sha256": "8109ebe50377e3f9df3d05ca6db2b1a0a5c16b5606df8920c9167bd5c1570072"
+      },
+      "train_beta": {
+        "shape": [
+          2000
+        ],
+        "dtype": "float64",
+        "sha256": "fc97ac6ba3d24b1ece1c8a2d8590be545928ac876ba6e0c4a885da11a6f392b9"
+      },
+      "train_alpha": {
+        "shape": [
+          2000
+        ],
+        "dtype": "float64",
+        "sha256": "48a8351e942bf1a55fc5f703cb0c1ec6df8cac3c8f7fff4d2d7d135440a4ec53"
+      },
+      "train_epoch_1based": {
+        "shape": [
+          2000
+        ],
+        "dtype": "int32",
+        "sha256": "b26e6639eec1b68cfa73d1ee17987bffc9a12677157f052f5ee9888ecb823587"
+      }
+    }
+  },
+  "validation_pack": {
+    "name": "paired_validation_pcg64_iid_p4096.npz",
+    "sha256": "4b723fe1f504bd6f197c2b134a25ad9696817b427e098a11df0f85896c307162",
+    "arrays": {
+      "validation_points": {
+        "shape": [
+          9,
+          4096,
+          2
+        ],
+        "dtype": "float32",
+        "sha256": "7f170c9b78af214157a3eb9234abddf5bb7313e4fd699419028776feedb0cca2"
+      },
+      "validation_beta": {
+        "shape": [
+          9
+        ],
+        "dtype": "float32",
+        "sha256": "9e1c95cb28321c12bfde2c996fff08ad99ddcbcc4d76e3ee67453e24706b333a"
+      },
+      "validation_alpha": {
+        "shape": [
+          9
+        ],
+        "dtype": "float32",
+        "sha256": "6d99192d8a9af03b4116167356850c8653a0000e78430144d718c0c8f3bf8050"
+      },
+      "probe_points": {
+        "shape": [
+          4096,
+          2
+        ],
+        "dtype": "float32",
+        "sha256": "ecf7b636d1c8e13e54696257217133575f42952a3908b675200084e698c9e952"
+      }
+    }
+  },
+  "generation_wall_seconds": 1.435457899933681
+}

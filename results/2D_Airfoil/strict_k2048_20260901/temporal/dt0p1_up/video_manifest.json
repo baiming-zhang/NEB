@@ -1,0 +1,267 @@
+{
+  "complete": true,
+  "completed_at": "2026-09-01T18:48:11.326710+08:00",
+  "title": "Upper-airfoil GT versus Potential-Rayleigh temporal comparison",
+  "methods": [
+    "Ground truth",
+    "Potential-Rayleigh"
+  ],
+  "modes": 2048,
+  "geometry": {
+    "label": "Upper airfoil, dt=0.1",
+    "beta": 0.3918440519687683,
+    "alpha_deg": 9.510565162951535
+  },
+  "grid_shape": [
+    401,
+    501
+  ],
+  "frames": 31,
+  "time_per_frame": 4.999999888241291,
+  "source_fps": 5.0,
+  "output_fps": 30,
+  "color_limits": {
+    "velocity_magnitude": [
+      0.0,
+      0.11999999731779099
+    ],
+    "vorticity": [
+      -1.0099999904632568,
+      1.0099999904632568
+    ],
+    "source": "frozen once from all 31 GT frames"
+  },
+  "error_definition": "per-frame relative discrete L2 on the shared fluid mask; velocity uses both components and vorticity uses the scalar field",
+  "input": {
+    "path": "C:\\Users\\admin\\Desktop\\Eigenbasis\\_gitworktrees\\square-jet3-ablation\\BasisNet\\cases\\2D_airfoil\\results\\airfoil_strict_velocity_vorticity_k2048_e2000_seed20260823_stable_mgs_v2\\strict_temporal_rollout_k2048_potential_dt0p1_up\\up\\potential_rollout_fields_stride2.npz",
+    "sha256": "c6d5bdee40277c7da6d871c433f884f3a5b47012fe4333040b1623e18790c62d"
+  },
+  "frame_errors": [
+    {
+      "frame": 0,
+      "time": 0.0,
+      "velocity_error": 0.014438303046344482,
+      "vorticity_error": 0.2603786948524564
+    },
+    {
+      "frame": 1,
+      "time": 4.999999888241291,
+      "velocity_error": 0.030672593768586193,
+      "vorticity_error": 0.662573017701581
+    },
+    {
+      "frame": 2,
+      "time": 9.999999776482582,
+      "velocity_error": 0.05091560364057449,
+      "vorticity_error": 0.8241554598567941
+    },
+    {
+      "frame": 3,
+      "time": 14.999999664723873,
+      "velocity_error": 0.05777013701723706,
+      "vorticity_error": 0.7066351757282445
+    },
+    {
+      "frame": 4,
+      "time": 19.999999552965164,
+      "velocity_error": 0.05276899219768805,
+      "vorticity_error": 0.6448848411408566
+    },
+    {
+      "frame": 5,
+      "time": 24.999999441206455,
+      "velocity_error": 0.048720728538491465,
+      "vorticity_error": 0.6279804986373273
+    },
+    {
+      "frame": 6,
+      "time": 29.999999329447746,
+      "velocity_error": 0.046847283329155366,
+      "vorticity_error": 0.5506547484651687
+    },
+    {
+      "frame": 7,
+      "time": 34.99999921768904,
+      "velocity_error": 0.059213117640049086,
+      "vorticity_error": 0.7818166059304179
+    },
+    {
+      "frame": 8,
+      "time": 39.99999910593033,
+      "velocity_error": 0.06279207582176828,
+      "vorticity_error": 0.6268643161527553
+    },
+    {
+      "frame": 9,
+      "time": 44.99999899417162,
+      "velocity_error": 0.06460232891951079,
+      "vorticity_error": 0.6943299960055856
+    },
+    {
+      "frame": 10,
+      "time": 49.99999888241291,
+      "velocity_error": 0.06353152992206047,
+      "vorticity_error": 0.6510382758197764
+    },
+    {
+      "frame": 11,
+      "time": 54.9999987706542,
+      "velocity_error": 0.06350815955172427,
+      "vorticity_error": 0.6532523942896218
+    },
+    {
+      "frame": 12,
+      "time": 59.99999865889549,
+      "velocity_error": 0.07054615091185135,
+      "vorticity_error": 0.7051844760213402
+    },
+    {
+      "frame": 13,
+      "time": 64.99999854713678,
+      "velocity_error": 0.06954740392192364,
+      "vorticity_error": 0.6983208513003334
+    },
+    {
+      "frame": 14,
+      "time": 69.99999843537807,
+      "velocity_error": 0.06938824128944045,
+      "vorticity_error": 0.6689543266552335
+    },
+    {
+      "frame": 15,
+      "time": 74.99999832361937,
+      "velocity_error": 0.06837536395323031,
+      "vorticity_error": 0.6088979817395027
+    },
+    {
+      "frame": 16,
+      "time": 79.99999821186066,
+      "velocity_error": 0.07065771241202488,
+      "vorticity_error": 0.5989017868017368
+    },
+    {
+      "frame": 17,
+      "time": 84.99999810010195,
+      "velocity_error": 0.07205585324458283,
+      "vorticity_error": 0.5225451770905171
+    },
+    {
+      "frame": 18,
+      "time": 89.99999798834324,
+      "velocity_error": 0.06997398269168349,
+      "vorticity_error": 0.5404769267428524
+    },
+    {
+      "frame": 19,
+      "time": 94.99999787658453,
+      "velocity_error": 0.07115900331562125,
+      "vorticity_error": 0.49296731710544844
+    },
+    {
+      "frame": 20,
+      "time": 99.99999776482582,
+      "velocity_error": 0.06972667335629616,
+      "vorticity_error": 0.47354109219258494
+    },
+    {
+      "frame": 21,
+      "time": 104.99999765306711,
+      "velocity_error": 0.07237031246125383,
+      "vorticity_error": 0.4680602552311333
+    },
+    {
+      "frame": 22,
+      "time": 109.9999975413084,
+      "velocity_error": 0.0741844401436725,
+      "vorticity_error": 0.4664006669410157
+    },
+    {
+      "frame": 23,
+      "time": 114.9999974295497,
+      "velocity_error": 0.07266380183320209,
+      "vorticity_error": 0.46272328052162587
+    },
+    {
+      "frame": 24,
+      "time": 119.99999731779099,
+      "velocity_error": 0.07549385379799937,
+      "vorticity_error": 0.4639732570112482
+    },
+    {
+      "frame": 25,
+      "time": 124.99999720603228,
+      "velocity_error": 0.07195129601078253,
+      "vorticity_error": 0.461724361060621
+    },
+    {
+      "frame": 26,
+      "time": 129.99999709427357,
+      "velocity_error": 0.0732107380931437,
+      "vorticity_error": 0.4748349973029389
+    },
+    {
+      "frame": 27,
+      "time": 134.99999698251486,
+      "velocity_error": 0.07948728313450089,
+      "vorticity_error": 0.49209415775635434
+    },
+    {
+      "frame": 28,
+      "time": 139.99999687075615,
+      "velocity_error": 0.07834887281303389,
+      "vorticity_error": 0.4924792905432828
+    },
+    {
+      "frame": 29,
+      "time": 144.99999675899744,
+      "velocity_error": 0.08240656429805124,
+      "vorticity_error": 0.49563000914147376
+    },
+    {
+      "frame": 30,
+      "time": 149.99999664723873,
+      "velocity_error": 0.08039961973933875,
+      "vorticity_error": 0.48546312664856206
+    }
+  ],
+  "outputs": {
+    "mp4": "C:\\Users\\admin\\Desktop\\Eigenbasis\\_gitworktrees\\square-jet3-ablation\\BasisNet\\cases\\2D_airfoil\\results\\airfoil_strict_velocity_vorticity_k2048_e2000_seed20260823_stable_mgs_v2\\strict_temporal_rollout_k2048_potential_dt0p1_up\\up\\media\\airfoil_up_gt_potential_k2048.mp4",
+    "mp4_sha256": "2ae97f6f45f164d20d6ca7556d5726ed322c28dc0d3d0c84fdd172bc7045d50b",
+    "preview_png": "C:\\Users\\admin\\Desktop\\Eigenbasis\\_gitworktrees\\square-jet3-ablation\\BasisNet\\cases\\2D_airfoil\\results\\airfoil_strict_velocity_vorticity_k2048_e2000_seed20260823_stable_mgs_v2\\strict_temporal_rollout_k2048_potential_dt0p1_up\\up\\media\\airfoil_up_gt_potential_k2048_preview.png",
+    "preview_pdf": "C:\\Users\\admin\\Desktop\\Eigenbasis\\_gitworktrees\\square-jet3-ablation\\BasisNet\\cases\\2D_airfoil\\results\\airfoil_strict_velocity_vorticity_k2048_e2000_seed20260823_stable_mgs_v2\\strict_temporal_rollout_k2048_potential_dt0p1_up\\up\\media\\airfoil_up_gt_potential_k2048_preview.pdf",
+    "frames": "C:\\Users\\admin\\Desktop\\Eigenbasis\\_gitworktrees\\square-jet3-ablation\\BasisNet\\cases\\2D_airfoil\\results\\airfoil_strict_velocity_vorticity_k2048_e2000_seed20260823_stable_mgs_v2\\strict_temporal_rollout_k2048_potential_dt0p1_up\\up\\media\\frames"
+  },
+  "encoding_command": [
+    "C:\\Users\\admin\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\site-packages\\imageio_ffmpeg\\binaries\\ffmpeg-win-x86_64-v7.1.exe",
+    "-y",
+    "-framerate",
+    "5.0",
+    "-i",
+    "BasisNet\\cases\\2D_airfoil\\results\\airfoil_strict_velocity_vorticity_k2048_e2000_seed20260823_stable_mgs_v2\\strict_temporal_rollout_k2048_potential_dt0p1_up\\up\\media\\frames\\frame_%03d.png",
+    "-vf",
+    "fps=30,format=yuv420p",
+    "-c:v",
+    "libx264",
+    "-preset",
+    "slow",
+    "-crf",
+    "16",
+    "-pix_fmt",
+    "yuv420p",
+    "-movflags",
+    "+faststart",
+    "-color_primaries",
+    "bt709",
+    "-color_trc",
+    "bt709",
+    "-colorspace",
+    "bt709",
+    "BasisNet\\cases\\2D_airfoil\\results\\airfoil_strict_velocity_vorticity_k2048_e2000_seed20260823_stable_mgs_v2\\strict_temporal_rollout_k2048_potential_dt0p1_up\\up\\media\\airfoil_up_gt_potential_k2048.mp4"
+  ],
+  "ffmpeg_stderr_tail": " libswresample   5.  3.100 /  5.  3.100\n  libpostproc    58.  3.100 / 58.  3.100\nInput #0, image2, from 'BasisNet\\cases\\2D_airfoil\\results\\airfoil_strict_velocity_vorticity_k2048_e2000_seed20260823_stable_mgs_v2\\strict_temporal_rollout_k2048_potential_dt0p1_up\\up\\media\\frames\\frame_%03d.png':\n  Duration: 00:00:06.20, start: 0.000000, bitrate: N/A\n  Stream #0:0: Video: png, rgba(pc, gbr/unknown/unknown), 1920x1080 [SAR 6299:6299 DAR 16:9], 5 fps, 5 tbr, 5 tbn\nStream mapping:\n  Stream #0:0 -> #0:0 (png (native) -> h264 (libx264))\nPress [q] to stop, [?] for help\n[libx264 @ 00000218e8dd1b00] using SAR=1/1\n[libx264 @ 00000218e8dd1b00] using cpu capabilities: MMX2 SSE2Fast SSSE3 SSE4.2 AVX FMA3 BMI2 AVX2\n[libx264 @ 00000218e8dd1b00] profile High, level 5.0, 4:2:0, 8-bit\n[libx264 @ 00000218e8dd1b00] 264 - core 164 r3192 c24e06c - H.264/MPEG-4 AVC codec - Copyleft 2003-2024 - http://www.videolan.org/x264.html - options: cabac=1 ref=5 deblock=1:0:0 analyse=0x3:0x113 me=hex subme=8 psy=1 psy_rd=1.00:0.00 mixed_ref=1 me_range=16 chroma_me=1 trellis=2 8x8dct=1 cqm=0 deadzone=21,11 fast_pskip=1 chroma_qp_offset=-2 threads=34 lookahead_threads=5 sliced_threads=0 nr=0 decimate=1 interlaced=0 bluray_compat=0 constrained_intra=0 bframes=3 b_pyramid=2 b_adapt=1 b_bias=0 direct=3 weightb=1 open_gop=0 weightp=2 keyint=250 keyint_min=25 scenecut=40 intra_refresh=0 rc_lookahead=50 rc=crf mbtree=1 crf=16.0 qcomp=0.60 qpmin=0 qpmax=69 qpstep=4 ip_ratio=1.40 aq=1:1.00\nOutput #0, mp4, to 'BasisNet\\cases\\2D_airfoil\\results\\airfoil_strict_velocity_vorticity_k2048_e2000_seed20260823_stable_mgs_v2\\strict_temporal_rollout_k2048_potential_dt0p1_up\\up\\media\\airfoil_up_gt_potential_k2048.mp4':\n  Metadata:\n    encoder         : Lavf61.7.100\n  Stream #0:0: Video: h264 (avc1 / 0x31637661), yuv420p(tv, bt709/unknown/unknown, progressive), 1920x1080 [SAR 1:1 DAR 16:9], q=2-31, 30 fps, 15360 tbn\n      Metadata:\n        encoder         : Lavc61.19.100 libx264\n      Side data:\n        cpb: bitrate max/min/avg: 0/0/0 buffer size: 0 vbv_delay: N/A\nframe=    9 fps=0.0 q=22.0 size=       0KiB time=00:00:00.23 bitrate=   1.6kbits/s speed=0.458x    \nframe=  105 fps=103 q=22.0 size=     768KiB time=00:00:03.43 bitrate=1832.6kbits/s speed=3.37x    \n[mp4 @ 00000218e8e48e00] Starting second pass: moving the moov atom to the beginning of the file\n[out#0/mp4 @ 00000218e8dd1580] video:1063KiB audio:0KiB subtitle:0KiB other streams:0KiB global headers:0KiB muxing overhead: 0.287342%\nframe=  186 fps=145 q=-1.0 Lsize=    1066KiB time=00:00:06.13 bitrate=1424.0kbits/s speed=4.78x    \n[libx264 @ 00000218e8dd1b00] frame I:1     Avg QP:11.58  size: 65531\n[libx264 @ 00000218e8dd1b00] frame P:47    Avg QP:14.85  size: 20823\n[libx264 @ 00000218e8dd1b00] frame B:138   Avg QP: 9.74  size:   317\n[libx264 @ 00000218e8dd1b00] consecutive B-frames:  1.1%  0.0%  0.0% 98.9%\n[libx264 @ 00000218e8dd1b00] mb I  I16..4: 28.4% 60.6% 11.1%\n[libx264 @ 00000218e8dd1b00] mb P  I16..4:  1.1%  6.9%  1.1%  P16..4:  4.8%  3.5%  1.6%  0.0%  0.0%    skip:81.0%\n[libx264 @ 00000218e8dd1b00] mb B  I16..4:  0.0%  0.0%  0.0%  B16..8:  4.4%  0.1%  0.0%  direct: 0.1%  skip:95.4%  L0:64.6% L1:35.0% BI: 0.4%\n[libx264 @ 00000218e8dd1b00] 8x8 transform intra:72.8% inter:51.4%\n[libx264 @ 00000218e8dd1b00] direct mvs  spatial:87.0% temporal:13.0%\n[libx264 @ 00000218e8dd1b00] coded y,uvDC,uvAC intra: 54.6% 56.9% 47.2% inter: 1.2% 0.8% 0.2%\n[libx264 @ 00000218e8dd1b00] i16 v,h,dc,p: 58% 32%  3%  7%\n[libx264 @ 00000218e8dd1b00] i8 v,h,dc,ddl,ddr,vr,hd,vl,hu: 15% 20% 21%  6%  7%  5%  9%  6% 11%\n[libx264 @ 00000218e8dd1b00] i4 v,h,dc,ddl,ddr,vr,hd,vl,hu: 16% 17% 13%  6% 13%  8% 12%  6% 10%\n[libx264 @ 00000218e8dd1b00] i8c dc,h,v,p: 58% 27% 11%  4%\n[libx264 @ 00000218e8dd1b00] Weighted P-Frames: Y:0.0% UV:0.0%\n[libx264 @ 00000218e8dd1b00] ref P L0: 64.4%  7.9% 11.1%  8.1%  8.6%\n[libx264 @ 00000218e8dd1b00] ref B L0: 84.2% 15.1%  0.5%  0.3%\n[libx264 @ 00000218e8dd1b00] ref B L1: 99.5%  0.5%\n[libx264 @ 00000218e8dd1b00] kb/s:1403.75\n",
+  "timings": {
+    "render_seconds": 14.231331699993461,
+    "encode_seconds": 1.6073978000786155,
+    "total_seconds": 17.17481920006685
+  }
+}

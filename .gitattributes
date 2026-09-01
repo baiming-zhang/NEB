@@ -5,3 +5,6 @@
 cases/2D_Airfoil/results/siren_original_jet1_gpu_k128_to_k2048_e2000_sequence/arms/k2048/inputs/initial_epoch0000.npz filter=lfs diff=lfs merge=lfs -text
 cases/2D_Airfoil/results/siren_original_jet1_gpu_k128_to_k2048_e2000_sequence/arms/k2048/inputs/fixed_validation_iid_uniform_v1.npz filter=lfs diff=lfs merge=lfs -text
 cases/2D_Airfoil/results/siren_original_jet1_gpu_k128_to_k2048_e2000_sequence/arms/k2048/run_001/checkpoints/hardcoded_sss_frozen.npz filter=lfs diff=lfs merge=lfs -text
+results/2D_Airfoil/strict_k2048_20260901/training/paired_train_pcg64_iid_e2000_p4096.npz filter=lfs diff=lfs merge=lfs -text
+results/2D_Airfoil/strict_k2048_20260901/training/velocity/hardcoded_sss_frozen.npz filter=lfs diff=lfs merge=lfs -text
+results/2D_Airfoil/strict_k2048_20260901/training/vorticity/hardcoded_sss_frozen.npz filter=lfs diff=lfs merge=lfs -text
