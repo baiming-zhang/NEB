@@ -25,6 +25,8 @@ output/
 !/results/2D_Metaball/**
 !/results/3D_Metaball/
 !/results/3D_Metaball/**
+!/results/2D_Square/
+!/results/2D_Square/**
 cases/**/results/
 data/raw/
 data/cache/
@@ -39,6 +41,10 @@ checkpoints/
 *.log
 *.pid
 *.ckpt
+
+# Compact Taylor--Green publication data and video are intentionally tracked.
+!/results/2D_Square/data/*.npz
+!/results/2D_Square/video/*.mp4
 
 # The K=2048 airfoil reference is tracked through Git LFS.
 

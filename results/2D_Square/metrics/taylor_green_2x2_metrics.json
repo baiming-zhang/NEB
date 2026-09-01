@@ -1,0 +1,52 @@
+{
+  "status": "passed",
+  "snapshot_time": "2026-09-01T13:17:32+08:00",
+  "case": "Taylor--Green 2x2 vortex cells on [0, pi]^2",
+  "equations": {
+    "vorticity": "A exp(-8 nu t) sin(2x) sin(2y)",
+    "velocity_x": "A/4 exp(-8 nu t) sin(2x) cos(2y)",
+    "velocity_y": "-A/4 exp(-8 nu t) cos(2x) sin(2y)"
+  },
+  "configuration": {
+    "modes": 2048,
+    "cells": 96,
+    "frames": 30,
+    "final_time": 80.0,
+    "viscosity": 0.001,
+    "amplitude": 12.0,
+    "wave_number": 2
+  },
+  "initialization": "GT frame 0 only; exact (2,2) coefficient projection",
+  "advance": "independent exact viscous coefficient decay; the (2,2) quadratic self-interaction is identically zero",
+  "analytic_laplacian_eigenvalue": 8.0,
+  "trained_potential_eigenvalue": 7.987962172069773,
+  "trained_potential_eigenvalue_relative_error": 0.001504728491278362,
+  "exact_final_to_initial_amplitude_ratio": 0.5272924240430485,
+  "projection_numerical_tail_max_before_threshold": 1.1003543755173772e-14,
+  "potential_mode_source": "published aligned (2,2) mode cache; exported from the external K2048/e2000 checkpoint and aligned Ritz transform",
+  "potential_mode_cache": "cases/2D_Square/taylor_green/potential_mode_2_2.npy",
+  "potential_mode_cache_sha256": "f9d9b88a6d17f03c018887e76d05a0b8fb17d13ea8aa4b6ea55fae62dd9523f5",
+  "checkpoint": "external epoch_2000_neutral.npz (not distributed in this compact bundle)",
+  "checkpoint_sha256": "4c83f2b20c6d081a183ec394915076e22331e240e3c35a9c008ffb59f2f62555",
+  "transform": "external trained_k2048_basis_transform.npz (not distributed in this compact bundle)",
+  "transform_sha256": "0a7849416b1423bab45159bed7565121c7e0f6d17a682a164170c8422a50f35c",
+  "laplacian": {
+    "first_relative_l2": 0.0,
+    "mean_relative_l2": 0.0,
+    "final_relative_l2": 0.0
+  },
+  "potential": {
+    "first_relative_l2": 0.0037956379430299607,
+    "mean_relative_l2": 0.0038341516827533014,
+    "final_relative_l2": 0.003911013181213846
+  },
+  "video": "results/2D_Square/video/taylor_green_2x2_gt_vs_laplacian_vs_potential.mp4",
+  "video_sha256": "2fbbf31acd6fbec44484360b277f026daa12a13df7e53ef60d45b596271e90bc",
+  "video_probe": {
+    "codec_name": "h264",
+    "width": 1920,
+    "height": 1092,
+    "duration": "3.000000",
+    "nb_read_frames": "30"
+  }
+}

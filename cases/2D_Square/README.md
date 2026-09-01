@@ -40,3 +40,10 @@ rank and near-complete analytical spectral capture.
 python -m pytest -q cases/2D_Square/tests
 python -m ruff check cases/2D_Square
 ```
+
+## Taylor--Green rollout
+
+The reproducible `(2,2)` four-cell Taylor--Green implementation and its
+published learned-mode cache are in
+[`taylor_green/`](taylor_green/README.md).  The corresponding data, figures,
+metrics, and video are under [`results/2D_Square`](../../results/2D_Square/README.md).

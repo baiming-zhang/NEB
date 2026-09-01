@@ -1,0 +1,11 @@
+{
+  "description": "Aligned learned Potential K2048 vorticity mode for analytic label (2,2)",
+  "grid_shape": [97, 97],
+  "domain": "[0, pi]^2",
+  "dtype": "float32",
+  "learned_eigenvalue_physical": 7.987962172069773,
+  "analytic_eigenvalue": 8.0,
+  "npy_sha256": "f9d9b88a6d17f03c018887e76d05a0b8fb17d13ea8aa4b6ea55fae62dd9523f5",
+  "source_checkpoint_sha256": "4c83f2b20c6d081a183ec394915076e22331e240e3c35a9c008ffb59f2f62555",
+  "source_transform_sha256": "0a7849416b1423bab45159bed7565121c7e0f6d17a682a164170c8422a50f35c"
+}

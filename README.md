@@ -15,6 +15,7 @@ evaluation.
 
 | Case | Basis | Main result |
 | --- | ---: | --- |
+| [2D Square Taylor--Green](results/2D_Square/README.md) | K=2048, `(2,2)` | four-cell viscous rollout; Potential first/final rL2 `0.3796% / 0.3911%` |
 | [2D Metaball](results/2D_Metaball/README.md) | K=2048, epoch 1000 | held-out streamfunction/velocity/vorticity rL2 `0.01183 / 0.06998 / 0.36447`; matched FD `0.01235 / 0.05674 / 0.51569` |
 | [3D Metaball](results/3D_Metaball/README.md) | K=1024 | five-method comparison on all `1,599,754` fluid nodes of a `128^3` grid |
 | [2D Airfoil](results/2D_Airfoil/README.md) | K=2048, 30 frames | mean velocity error `4.07%` for Potential-Rayleigh versus `22.01%` for matched FD Laplacian |
