@@ -1,0 +1,915 @@
+{
+  "complete": true,
+  "completed_at": "2026-09-01T03:44:01.090542+08:00",
+  "title": "Upper-airfoil temporal ROM comparison",
+  "methods": [
+    "Ground truth",
+    "Potential-Rayleigh",
+    "Vorticity-Rayleigh",
+    "Velocity-Rayleigh",
+    "FD-Laplacian"
+  ],
+  "modes": 2048,
+  "rayleigh_definition": "||grad(F_k)||_h^2 / ||F_k||_h^2",
+  "rayleigh_observables": {
+    "Potential-Rayleigh": "F_k=A_k",
+    "Velocity-Rayleigh": "F_k=u_k",
+    "Vorticity-Rayleigh": "F_k=omega_k"
+  },
+  "geometry": {
+    "label": "Upper",
+    "beta": 0.3918440519687683,
+    "alpha_deg": 9.510565162951535
+  },
+  "grid_shape": [
+    401,
+    501
+  ],
+  "frames": 31,
+  "frame_indices": [
+    0,
+    30
+  ],
+  "time_per_frame": 5.0,
+  "no_temporal_interpolation": true,
+  "source_fps": 10.0,
+  "output_fps": 10,
+  "color_limits": {
+    "velocity_magnitude": [
+      0.0,
+      0.11999999731779099
+    ],
+    "vorticity": [
+      -1.0099999904632568,
+      1.0099999904632568
+    ],
+    "source": "frozen once from all 31 GT frames"
+  },
+  "error_definition": "per-frame relative discrete L2 on the shared fluid mask; velocity uses both components and vorticity uses the scalar field",
+  "inputs": {
+    "potential": {
+      "path": "C:\\Users\\admin\\Desktop\\Eigenbasis\\_gitworktrees\\square-jet3-ablation\\BasisNet\\cases\\2D_airfoil\\results\\airfoil_strict_velocity_vorticity_k2048_e2000_seed20260823_stable_mgs_v2\\strict_temporal_rollout_k2048_vorticity_init_up\\potential_fd\\up\\potential_rollout_fields_stride2.npz",
+      "sha256": "aceecb8531d77401469120720309b25550681dc32fcfcd6f0b9d7cc05175f848"
+    },
+    "vorticity": {
+      "path": "C:\\Users\\admin\\Desktop\\Eigenbasis\\_gitworktrees\\square-jet3-ablation\\BasisNet\\cases\\2D_airfoil\\results\\airfoil_strict_velocity_vorticity_k2048_e2000_seed20260823_stable_mgs_v2\\strict_temporal_rollout_k2048_vorticity_init_up\\vorticity\\up\\vorticity_rollout_fields_stride2.npz",
+      "sha256": "38c16b76e08bcfce0e41af7f052415005dfa2d70927b0944226233fdf7f80652"
+    },
+    "velocity": {
+      "path": "C:\\Users\\admin\\Desktop\\Eigenbasis\\_gitworktrees\\square-jet3-ablation\\BasisNet\\cases\\2D_airfoil\\results\\airfoil_strict_velocity_vorticity_k2048_e2000_seed20260823_stable_mgs_v2\\strict_temporal_rollout_k2048_vorticity_init_up\\velocity\\up\\velocity_rollout_fields_stride2.npz",
+      "sha256": "e4552135bf6892301ac7761df2dffc7afa2b2371643bed7994603cd3a06390c2"
+    },
+    "fd_laplacian": {
+      "path": "C:\\Users\\admin\\Desktop\\Eigenbasis\\_gitworktrees\\square-jet3-ablation\\BasisNet\\cases\\2D_airfoil\\results\\airfoil_strict_velocity_vorticity_k2048_e2000_seed20260823_stable_mgs_v2\\strict_temporal_rollout_k2048_vorticity_init_up\\potential_fd\\up\\fd_mimetic_rollout_fields_stride2.npz",
+      "sha256": "10c4663e8b3c68de435d91c78afb39d8b9bff1751a65e74aa31560b9b6f0ad38"
+    }
+  },
+  "frame_errors": [
+    {
+      "frame": 0,
+      "time": 0.0,
+      "methods": {
+        "gt": {
+          "velocity_error": 0.0,
+          "vorticity_error": 0.0
+        },
+        "potential": {
+          "velocity_error": 0.02351240794506201,
+          "vorticity_error": 0.21387017346446435
+        },
+        "vorticity": {
+          "velocity_error": 0.023878393683255932,
+          "vorticity_error": 0.21083317240005958
+        },
+        "velocity": {
+          "velocity_error": 0.024445634390887455,
+          "vorticity_error": 0.20282385003890158
+        },
+        "fd_laplacian": {
+          "velocity_error": 0.01564792424706078,
+          "vorticity_error": 0.1907880243149529
+        }
+      }
+    },
+    {
+      "frame": 1,
+      "time": 5.0,
+      "methods": {
+        "gt": {
+          "velocity_error": 0.0,
+          "vorticity_error": 0.0
+        },
+        "potential": {
+          "velocity_error": 0.03284844483803417,
+          "vorticity_error": 0.6045652494610723
+        },
+        "vorticity": {
+          "velocity_error": 0.033237102591626676,
+          "vorticity_error": 0.5884173593552752
+        },
+        "velocity": {
+          "velocity_error": 0.03372870040922851,
+          "vorticity_error": 0.5931094906365588
+        },
+        "fd_laplacian": {
+          "velocity_error": 0.026927047413124103,
+          "vorticity_error": 0.3489544010271695
+        }
+      }
+    },
+    {
+      "frame": 2,
+      "time": 10.0,
+      "methods": {
+        "gt": {
+          "velocity_error": 0.0,
+          "vorticity_error": 0.0
+        },
+        "potential": {
+          "velocity_error": 0.05289399290700677,
+          "vorticity_error": 0.8013636349598142
+        },
+        "vorticity": {
+          "velocity_error": 0.05299835344945581,
+          "vorticity_error": 0.7665676740803362
+        },
+        "velocity": {
+          "velocity_error": 0.05291875349275289,
+          "vorticity_error": 0.7807163016698337
+        },
+        "fd_laplacian": {
+          "velocity_error": 0.08043896574351289,
+          "vorticity_error": 0.5724129271412027
+        }
+      }
+    },
+    {
+      "frame": 3,
+      "time": 15.0,
+      "methods": {
+        "gt": {
+          "velocity_error": 0.0,
+          "vorticity_error": 0.0
+        },
+        "potential": {
+          "velocity_error": 0.0620885995422399,
+          "vorticity_error": 0.6972848201998689
+        },
+        "vorticity": {
+          "velocity_error": 0.06250867944882442,
+          "vorticity_error": 0.6722083708515111
+        },
+        "velocity": {
+          "velocity_error": 0.06194893143294771,
+          "vorticity_error": 0.6790957401017239
+        },
+        "fd_laplacian": {
+          "velocity_error": 0.16607332356713944,
+          "vorticity_error": 0.6767719174859771
+        }
+      }
+    },
+    {
+      "frame": 4,
+      "time": 20.0,
+      "methods": {
+        "gt": {
+          "velocity_error": 0.0,
+          "vorticity_error": 0.0
+        },
+        "potential": {
+          "velocity_error": 0.061067725019430585,
+          "vorticity_error": 0.6727838502165712
+        },
+        "vorticity": {
+          "velocity_error": 0.06158542663283837,
+          "vorticity_error": 0.6576059261075872
+        },
+        "velocity": {
+          "velocity_error": 0.06111548308609,
+          "vorticity_error": 0.6599008181060417
+        },
+        "fd_laplacian": {
+          "velocity_error": 0.24077874068375757,
+          "vorticity_error": 0.7118145703340032
+        }
+      }
+    },
+    {
+      "frame": 5,
+      "time": 25.0,
+      "methods": {
+        "gt": {
+          "velocity_error": 0.0,
+          "vorticity_error": 0.0
+        },
+        "potential": {
+          "velocity_error": 0.0604096886203119,
+          "vorticity_error": 0.6440782450141318
+        },
+        "vorticity": {
+          "velocity_error": 0.06102030000566245,
+          "vorticity_error": 0.6432512803517321
+        },
+        "velocity": {
+          "velocity_error": 0.06109939378370868,
+          "vorticity_error": 0.6329559314854375
+        },
+        "fd_laplacian": {
+          "velocity_error": 0.2723925153641924,
+          "vorticity_error": 0.7856256692145553
+        }
+      }
+    },
+    {
+      "frame": 6,
+      "time": 30.0,
+      "methods": {
+        "gt": {
+          "velocity_error": 0.0,
+          "vorticity_error": 0.0
+        },
+        "potential": {
+          "velocity_error": 0.060932959873805065,
+          "vorticity_error": 0.604531361736034
+        },
+        "vorticity": {
+          "velocity_error": 0.060885033550155454,
+          "vorticity_error": 0.6099742135357257
+        },
+        "velocity": {
+          "velocity_error": 0.061654131155918654,
+          "vorticity_error": 0.6066443056216493
+        },
+        "fd_laplacian": {
+          "velocity_error": 0.27870812980443743,
+          "vorticity_error": 0.8450349749526209
+        }
+      }
+    },
+    {
+      "frame": 7,
+      "time": 35.0,
+      "methods": {
+        "gt": {
+          "velocity_error": 0.0,
+          "vorticity_error": 0.0
+        },
+        "potential": {
+          "velocity_error": 0.06998750781407621,
+          "vorticity_error": 0.8413504077628401
+        },
+        "vorticity": {
+          "velocity_error": 0.06878142663577863,
+          "vorticity_error": 0.815380492975241
+        },
+        "velocity": {
+          "velocity_error": 0.0697627442348491,
+          "vorticity_error": 0.824673781257334
+        },
+        "fd_laplacian": {
+          "velocity_error": 0.2810719059860909,
+          "vorticity_error": 0.9956284946212041
+        }
+      }
+    },
+    {
+      "frame": 8,
+      "time": 40.0,
+      "methods": {
+        "gt": {
+          "velocity_error": 0.0,
+          "vorticity_error": 0.0
+        },
+        "potential": {
+          "velocity_error": 0.07283582530442338,
+          "vorticity_error": 0.6586968470002945
+        },
+        "vorticity": {
+          "velocity_error": 0.0715592635279265,
+          "vorticity_error": 0.634434198339056
+        },
+        "velocity": {
+          "velocity_error": 0.07235773438434469,
+          "vorticity_error": 0.6507520057363136
+        },
+        "fd_laplacian": {
+          "velocity_error": 0.29694753433407783,
+          "vorticity_error": 1.1687793603263426
+        }
+      }
+    },
+    {
+      "frame": 9,
+      "time": 45.0,
+      "methods": {
+        "gt": {
+          "velocity_error": 0.0,
+          "vorticity_error": 0.0
+        },
+        "potential": {
+          "velocity_error": 0.07511606657711827,
+          "vorticity_error": 0.7087183776216357
+        },
+        "vorticity": {
+          "velocity_error": 0.07448543272235714,
+          "vorticity_error": 0.7097593765083077
+        },
+        "velocity": {
+          "velocity_error": 0.075252816335112,
+          "vorticity_error": 0.709898396681869
+        },
+        "fd_laplacian": {
+          "velocity_error": 0.32216233207373346,
+          "vorticity_error": 1.3111391983531675
+        }
+      }
+    },
+    {
+      "frame": 10,
+      "time": 50.0,
+      "methods": {
+        "gt": {
+          "velocity_error": 0.0,
+          "vorticity_error": 0.0
+        },
+        "potential": {
+          "velocity_error": 0.07596612818065909,
+          "vorticity_error": 0.6211582854824563
+        },
+        "vorticity": {
+          "velocity_error": 0.07617523980854535,
+          "vorticity_error": 0.6319244675102352
+        },
+        "velocity": {
+          "velocity_error": 0.0767591727191689,
+          "vorticity_error": 0.6259847629558826
+        },
+        "fd_laplacian": {
+          "velocity_error": 0.33475069924411144,
+          "vorticity_error": 1.4115933298082346
+        }
+      }
+    },
+    {
+      "frame": 11,
+      "time": 55.0,
+      "methods": {
+        "gt": {
+          "velocity_error": 0.0,
+          "vorticity_error": 0.0
+        },
+        "potential": {
+          "velocity_error": 0.07446406857512781,
+          "vorticity_error": 0.7686782352247422
+        },
+        "vorticity": {
+          "velocity_error": 0.07520831592445179,
+          "vorticity_error": 0.8074847438248929
+        },
+        "velocity": {
+          "velocity_error": 0.0754521295290748,
+          "vorticity_error": 0.7790764315732884
+        },
+        "fd_laplacian": {
+          "velocity_error": 0.3437676526640373,
+          "vorticity_error": 1.484298858499042
+        }
+      }
+    },
+    {
+      "frame": 12,
+      "time": 60.0,
+      "methods": {
+        "gt": {
+          "velocity_error": 0.0,
+          "vorticity_error": 0.0
+        },
+        "potential": {
+          "velocity_error": 0.07590445846003555,
+          "vorticity_error": 0.6643558815253822
+        },
+        "vorticity": {
+          "velocity_error": 0.07654094339378167,
+          "vorticity_error": 0.6579764378973182
+        },
+        "velocity": {
+          "velocity_error": 0.07667019771559318,
+          "vorticity_error": 0.6562199146023886
+        },
+        "fd_laplacian": {
+          "velocity_error": 0.3560953566218758,
+          "vorticity_error": 1.5479066003859525
+        }
+      }
+    },
+    {
+      "frame": 13,
+      "time": 65.0,
+      "methods": {
+        "gt": {
+          "velocity_error": 0.0,
+          "vorticity_error": 0.0
+        },
+        "potential": {
+          "velocity_error": 0.07121028077837162,
+          "vorticity_error": 0.6985768412491542
+        },
+        "vorticity": {
+          "velocity_error": 0.0718412269678736,
+          "vorticity_error": 0.6828242124027578
+        },
+        "velocity": {
+          "velocity_error": 0.07302150352923245,
+          "vorticity_error": 0.7089638307077036
+        },
+        "fd_laplacian": {
+          "velocity_error": 0.38339536471122343,
+          "vorticity_error": 1.6240028577086782
+        }
+      }
+    },
+    {
+      "frame": 14,
+      "time": 70.0,
+      "methods": {
+        "gt": {
+          "velocity_error": 0.0,
+          "vorticity_error": 0.0
+        },
+        "potential": {
+          "velocity_error": 0.07097843477324849,
+          "vorticity_error": 0.5664024518808378
+        },
+        "vorticity": {
+          "velocity_error": 0.07189989972966851,
+          "vorticity_error": 0.5881366439337756
+        },
+        "velocity": {
+          "velocity_error": 0.07319893450749351,
+          "vorticity_error": 0.5823893657165178
+        },
+        "fd_laplacian": {
+          "velocity_error": 0.4172137682580103,
+          "vorticity_error": 1.7178008982238893
+        }
+      }
+    },
+    {
+      "frame": 15,
+      "time": 75.0,
+      "methods": {
+        "gt": {
+          "velocity_error": 0.0,
+          "vorticity_error": 0.0
+        },
+        "potential": {
+          "velocity_error": 0.07074626236647366,
+          "vorticity_error": 0.5290499332149519
+        },
+        "vorticity": {
+          "velocity_error": 0.07189857717530035,
+          "vorticity_error": 0.5517010145684368
+        },
+        "velocity": {
+          "velocity_error": 0.07310385501112036,
+          "vorticity_error": 0.5494553057322813
+        },
+        "fd_laplacian": {
+          "velocity_error": 0.44956969521183093,
+          "vorticity_error": 1.7393977639261324
+        }
+      }
+    },
+    {
+      "frame": 16,
+      "time": 80.0,
+      "methods": {
+        "gt": {
+          "velocity_error": 0.0,
+          "vorticity_error": 0.0
+        },
+        "potential": {
+          "velocity_error": 0.07149737863995656,
+          "vorticity_error": 0.5032753223056878
+        },
+        "vorticity": {
+          "velocity_error": 0.07330759107398846,
+          "vorticity_error": 0.534291328018002
+        },
+        "velocity": {
+          "velocity_error": 0.0734855860772172,
+          "vorticity_error": 0.5206325582742444
+        },
+        "fd_laplacian": {
+          "velocity_error": 0.47366816695587977,
+          "vorticity_error": 1.7458834611959613
+        }
+      }
+    },
+    {
+      "frame": 17,
+      "time": 85.0,
+      "methods": {
+        "gt": {
+          "velocity_error": 0.0,
+          "vorticity_error": 0.0
+        },
+        "potential": {
+          "velocity_error": 0.07258417967429365,
+          "vorticity_error": 0.4762289739692009
+        },
+        "vorticity": {
+          "velocity_error": 0.07476703746702326,
+          "vorticity_error": 0.5072900642022862
+        },
+        "velocity": {
+          "velocity_error": 0.0740876833804019,
+          "vorticity_error": 0.4944661225667982
+        },
+        "fd_laplacian": {
+          "velocity_error": 0.49623457511123154,
+          "vorticity_error": 1.7814016672468815
+        }
+      }
+    },
+    {
+      "frame": 18,
+      "time": 90.0,
+      "methods": {
+        "gt": {
+          "velocity_error": 0.0,
+          "vorticity_error": 0.0
+        },
+        "potential": {
+          "velocity_error": 0.06960946250224598,
+          "vorticity_error": 0.4842664304976866
+        },
+        "vorticity": {
+          "velocity_error": 0.0710025906529339,
+          "vorticity_error": 0.5140511464964792
+        },
+        "velocity": {
+          "velocity_error": 0.07051435249130578,
+          "vorticity_error": 0.48730470534389575
+        },
+        "fd_laplacian": {
+          "velocity_error": 0.510358572656136,
+          "vorticity_error": 1.8014554143563017
+        }
+      }
+    },
+    {
+      "frame": 19,
+      "time": 95.0,
+      "methods": {
+        "gt": {
+          "velocity_error": 0.0,
+          "vorticity_error": 0.0
+        },
+        "potential": {
+          "velocity_error": 0.07122473254485923,
+          "vorticity_error": 0.4708491936121935
+        },
+        "vorticity": {
+          "velocity_error": 0.07127940256898886,
+          "vorticity_error": 0.49279883487457676
+        },
+        "velocity": {
+          "velocity_error": 0.0715036439912196,
+          "vorticity_error": 0.47543944743546734
+        },
+        "fd_laplacian": {
+          "velocity_error": 0.5167120801557479,
+          "vorticity_error": 1.8201350265909668
+        }
+      }
+    },
+    {
+      "frame": 20,
+      "time": 100.0,
+      "methods": {
+        "gt": {
+          "velocity_error": 0.0,
+          "vorticity_error": 0.0
+        },
+        "potential": {
+          "velocity_error": 0.07027615547247998,
+          "vorticity_error": 0.4654350871614513
+        },
+        "vorticity": {
+          "velocity_error": 0.07058959492637076,
+          "vorticity_error": 0.4754091525404764
+        },
+        "velocity": {
+          "velocity_error": 0.07003194154125085,
+          "vorticity_error": 0.4648910807848746
+        },
+        "fd_laplacian": {
+          "velocity_error": 0.5256540352588998,
+          "vorticity_error": 1.868835745556492
+        }
+      }
+    },
+    {
+      "frame": 21,
+      "time": 105.0,
+      "methods": {
+        "gt": {
+          "velocity_error": 0.0,
+          "vorticity_error": 0.0
+        },
+        "potential": {
+          "velocity_error": 0.07298115001533528,
+          "vorticity_error": 0.46485540124183256
+        },
+        "vorticity": {
+          "velocity_error": 0.07502278935718408,
+          "vorticity_error": 0.4789693286881824
+        },
+        "velocity": {
+          "velocity_error": 0.0723849062195833,
+          "vorticity_error": 0.46449459580041924
+        },
+        "fd_laplacian": {
+          "velocity_error": 0.5392458970463504,
+          "vorticity_error": 1.9213304505419206
+        }
+      }
+    },
+    {
+      "frame": 22,
+      "time": 110.0,
+      "methods": {
+        "gt": {
+          "velocity_error": 0.0,
+          "vorticity_error": 0.0
+        },
+        "potential": {
+          "velocity_error": 0.07479246512063463,
+          "vorticity_error": 0.4652333241215598
+        },
+        "vorticity": {
+          "velocity_error": 0.076839901737966,
+          "vorticity_error": 0.48399185245926385
+        },
+        "velocity": {
+          "velocity_error": 0.07358084046396866,
+          "vorticity_error": 0.45873936273425914
+        },
+        "fd_laplacian": {
+          "velocity_error": 0.5609728044601014,
+          "vorticity_error": 2.0257150976660645
+        }
+      }
+    },
+    {
+      "frame": 23,
+      "time": 115.0,
+      "methods": {
+        "gt": {
+          "velocity_error": 0.0,
+          "vorticity_error": 0.0
+        },
+        "potential": {
+          "velocity_error": 0.0730795369840838,
+          "vorticity_error": 0.4596199160667092
+        },
+        "vorticity": {
+          "velocity_error": 0.07311915236844173,
+          "vorticity_error": 0.47281239847114903
+        },
+        "velocity": {
+          "velocity_error": 0.07117927094769912,
+          "vorticity_error": 0.452249644103108
+        },
+        "fd_laplacian": {
+          "velocity_error": 0.6073014023675666,
+          "vorticity_error": 2.1097477967697866
+        }
+      }
+    },
+    {
+      "frame": 24,
+      "time": 120.0,
+      "methods": {
+        "gt": {
+          "velocity_error": 0.0,
+          "vorticity_error": 0.0
+        },
+        "potential": {
+          "velocity_error": 0.07556652898190598,
+          "vorticity_error": 0.45772829358375333
+        },
+        "vorticity": {
+          "velocity_error": 0.07404119907345022,
+          "vorticity_error": 0.4658273465352074
+        },
+        "velocity": {
+          "velocity_error": 0.07330436769652532,
+          "vorticity_error": 0.45222138517377336
+        },
+        "fd_laplacian": {
+          "velocity_error": 0.6739680630876651,
+          "vorticity_error": 2.299804805901344
+        }
+      }
+    },
+    {
+      "frame": 25,
+      "time": 125.0,
+      "methods": {
+        "gt": {
+          "velocity_error": 0.0,
+          "vorticity_error": 0.0
+        },
+        "potential": {
+          "velocity_error": 0.0716889451443912,
+          "vorticity_error": 0.451148963671159
+        },
+        "vorticity": {
+          "velocity_error": 0.06872607987822356,
+          "vorticity_error": 0.45129453210047504
+        },
+        "velocity": {
+          "velocity_error": 0.0683455028058237,
+          "vorticity_error": 0.44975132689646435
+        },
+        "fd_laplacian": {
+          "velocity_error": 0.7373658577215023,
+          "vorticity_error": 2.8297326696036693
+        }
+      }
+    },
+    {
+      "frame": 26,
+      "time": 130.0,
+      "methods": {
+        "gt": {
+          "velocity_error": 0.0,
+          "vorticity_error": 0.0
+        },
+        "potential": {
+          "velocity_error": 0.07267360935783242,
+          "vorticity_error": 0.46593367198063124
+        },
+        "vorticity": {
+          "velocity_error": 0.06940237843988761,
+          "vorticity_error": 0.45653970358812007
+        },
+        "velocity": {
+          "velocity_error": 0.06938390783065783,
+          "vorticity_error": 0.458664940559059
+        },
+        "fd_laplacian": {
+          "velocity_error": 0.8294065978112699,
+          "vorticity_error": 3.7318099029210274
+        }
+      }
+    },
+    {
+      "frame": 27,
+      "time": 135.0,
+      "methods": {
+        "gt": {
+          "velocity_error": 0.0,
+          "vorticity_error": 0.0
+        },
+        "potential": {
+          "velocity_error": 0.07882011344271533,
+          "vorticity_error": 0.48506773518881513
+        },
+        "vorticity": {
+          "velocity_error": 0.07491897194067997,
+          "vorticity_error": 0.47579891934159224
+        },
+        "velocity": {
+          "velocity_error": 0.0757342376801938,
+          "vorticity_error": 0.46963979832593233
+        },
+        "fd_laplacian": {
+          "velocity_error": 0.9220332874138261,
+          "vorticity_error": 3.7600348949791655
+        }
+      }
+    },
+    {
+      "frame": 28,
+      "time": 140.0,
+      "methods": {
+        "gt": {
+          "velocity_error": 0.0,
+          "vorticity_error": 0.0
+        },
+        "potential": {
+          "velocity_error": 0.07828132709889678,
+          "vorticity_error": 0.49331838490298463
+        },
+        "vorticity": {
+          "velocity_error": 0.07333744323974933,
+          "vorticity_error": 0.4706198745678006
+        },
+        "velocity": {
+          "velocity_error": 0.07510216429191689,
+          "vorticity_error": 0.47446331346996456
+        },
+        "fd_laplacian": {
+          "velocity_error": 0.9488741500806692,
+          "vorticity_error": 3.6979093268488206
+        }
+      }
+    },
+    {
+      "frame": 29,
+      "time": 145.0,
+      "methods": {
+        "gt": {
+          "velocity_error": 0.0,
+          "vorticity_error": 0.0
+        },
+        "potential": {
+          "velocity_error": 0.08241302884098871,
+          "vorticity_error": 0.4943979703093636
+        },
+        "vorticity": {
+          "velocity_error": 0.07606871662061784,
+          "vorticity_error": 0.4873890543705036
+        },
+        "velocity": {
+          "velocity_error": 0.07886056657992876,
+          "vorticity_error": 0.47840150316150337
+        },
+        "fd_laplacian": {
+          "velocity_error": 0.9695576385892398,
+          "vorticity_error": 3.7449546125436117
+        }
+      }
+    },
+    {
+      "frame": 30,
+      "time": 150.0,
+      "methods": {
+        "gt": {
+          "velocity_error": 0.0,
+          "vorticity_error": 0.0
+        },
+        "potential": {
+          "velocity_error": 0.08044482186400408,
+          "vorticity_error": 0.4976994678738289
+        },
+        "vorticity": {
+          "velocity_error": 0.07314006530675517,
+          "vorticity_error": 0.4636354249719487
+        },
+        "velocity": {
+          "velocity_error": 0.07576661533574934,
+          "vorticity_error": 0.4684163718827759
+        },
+        "fd_laplacian": {
+          "velocity_error": 1.0607082940064885,
+          "vorticity_error": 3.9261271534703455
+        }
+      }
+    }
+  ],
+  "outputs": {
+    "mp4": "C:\\Users\\admin\\Desktop\\Eigenbasis\\_gitworktrees\\square-jet3-ablation\\BasisNet\\cases\\2D_airfoil\\results\\airfoil_strict_velocity_vorticity_k2048_e2000_seed20260823_stable_mgs_v2\\strict_temporal_rollout_k2048_vorticity_init_up\\preview_up\\airfoil_up_gt_potential_vorticity_velocity_fd_k2048.mp4",
+    "mp4_sha256": "597c279d5f713c0f9695a3cf597f135978c7b6476416fac8b78d0700081e52d8",
+    "preview_png": "C:\\Users\\admin\\Desktop\\Eigenbasis\\_gitworktrees\\square-jet3-ablation\\BasisNet\\cases\\2D_airfoil\\results\\airfoil_strict_velocity_vorticity_k2048_e2000_seed20260823_stable_mgs_v2\\strict_temporal_rollout_k2048_vorticity_init_up\\preview_up\\airfoil_up_five_method_preview.png",
+    "preview_pdf": "C:\\Users\\admin\\Desktop\\Eigenbasis\\_gitworktrees\\square-jet3-ablation\\BasisNet\\cases\\2D_airfoil\\results\\airfoil_strict_velocity_vorticity_k2048_e2000_seed20260823_stable_mgs_v2\\strict_temporal_rollout_k2048_vorticity_init_up\\preview_up\\airfoil_up_five_method_preview.pdf",
+    "frames": "C:\\Users\\admin\\Desktop\\Eigenbasis\\_gitworktrees\\square-jet3-ablation\\BasisNet\\cases\\2D_airfoil\\results\\airfoil_strict_velocity_vorticity_k2048_e2000_seed20260823_stable_mgs_v2\\strict_temporal_rollout_k2048_vorticity_init_up\\preview_up\\frames"
+  },
+  "encoding_command": [
+    "C:\\Users\\admin\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\site-packages\\imageio_ffmpeg\\binaries\\ffmpeg-win-x86_64-v7.1.exe",
+    "-y",
+    "-framerate",
+    "10.0",
+    "-i",
+    "C:\\Users\\admin\\Desktop\\Eigenbasis\\_gitworktrees\\square-jet3-ablation\\BasisNet\\cases\\2D_airfoil\\results\\airfoil_strict_velocity_vorticity_k2048_e2000_seed20260823_stable_mgs_v2\\strict_temporal_rollout_k2048_vorticity_init_up\\preview_up\\frames\\frame_%03d.png",
+    "-vf",
+    "fps=10,format=yuv420p",
+    "-c:v",
+    "libx264",
+    "-preset",
+    "slow",
+    "-crf",
+    "16",
+    "-pix_fmt",
+    "yuv420p",
+    "-movflags",
+    "+faststart",
+    "-color_primaries",
+    "bt709",
+    "-color_trc",
+    "bt709",
+    "-colorspace",
+    "bt709",
+    "C:\\Users\\admin\\Desktop\\Eigenbasis\\_gitworktrees\\square-jet3-ablation\\BasisNet\\cases\\2D_airfoil\\results\\airfoil_strict_velocity_vorticity_k2048_e2000_seed20260823_stable_mgs_v2\\strict_temporal_rollout_k2048_vorticity_init_up\\preview_up\\airfoil_up_gt_potential_vorticity_velocity_fd_k2048.mp4"
+  ],
+  "ffmpeg_stderr_tail": "rees\\square-jet3-ablation\\BasisNet\\cases\\2D_airfoil\\results\\airfoil_strict_velocity_vorticity_k2048_e2000_seed20260823_stable_mgs_v2\\strict_temporal_rollout_k2048_vorticity_init_up\\preview_up\\frames\\frame_%03d.png':\n  Duration: 00:00:03.10, start: 0.000000, bitrate: N/A\n  Stream #0:0: Video: png, rgba(pc, gbr/unknown/unknown), 2560x1080 [SAR 6299:6299 DAR 64:27], 10 fps, 10 tbr, 10 tbn\nStream mapping:\n  Stream #0:0 -> #0:0 (png (native) -> h264 (libx264))\nPress [q] to stop, [?] for help\n[libx264 @ 000001fbd2cd1ec0] using SAR=1/1\n[libx264 @ 000001fbd2cd1ec0] using cpu capabilities: MMX2 SSE2Fast SSSE3 SSE4.2 AVX FMA3 BMI2 AVX2\n[libx264 @ 000001fbd2cd1ec0] profile High, level 5.0, 4:2:0, 8-bit\n[libx264 @ 000001fbd2cd1ec0] 264 - core 164 r3192 c24e06c - H.264/MPEG-4 AVC codec - Copyleft 2003-2024 - http://www.videolan.org/x264.html - options: cabac=1 ref=5 deblock=1:0:0 analyse=0x3:0x113 me=hex subme=8 psy=1 psy_rd=1.00:0.00 mixed_ref=1 me_range=16 chroma_me=1 trellis=2 8x8dct=1 cqm=0 deadzone=21,11 fast_pskip=1 chroma_qp_offset=-2 threads=34 lookahead_threads=5 sliced_threads=0 nr=0 decimate=1 interlaced=0 bluray_compat=0 constrained_intra=0 bframes=3 b_pyramid=2 b_adapt=1 b_bias=0 direct=3 weightb=1 open_gop=0 weightp=2 keyint=250 keyint_min=10 scenecut=40 intra_refresh=0 rc_lookahead=50 rc=crf mbtree=1 crf=16.0 qcomp=0.60 qpmin=0 qpmax=69 qpstep=4 ip_ratio=1.40 aq=1:1.00\nOutput #0, mp4, to 'C:\\Users\\admin\\Desktop\\Eigenbasis\\_gitworktrees\\square-jet3-ablation\\BasisNet\\cases\\2D_airfoil\\results\\airfoil_strict_velocity_vorticity_k2048_e2000_seed20260823_stable_mgs_v2\\strict_temporal_rollout_k2048_vorticity_init_up\\preview_up\\airfoil_up_gt_potential_vorticity_velocity_fd_k2048.mp4':\n  Metadata:\n    encoder         : Lavf61.7.100\n  Stream #0:0: Video: h264 (avc1 / 0x31637661), yuv420p(tv, bt709/unknown/unknown, progressive), 2560x1080 [SAR 1:1 DAR 64:27], q=2-31, 10 fps, 10240 tbn\n      Metadata:\n        encoder         : Lavc61.19.100 libx264\n      Side data:\n        cpb: bitrate max/min/avg: 0/0/0 buffer size: 0 vbv_delay: N/A\nframe=    0 fps=0.0 q=0.0 size=       0KiB time=N/A bitrate=N/A speed=N/A    \nframe=   10 fps=9.6 q=-1.0 size=     768KiB time=00:00:00.80 bitrate=7864.8kbits/s speed=0.771x    \n[mp4 @ 000001fbd2cd9ac0] Starting second pass: moving the moov atom to the beginning of the file\n[out#0/mp4 @ 000001fbd2cd99c0] video:2306KiB audio:0KiB subtitle:0KiB other streams:0KiB global headers:0KiB muxing overhead: 0.054429%\nframe=   31 fps= 24 q=-1.0 Lsize=    2307KiB time=00:00:02.90 bitrate=6516.3kbits/s speed=2.21x    \n[libx264 @ 000001fbd2cd1ec0] frame I:1     Avg QP: 7.51  size:106124\n[libx264 @ 000001fbd2cd1ec0] frame P:8     Avg QP:14.20  size: 85404\n[libx264 @ 000001fbd2cd1ec0] frame B:22    Avg QP:15.77  size: 71402\n[libx264 @ 000001fbd2cd1ec0] consecutive B-frames:  3.2%  6.5%  0.0% 90.3%\n[libx264 @ 000001fbd2cd1ec0] mb I  I16..4: 47.6% 35.7% 16.7%\n[libx264 @ 000001fbd2cd1ec0] mb P  I16..4:  2.6% 24.3%  4.1%  P16..4: 10.5%  8.8%  4.9%  0.0%  0.0%    skip:44.7%\n[libx264 @ 000001fbd2cd1ec0] mb B  I16..4:  0.8% 10.3%  2.0%  B16..8: 15.7% 16.2%  5.6%  direct: 3.1%  skip:46.2%  L0:48.7% L1:37.2% BI:14.2%\n[libx264 @ 000001fbd2cd1ec0] 8x8 transform intra:71.6% inter:64.0%\n[libx264 @ 000001fbd2cd1ec0] direct mvs  spatial:31.8% temporal:68.2%\n[libx264 @ 000001fbd2cd1ec0] coded y,uvDC,uvAC intra: 72.4% 68.8% 55.3% inter: 25.4% 13.5% 5.0%\n[libx264 @ 000001fbd2cd1ec0] i16 v,h,dc,p: 67% 25%  3%  6%\n[libx264 @ 000001fbd2cd1ec0] i8 v,h,dc,ddl,ddr,vr,hd,vl,hu:  9% 25% 18%  6%  7%  5% 11%  6% 12%\n[libx264 @ 000001fbd2cd1ec0] i4 v,h,dc,ddl,ddr,vr,hd,vl,hu: 16% 21% 11%  6% 12%  8% 12%  6%  9%\n[libx264 @ 000001fbd2cd1ec0] i8c dc,h,v,p: 52% 30% 13%  6%\n[libx264 @ 000001fbd2cd1ec0] Weighted P-Frames: Y:0.0% UV:0.0%\n[libx264 @ 000001fbd2cd1ec0] ref P L0: 49.6%  6.5% 22.0% 11.2% 10.7%\n[libx264 @ 000001fbd2cd1ec0] ref B L0: 64.8% 19.5% 13.8%  1.9%\n[libx264 @ 000001fbd2cd1ec0] ref B L1: 91.1%  8.9%\n[libx264 @ 000001fbd2cd1ec0] kb/s:6090.81\n",
+  "timings": {
+    "render_seconds": 31.852409800048918,
+    "encode_seconds": 2.6993525000289083,
+    "total_seconds": 39.56528380000964
+  }
+}

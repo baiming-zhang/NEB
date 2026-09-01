@@ -1,0 +1,221 @@
+{
+  "complete": true,
+  "method": "vorticity",
+  "modes": 2048,
+  "initial_frame": 0,
+  "predicted_frames": [
+    1,
+    30
+  ],
+  "initial_projection_relative_l2": 0.24968142807483673,
+  "basis_field_diagnostics": {
+    "psi": {
+      "seconds": 227.32064839988016,
+      "active_nodes": 198743,
+      "modes": 2048,
+      "rayleigh_observable": "vorticity",
+      "pre_ritz_transform": "archived peeling transform",
+      "observable": "streamfunction value only; all derivatives use the shared mimetic complex",
+      "workspace": "C:\\Users\\admin\\Desktop\\Eigenbasis\\_gitworktrees\\square-jet3-ablation\\BasisNet\\cases\\2D_airfoil\\results\\airfoil_strict_velocity_vorticity_k2048_e2000_seed20260823_stable_mgs_v2\\strict_temporal_rollout_k2048\\vorticity\\down\\vorticity_psi_active.tmp.f32"
+    },
+    "mimetic_chain": {
+      "seconds": 26.379746599821374,
+      "modes": 2048,
+      "chain": "psi -> oriented edge gradient -> rotated edge velocity -> nodal collocation; omega=(Gx.T Gx+Gy.T Gy)psi",
+      "weak_curl_max_abs_fp64": 2.7604585284279892e-12,
+      "weak_curl_relative_max_abs_fp64": 5.894858284793403e-14,
+      "rotated_gradient_divergence_max_abs_fp64": 1.0276224315930449e-12,
+      "rotated_gradient_divergence_scaled_max_abs_fp64": 2.530298486669139e-14
+    },
+    "outlet_trace": {
+      "seconds": 2.351800699951127,
+      "edge_midpoints": 400,
+      "tangential_fluctuation_trace": "exactly zero from natural d_x psi outlet trace",
+      "maximum_absolute_integrated_normal_mode_flux": 5.774199962615967e-08,
+      "ritz_maximum_absolute_integrated_normal_mode_flux": 3.5082921385765076e-06
+    },
+    "checkpoint": "C:\\Users\\admin\\Desktop\\Eigenbasis\\_gitworktrees\\square-jet3-ablation\\BasisNet\\cases\\2D_airfoil\\results\\airfoil_strict_velocity_vorticity_k2048_e2000_seed20260823_stable_mgs_v2\\arms\\seed_20260823\\vorticity\\run_001\\checkpoints\\hardcoded_sss_frozen.npz",
+    "checkpoint_epoch": 2000,
+    "rayleigh_definition": "||grad(F_k)||_h^2 / ||F_k||_h^2",
+    "rayleigh_observable": "omega_k",
+    "seconds": 253.70039499970153
+  },
+  "ritz_diagnostics": {
+    "rank": 2048,
+    "mass_orthogonality_max_abs_fp32": 4.5299530029296875e-06,
+    "ritz_eigenvalue_min": 0.6651197491108332,
+    "ritz_eigenvalue_max": 1218.8933542202487,
+    "seconds": 7.966183700133115,
+    "mass_orthogonality_pre_refinement_max_abs_fp32": 0.01699531078338623,
+    "fp64_whitening_trigger": 0.005,
+    "fp64_whitening_target": 0.0005,
+    "fp64_whitening_iterations": 1,
+    "fp64_whitening_applied": true,
+    "fp64_whitening_mass_condition_numbers": [
+      1.0997251998040534
+    ],
+    "fp64_whitening_coefficient_mass_max_abs": 5.2299828636429345e-15,
+    "fp64_whitening_coefficient_stiffness_offdiag_max_abs": 1.4184400182193357e-12,
+    "mass_orthogonality_post_refinement_max_abs_fp32": 4.5299530029296875e-06
+  },
+  "rollout_diagnostics": {
+    "integrator": "implicit trapezoidal Newton-GMRES with Strang-split exact viscous decay",
+    "frames": 30,
+    "substeps_per_frame": 10,
+    "output_dt": 4.999999888241291,
+    "internal_dt": 0.4999999888241291,
+    "newton_iterations": 300,
+    "gmres_iterations": 300,
+    "adaptive_step_splits": 0,
+    "seconds": 137.2779351999052,
+    "per_frame_seconds": [
+      4.686768400017172,
+      4.619565699947998,
+      4.6240554000250995,
+      4.626954499864951,
+      4.602749800076708,
+      4.563963899854571,
+      4.5624079999979585,
+      4.564054599963129,
+      4.563807100057602,
+      4.563342700013891,
+      4.562376799993217,
+      4.560791499912739,
+      4.5606645999941975,
+      4.559602299937978,
+      4.559557799948379,
+      4.559898599982262,
+      4.561812500003725,
+      4.563965299865231,
+      4.561336500104517,
+      4.562336900038645,
+      4.564047400141135,
+      4.561916000209749,
+      4.563097100006416,
+      4.562723699957132,
+      4.56140510016121,
+      4.561314200051129,
+      4.561910799937323,
+      4.562599599827081,
+      4.565257600042969,
+      4.562268299981952
+    ],
+    "initial_coefficient_norm": 0.006010435521602631,
+    "final_coefficient_norm": 0.010808280669152737,
+    "base_flow": {
+      "closure": "frozen-base-subtracted",
+      "resolved_base_rhs_norm": 0.0006992152193561196,
+      "resolved_volume_base_rhs_norm": 0.001706411479972303,
+      "resolved_outlet_base_rhs_norm": 0.0015688741113990545,
+      "constant_closure_rhs_norm": 0.0006992152193561196,
+      "corrected_rhs_at_zero_norm": 0.0,
+      "seconds": 0.03640259988605976,
+      "interpretation": "calibrated F(a)-F(0); GT has no pressure archive, so this is not a recovered pressure boundary condition"
+    },
+    "energy_budget_seconds": 1.1332114995457232
+  },
+  "reconstruction_diagnostics": {
+    "seconds": 0.1129240000154823,
+    "representation": "the same native active-node Ritz basis used by the ROM"
+  },
+  "aggregate_errors": {
+    "velocity_error": {
+      "mean": 0.017143918484922693,
+      "p95": 0.024813345025342038,
+      "max": 0.027259143922523727,
+      "final": 0.027259143922523727
+    },
+    "vorticity_error": {
+      "mean": 0.22457110848134948,
+      "p95": 0.2867166688702053,
+      "max": 0.31691192563141357,
+      "final": 0.31691192563141357
+    },
+    "wake_velocity_error": {
+      "mean": 0.03614851442537517,
+      "p95": 0.0536414972889024,
+      "max": 0.05994139291666571,
+      "final": 0.05994139291666571
+    },
+    "wake_vorticity_error": {
+      "mean": 0.34940604993530233,
+      "p95": 0.4905613435826404,
+      "max": 0.5567816904185608,
+      "final": 0.5567816904185608
+    },
+    "fluctuation_velocity_error": {
+      "mean": 1.0954696477613095,
+      "p95": 1.6995808317704233,
+      "max": 1.741082846390561,
+      "final": 1.6974096995509176
+    },
+    "fluctuation_vorticity_error": {
+      "mean": 1.2507866422195615,
+      "p95": 1.5698776653598006,
+      "max": 1.5855657411917654,
+      "final": 1.5534606858792914
+    },
+    "wake_fluctuation_velocity_error": {
+      "mean": 1.070598228591984,
+      "p95": 1.6965894639373196,
+      "max": 1.7488989650357567,
+      "final": 1.6732058953284459
+    },
+    "wake_fluctuation_vorticity_error": {
+      "mean": 1.2603611344373278,
+      "p95": 1.7446804906466988,
+      "max": 1.813978875277441,
+      "final": 1.6572630982115648
+    }
+  },
+  "timings": {
+    "initial_projection_seconds": 0.011964499950408936,
+    "metric_computation_seconds": 0.25993070006370544,
+    "psi_generation_or_load_seconds": 227.32064839988016,
+    "fields_from_psi_seconds": 26.379746599821374,
+    "outlet_trace_seconds": 2.351800699951127,
+    "ritz_seconds": 7.966183700133115,
+    "base_rhs_and_correction_seconds": 0.03640259988605976,
+    "coefficient_rollout_seconds": 137.2779351999052,
+    "coefficient_rollout_per_frame_seconds": [
+      4.686768400017172,
+      4.619565699947998,
+      4.6240554000250995,
+      4.626954499864951,
+      4.602749800076708,
+      4.563963899854571,
+      4.5624079999979585,
+      4.564054599963129,
+      4.563807100057602,
+      4.563342700013891,
+      4.562376799993217,
+      4.560791499912739,
+      4.5606645999941975,
+      4.559602299937978,
+      4.559557799948379,
+      4.559898599982262,
+      4.561812500003725,
+      4.563965299865231,
+      4.561336500104517,
+      4.562336900038645,
+      4.564047400141135,
+      4.561916000209749,
+      4.563097100006416,
+      4.562723699957132,
+      4.56140510016121,
+      4.561314200051129,
+      4.561910799937323,
+      4.562599599827081,
+      4.565257600042969,
+      4.562268299981952
+    ],
+    "energy_budget_seconds": 1.1332114995457232,
+    "reconstruction_seconds": 0.1129240000154823,
+    "serialization_seconds": 9.210875899996608,
+    "total_method_seconds": 411.87045839987695
+  },
+  "metrics_csv": "C:\\Users\\admin\\Desktop\\Eigenbasis\\_gitworktrees\\square-jet3-ablation\\BasisNet\\cases\\2D_airfoil\\results\\airfoil_strict_velocity_vorticity_k2048_e2000_seed20260823_stable_mgs_v2\\strict_temporal_rollout_k2048\\vorticity\\down\\vorticity_temporal_metrics.csv",
+  "energy_budget_csv": "C:\\Users\\admin\\Desktop\\Eigenbasis\\_gitworktrees\\square-jet3-ablation\\BasisNet\\cases\\2D_airfoil\\results\\airfoil_strict_velocity_vorticity_k2048_e2000_seed20260823_stable_mgs_v2\\strict_temporal_rollout_k2048\\vorticity\\down\\vorticity_energy_budget_by_frame.csv",
+  "fields": "C:\\Users\\admin\\Desktop\\Eigenbasis\\_gitworktrees\\square-jet3-ablation\\BasisNet\\cases\\2D_airfoil\\results\\airfoil_strict_velocity_vorticity_k2048_e2000_seed20260823_stable_mgs_v2\\strict_temporal_rollout_k2048\\vorticity\\down\\vorticity_rollout_fields_stride2.npz",
+  "total_seconds": 411.87045839987695
+}

@@ -1,0 +1,3 @@
+internal_dt,substeps_per_frame,velocity_mean,vorticity_mean,wake_velocity_mean,wake_vorticity_mean,fluct_velocity_mean,fluct_vorticity_mean,rollout_seconds
+0.5,10,0.0662142812,0.5820522712,0.1299866160,0.8896786507,0.9103599583,1.3037985973,138.4730468
+0.1,50,0.0664430000,0.5832450000,0.1305350000,0.8929020000,0.9134400000,1.3064310000,687.9197000

@@ -1,0 +1,39 @@
+{
+  "status": "complete",
+  "queued_at": "2026-09-01T01:28:14.448426+08:00",
+  "wait_pid": 25164,
+  "completed_tasks": [
+    {
+      "objective": "potential",
+      "completed_at": "2026-09-01T01:56:02.079475+08:00",
+      "summary": "C:\\Users\\admin\\Desktop\\Eigenbasis\\_gitworktrees\\square-jet3-ablation\\BasisNet\\cases\\2D_airfoil\\results\\airfoil_strict_velocity_vorticity_k2048_e2000_seed20260823_stable_mgs_v2\\strict_temporal_rollout_k2048_mu0_up\\potential_fd\\up\\comparison_summary.json"
+    },
+    {
+      "objective": "velocity",
+      "completed_at": "2026-09-01T02:02:12.566252+08:00",
+      "summary": "C:\\Users\\admin\\Desktop\\Eigenbasis\\_gitworktrees\\square-jet3-ablation\\BasisNet\\cases\\2D_airfoil\\results\\airfoil_strict_velocity_vorticity_k2048_e2000_seed20260823_stable_mgs_v2\\strict_temporal_rollout_k2048_mu0_up\\velocity\\up\\comparison_summary.json"
+    },
+    {
+      "objective": "vorticity",
+      "completed_at": "2026-09-01T02:10:45.227049+08:00",
+      "summary": "C:\\Users\\admin\\Desktop\\Eigenbasis\\_gitworktrees\\square-jet3-ablation\\BasisNet\\cases\\2D_airfoil\\results\\airfoil_strict_velocity_vorticity_k2048_e2000_seed20260823_stable_mgs_v2\\strict_temporal_rollout_k2048_mu0_up\\vorticity\\up\\comparison_summary.json"
+    }
+  ],
+  "total_tasks": 3,
+  "protocol": {
+    "orientation": "up",
+    "modes": 2048,
+    "frames": 30,
+    "viscosity_scale": 0.0,
+    "diagnostic_only": true,
+    "all_other_rollout_settings_identical_to_physical_baseline": true
+  },
+  "started_at": "2026-09-01T01:46:14.494892+08:00",
+  "task_index": 3,
+  "objective": "vorticity",
+  "methods": [
+    "vorticity"
+  ],
+  "updated_at": "2026-09-01T02:02:12.567775+08:00",
+  "completed_at": "2026-09-01T02:10:45.228562+08:00"
+}
