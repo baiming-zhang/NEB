@@ -33,6 +33,14 @@ the same second-order curl and isovorticity level. Exact configurations,
 metrics, timings, figures, and hashes are available in
 [`../../results/3D_Metaball`](../../results/3D_Metaball/README.md).
 
+## K=2048 physical trajectory
+
+The [K=2048 NS/ROM driver bundle](k2048_joint_ns/README.md) contains the
+method-informed physical trajectory workflow, four frame-0 projections,
+implicit de Witt rollouts, and annotated 30-frame renderers. Compact data,
+metrics, figures, and videos are under
+[`../../results/3D_Metaball/k2048_joint_ns`](../../results/3D_Metaball/k2048_joint_ns/README.md).
+
 ## Verification
 
 ```bash

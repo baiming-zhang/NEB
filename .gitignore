@@ -42,5 +42,8 @@ checkpoints/
 
 # The K=2048 airfoil reference is tracked through Git LFS.
 
+# Compact K=2048 3D Metaball publication bundle.
+!results/3D_Metaball/k2048_joint_ns/**/*.mp4
+
 .DS_Store
 Thumbs.db

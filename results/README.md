@@ -7,6 +7,6 @@ for the latest Geometry-conditioned Eigenfluid Net (GEN) experiments.
 | --- | --- |
 | [2D Airfoil](2D_Airfoil/README.md) | K=2048 rollout metrics and PNG/PDF figures |
 | [2D Metaball](2D_Metaball/README.md) | K=1024 and K=2048 held-out reconstruction errors |
-| [3D Metaball](3D_Metaball/README.md) | five K=1024 configurations, metrics, and six-panel figure |
+| [3D Metaball](3D_Metaball/README.md) | K=1024 comparison and K=2048 30-frame NS/ROM publication bundle |
 
 Every bundle includes a SHA-256 manifest.

@@ -1,0 +1,8 @@
+{
+  "frame0_velocity_relative_l2": 0.009088256101120603,
+  "frame0_vorticity_relative_l2_common_fd_curl": 0.03602655136068839,
+  "predicted_frames_mean_velocity_relative_l2": 0.22923541460372693,
+  "predicted_frames_mean_vorticity_relative_l2_common_fd_curl": 0.47995204676978764,
+  "final_velocity_relative_l2": 0.4110554481043307,
+  "final_vorticity_relative_l2_common_fd_curl": 0.7277923027058827
+}

@@ -9,7 +9,7 @@ implementation modules, and tests for Geometry-conditioned Eigenfluid Net
 | [2D Airfoil](2D_Airfoil/README.md) | K=64--2048, analytic CUDA Jet1/Jet2/Jet3 | Re=1500 trajectories and matched FD Laplacian ROM | [30-frame K=2048 rollout](../results/2D_Airfoil/README.md) |
 | [2D Metaball](2D_Metaball/README.md) | K=64--2048, SIREN with causal MGS | unseen geometries and matched FD spectrum | [K=1024/K=2048 comparison](../results/2D_Metaball/README.md) |
 | [2D Square](2D_Square/README.md) | K=8/K=64, generic PyTorch GEN | exact unit-square Dirichlet spectrum | sine/ELU and SIREN/WIRE ablations |
-| [3D Metaball](3D_Metaball/README.md) | K=64 local workflow and K=1024 publication study | unseen connected three-sphere geometry | [five-method K=1024 comparison](../results/3D_Metaball/README.md) |
+| [3D Metaball](3D_Metaball/README.md) | K=64 local workflow; K=1024/K=2048 studies | reconstruction and physical NS/de Witt trajectories | [K=1024 and K=2048 results](../results/3D_Metaball/README.md) |
 
 ## Verification
 

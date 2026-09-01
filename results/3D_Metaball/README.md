@@ -1,7 +1,10 @@
 # 3D Metaball
 
-This bundle contains the K=1024 reconstruction comparison for a rounded cube
-with three connected spheres.
+This directory contains reconstruction comparisons for a rounded cube with
+three connected spheres. The original K=1024 publication files remain at
+this level. The [K=2048 NS/ROM bundle](k2048_joint_ns/README.md) adds a
+30-frame physical trajectory, four reduced rollouts, reusable state, and
+publication-ready videos and figures.
 
 ## Common protocol
 
@@ -27,3 +30,5 @@ differ only in the Rayleigh objective and analytic derivative order.
 - `figures/k1024_gt_plus_five_methods_3d.png`: GT and five methods at a common
   absolute isovorticity level.
 - `MANIFEST.sha256`: bundle integrity hashes.
+- `k2048_joint_ns/`: K=2048 method-informed physical NS trajectory and four
+  de Witt ROM rollouts.
