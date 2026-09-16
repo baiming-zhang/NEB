@@ -1,0 +1,16 @@
+{
+  "coarse": {
+    "grid": 64,
+    "dt": 0.01
+  },
+  "fine": {
+    "grid": 128,
+    "dt": 0.005
+  },
+  "max_abs_difference": {
+    "u": 4.454214774796128e-12,
+    "v": 3.5217592730951708e-12,
+    "omega": 6.250755468784064e-11
+  },
+  "interpretation": "Remaining DNS discrepancy is spectral truncation, not the tested time/collocation resolution."
+}

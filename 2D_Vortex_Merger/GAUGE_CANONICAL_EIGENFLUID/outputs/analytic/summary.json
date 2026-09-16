@@ -1,0 +1,99 @@
+{
+  "theory": "C:\\Users\\admin\\Desktop\\Eigenbasis\\ICLR2027_Potential_Eigenfluids\\ICLR2027_Potential_Eigenfluids.tex",
+  "theory_sha256": "79e5098c2d0966c7fb9becea26476d00d94272944caf06d527d0664f545dd801",
+  "gt": "C:\\Users\\admin\\Desktop\\Eigenbasis\\EigenFluid-SSS\\2D_Vortex_Merger\\outputs\\gt_128_re350_l0p90_t6pi\\vortex_merger_gt.h5",
+  "gt_sha256": "3571fab887e0a0dc7c05d749e117811f368d7e7820087bf45898654743d15a1d",
+  "elapsed_seconds": 20.835529199801385,
+  "gauge": {
+    "analytic_mode": "sqrt(2)/(2*pi) * cos(x+2*y)",
+    "eigenvalue": 5.0,
+    "alpha": [
+      0.0,
+      0.1,
+      1.0,
+      10.0,
+      100.0,
+      1000.0
+    ],
+    "raw_rayleigh": [
+      4.999999999999998,
+      4.95049504950495,
+      2.4999999999999996,
+      0.0495049504950495,
+      0.0004999500049995001,
+      4.999995000004999e-06
+    ],
+    "canonical_rayleigh": [
+      4.999999999999998,
+      4.999999999999998,
+      4.999999999999998,
+      4.999999999999998,
+      5.000000000000002,
+      4.99999999999983
+    ],
+    "max_canonical_field_difference": 1.4210854715202004e-14,
+    "k64_potential_gram_frobenius": 3.4376662108440607e-15,
+    "k64_velocity_gram_frobenius": 1.1144353579470678e-14,
+    "k64_fft_eigen_residual_max": 1.8041380122824972e-12,
+    "k64_gauge_shift_velocity_max_abs": 1.6792123247455493e-14,
+    "k64_raw_shifted_gram_defect": 7149.980990054932,
+    "dirichlet_control": {
+      "projector": "identity on H_0^1",
+      "constant_shift_admissible": false,
+      "incorrectly_centered_boundary_value": -0.4052847345693511
+    },
+    "moment_hierarchy": [
+      1.8,
+      3.2222222222222223,
+      4.448275862068965
+    ],
+    "harmonic_velocity_sector": {
+      "dimension": 2,
+      "basis": "constant x/y velocities",
+      "gt_coefficients": "measured separately in rollout"
+    },
+    "interpretation": "A positive Fourier basis is already canonical. Gauge fixing protects potential norms and the objective; it does not change the represented velocity."
+  },
+  "rollouts": {
+    "64": {
+      "velocity_mse_initial": 2.5414201632935884e-05,
+      "velocity_mse_final": 8.304757725193125e-05,
+      "velocity_mse_mean": 4.9786578103039114e-05,
+      "vorticity_mse_initial": 0.0015952025401324988,
+      "vorticity_mse_final": 0.0017493213393362098,
+      "vorticity_mse_mean": 0.001693453726435823,
+      "modes": 64,
+      "seconds": 6.530512000434101,
+      "collocation_grid": 64,
+      "time_step_max": 0.01,
+      "mean_velocity": [
+        0.0,
+        -2.1726395097072804e-19
+      ],
+      "basis": "analytic mean-zero Fourier; sine/cosine pairs",
+      "dynamics": "dealiased Fourier-Galerkin ETDRK4; initialized only at t=0",
+      "gauge_projector": "zero Fourier coefficient fixed to zero",
+      "standard_positive_fourier_is_already_canonical": true
+    },
+    "1024": {
+      "velocity_mse_initial": 1.3845677219907353e-19,
+      "velocity_mse_final": 2.3418592688370195e-09,
+      "velocity_mse_mean": 1.3115654722550004e-09,
+      "vorticity_mse_initial": 9.396327253385261e-17,
+      "vorticity_mse_final": 1.0275500024304429e-06,
+      "vorticity_mse_mean": 7.358927559456143e-07,
+      "modes": 1024,
+      "seconds": 6.818375000264496,
+      "collocation_grid": 64,
+      "time_step_max": 0.01,
+      "mean_velocity": [
+        0.0,
+        -2.1726395097072804e-19
+      ],
+      "basis": "analytic mean-zero Fourier; sine/cosine pairs",
+      "dynamics": "dealiased Fourier-Galerkin ETDRK4; initialized only at t=0",
+      "gauge_projector": "zero Fourier coefficient fixed to zero",
+      "standard_positive_fourier_is_already_canonical": true
+    }
+  }
+}

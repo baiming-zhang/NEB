@@ -1,0 +1,12 @@
+{
+  "sha256": "265f884ce3fae1628f63345d6ec68275e9bb1ab86a1f3d9c8544228fbe9fc32d",
+  "channels": [
+    "psi",
+    "u",
+    "v",
+    "omega",
+    "minus_lap_u",
+    "minus_lap_v"
+  ],
+  "grid": 128
+}

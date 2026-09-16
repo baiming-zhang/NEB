@@ -1,0 +1,23 @@
+{
+  "velocity_mse_initial": 2.804356181411013e-05,
+  "velocity_mse_final": 7.278376241143812e-05,
+  "velocity_mse_mean": 4.990702970128443e-05,
+  "vorticity_mse_initial": 0.001819158413287395,
+  "vorticity_mse_final": 0.0016966470436392497,
+  "vorticity_mse_mean": 0.0018867241768937646,
+  "arm": "canonical",
+  "modes": 64,
+  "epoch": 2000,
+  "physical_mass_rank": 64,
+  "physical_mass_condition": 1010.2331713853049,
+  "dt": 0.01,
+  "energy_skew_defect": 7.02499553327976e-18,
+  "seconds": 8.11007810011506,
+  "checkpoint": "C:\\Users\\admin\\Desktop\\Eigenbasis\\EigenFluid-SSS\\2D_Vortex_Merger\\GAUGE_CANONICAL_EIGENFLUID\\outputs\\neural_k64_e2000\\run_001\\checkpoints\\hardcoded_sss_frozen.npz",
+  "checkpoint_sha256": "a4feddffc502adcdfd55fdeb8a00c1423fb5bcb17a74b880b35cff3895b63032",
+  "dynamics": "full velocity mass/curl stiffness; matrix-free rotational Galerkin; float64 ETDRK4",
+  "initialization": "t=0 velocity L2 projection only; no later GT injection",
+  "potential_projection_used_in_rom": false,
+  "positive_eigenvalue_relative_error_mean": 0.005099841551735958,
+  "independent_evaluator_max_abs_velocity_difference": 1.2490009027033011e-15
+}

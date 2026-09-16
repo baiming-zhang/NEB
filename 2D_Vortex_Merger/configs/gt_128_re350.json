@@ -1,0 +1,14 @@
+{
+  "grid_size": 128,
+  "domain_length": 6.283185307179586,
+  "reynolds_number": 350.0,
+  "vortex_sigma": 0.3141592653589793,
+  "vortex_circulation": 0.6283185307179586,
+  "vortex_separation": 0.59,
+  "final_time": 18.84955592153876,
+  "time_step": 0.005,
+  "output_frames": 61,
+  "dealiasing": "Orszag 2/3 truncation",
+  "time_integrator": "Kassam-Trefethen ETDRK4",
+  "dtype": "float64"
+}

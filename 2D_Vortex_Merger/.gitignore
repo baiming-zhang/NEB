@@ -1,0 +1,2 @@
+*.npy
+!GAUGE_CANONICAL_EIGENFLUID/outputs/comparison_64_1024/video/*.mp4

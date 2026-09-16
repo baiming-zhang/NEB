@@ -1,0 +1,20 @@
+{
+  "velocity_mse_initial": 2.5414201632935884e-05,
+  "velocity_mse_final": 8.304757725193125e-05,
+  "velocity_mse_mean": 4.9786578103039114e-05,
+  "vorticity_mse_initial": 0.0015952025401324988,
+  "vorticity_mse_final": 0.0017493213393362098,
+  "vorticity_mse_mean": 0.001693453726435823,
+  "modes": 64,
+  "seconds": 6.530512000434101,
+  "collocation_grid": 64,
+  "time_step_max": 0.01,
+  "mean_velocity": [
+    0.0,
+    -2.1726395097072804e-19
+  ],
+  "basis": "analytic mean-zero Fourier; sine/cosine pairs",
+  "dynamics": "dealiased Fourier-Galerkin ETDRK4; initialized only at t=0",
+  "gauge_projector": "zero Fourier coefficient fixed to zero",
+  "standard_positive_fourier_is_already_canonical": true
+}

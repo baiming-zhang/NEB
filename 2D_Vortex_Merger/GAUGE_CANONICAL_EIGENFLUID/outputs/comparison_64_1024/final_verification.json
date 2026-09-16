@@ -1,0 +1,16 @@
+{
+  "verified_at": "2026-09-07T05:36:25.1493304+08:00",
+  "all_four_neural_checkpoints_epoch2000": true,
+  "physical_ranks_match_labels": true,
+  "gt_sha256": "3571fab887e0a0dc7c05d749e117811f368d7e7820087bf45898654743d15a1d",
+  "all_video_hashes_match": true,
+  "both_full_video_decode_checks": "passed",
+  "source_frames_per_video": 61,
+  "layout": "64 modes above 1024 modes; GT, gauge-canonical, no-gauge, analytic Laplacian",
+  "visually_inspected": [
+    "velocity first frame",
+    "velocity final frame",
+    "vorticity final frame"
+  ],
+  "no_later_gt_refitting": true
+}

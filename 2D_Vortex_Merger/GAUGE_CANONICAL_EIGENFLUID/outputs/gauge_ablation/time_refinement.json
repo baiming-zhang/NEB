@@ -1,0 +1,12 @@
+{
+  "canonical": {
+    "velocity_mse_mean": 2.1086282633279482e-13,
+    "velocity_mse_final": 3.7743270799964894e-13,
+    "vorticity_mse_mean": 1.40558887535201e-13
+  },
+  "raw": {
+    "velocity_mse_mean": 3.506452115988008e-14,
+    "velocity_mse_final": 7.767862290146316e-14,
+    "vorticity_mse_mean": 7.877733402696171e-14
+  }
+}

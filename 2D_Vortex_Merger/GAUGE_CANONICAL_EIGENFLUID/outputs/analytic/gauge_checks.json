@@ -1,0 +1,50 @@
+{
+  "analytic_mode": "sqrt(2)/(2*pi) * cos(x+2*y)",
+  "eigenvalue": 5.0,
+  "alpha": [
+    0.0,
+    0.1,
+    1.0,
+    10.0,
+    100.0,
+    1000.0
+  ],
+  "raw_rayleigh": [
+    4.999999999999998,
+    4.95049504950495,
+    2.4999999999999996,
+    0.0495049504950495,
+    0.0004999500049995001,
+    4.999995000004999e-06
+  ],
+  "canonical_rayleigh": [
+    4.999999999999998,
+    4.999999999999998,
+    4.999999999999998,
+    4.999999999999998,
+    5.000000000000002,
+    4.99999999999983
+  ],
+  "max_canonical_field_difference": 1.4210854715202004e-14,
+  "k64_potential_gram_frobenius": 3.4376662108440607e-15,
+  "k64_velocity_gram_frobenius": 1.1144353579470678e-14,
+  "k64_fft_eigen_residual_max": 1.8041380122824972e-12,
+  "k64_gauge_shift_velocity_max_abs": 1.6792123247455493e-14,
+  "k64_raw_shifted_gram_defect": 7149.980990054932,
+  "dirichlet_control": {
+    "projector": "identity on H_0^1",
+    "constant_shift_admissible": false,
+    "incorrectly_centered_boundary_value": -0.4052847345693511
+  },
+  "moment_hierarchy": [
+    1.8,
+    3.2222222222222223,
+    4.448275862068965
+  ],
+  "harmonic_velocity_sector": {
+    "dimension": 2,
+    "basis": "constant x/y velocities",
+    "gt_coefficients": "measured separately in rollout"
+  },
+  "interpretation": "A positive Fourier basis is already canonical. Gauge fixing protects potential norms and the objective; it does not change the represented velocity."
+}
