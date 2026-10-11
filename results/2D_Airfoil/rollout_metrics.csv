@@ -1,9 +1,0 @@
-geometry,basis,velocity_mean_percent,velocity_final_percent,vorticity_mean_percent,vorticity_final_percent
-upper,Potential-Rayleigh,6.95,8.25,60.79,73.04
-upper,FD Laplacian,45.81,93.49,169.02,351.12
-middle,Potential-Rayleigh,1.98,2.63,32.65,38.22
-middle,FD Laplacian,5.84,11.07,53.44,75.70
-lower,Potential-Rayleigh,3.28,5.39,43.20,58.16
-lower,FD Laplacian,14.38,34.13,72.61,104.56
-mean,Potential-Rayleigh,4.07,5.46,45.55,56.41
-mean,FD Laplacian,22.01,46.56,98.36,177.46

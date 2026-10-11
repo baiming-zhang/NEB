@@ -1,0 +1,91 @@
+{
+  "rows": [
+    {
+      "K": 128,
+      "method": "Eigenfluid velocity",
+      "training_minutes": 89.35975109162197,
+      "initial_error": 40.05270096738145,
+      "final_error": 80.49464289215355
+    },
+    {
+      "K": 128,
+      "method": "Numerical",
+      "training_minutes": null,
+      "initial_error": 34.850867210813526,
+      "final_error": 76.05214056375998
+    },
+    {
+      "K": 128,
+      "method": "NKB adaptation",
+      "training_minutes": 0.8438860849998794,
+      "initial_error": 80.25586906912618,
+      "final_error": 96.03810957744018
+    },
+    {
+      "K": 256,
+      "method": "Eigenfluid velocity",
+      "training_minutes": 143.70215708162675,
+      "initial_error": 28.184500416806735,
+      "final_error": 71.93565085819914
+    },
+    {
+      "K": 256,
+      "method": "Numerical",
+      "training_minutes": null,
+      "initial_error": 24.272694428757546,
+      "final_error": 68.680160521811
+    },
+    {
+      "K": 256,
+      "method": "NKB adaptation",
+      "training_minutes": 1.2217189099998602,
+      "initial_error": 66.05227063552161,
+      "final_error": 97.81106199500485
+    },
+    {
+      "K": 512,
+      "method": "Eigenfluid velocity",
+      "training_minutes": 239.43478286500127,
+      "initial_error": 20.954234386105473,
+      "final_error": 66.40845182439273
+    },
+    {
+      "K": 512,
+      "method": "Numerical",
+      "training_minutes": null,
+      "initial_error": 19.652964822984714,
+      "final_error": 62.92063563914528
+    },
+    {
+      "K": 512,
+      "method": "NKB adaptation",
+      "training_minutes": 2.3276184750000537,
+      "initial_error": 51.06421074448227,
+      "final_error": 98.13191344893491
+    },
+    {
+      "K": 1024,
+      "method": "Eigenfluid velocity",
+      "training_minutes": 466.27627854666594,
+      "initial_error": 17.049871288497748,
+      "final_error": 60.771276993584536
+    },
+    {
+      "K": 1024,
+      "method": "Numerical",
+      "training_minutes": null,
+      "initial_error": 17.899074444929564,
+      "final_error": 56.78981116296159
+    },
+    {
+      "K": 1024,
+      "method": "NKB adaptation",
+      "training_minutes": 6.126413928333447,
+      "initial_error": 34.340226865019694,
+      "final_error": 94.64784736245441
+    }
+  ],
+  "reference_dt": 0.0025,
+  "rom_dt": 0.000625,
+  "fluid_points": 1599754
+}

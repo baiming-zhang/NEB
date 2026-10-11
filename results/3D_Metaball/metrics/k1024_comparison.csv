@@ -1,6 +1,0 @@
-method,objective,derivative,modes,independent_coefficients,time_from_zero_seconds,time_from_zero_hours,velocity_relative_l2,vorticity_relative_l2_common_fd_curl
-Strict FD-Lap RR,"FD-Lap, e phi_D ~ d^2",FD,1024,1024,31131.0252,8.647507,0.159648510806,0.570468657205
-Potential-Rayleigh,integral |grad A|^2 / integral |A|^2,Jet1,1024,1024,5040.41455,1.400115,0.178286141146,0.628824766622
-Velocity-Rayleigh,integral |grad u|^2 / integral |u|^2,Jet2,1024,1024,6745.14258,1.873651,0.280805,0.711087
-Vorticity-Rayleigh,integral |grad omega|^2 / integral |omega|^2,Jet3,1024,1024,9956.47070,2.765686,0.929106,1.183162
-Vector/Hodge-Lap RR,integral |curl u|^2 / integral |u|^2,Jet2,1024,1024,34.8818932,0.009689,0.566226920982,0.902976244185

@@ -1,0 +1,74 @@
+{
+  "note": "Metaball reconstruction and trajectory comparison displays start at K=128. Raw campaign records remain in the original experiment directories.",
+  "topology_final_percent": {
+    "Laplacian": [
+      7.024,
+      7.278,
+      7.369
+    ],
+    "Potential": [
+      5.739,
+      6.692,
+      9.066
+    ],
+    "Velocity": [
+      5.688,
+      6.63,
+      10.219
+    ],
+    "NKB": [
+      46.78423849303905,
+      48.195845804686,
+      48.0339241996761
+    ]
+  },
+  "metaball_modes": [
+    128,
+    256,
+    512,
+    1024
+  ],
+  "metaball_final_percent": {
+    "Velocity": [
+      80.495,
+      71.936,
+      66.40845182439273,
+      60.771276993584536
+    ],
+    "Laplacian": [
+      76.052,
+      68.68,
+      62.92063563914528,
+      56.78981116296159
+    ],
+    "NKB": [
+      96.03810957744018,
+      97.81106199500485,
+      98.13191344893491,
+      94.64784736245441
+    ]
+  },
+  "periodic_labels": [
+    "Laplacian",
+    "Potential",
+    "Velocity",
+    "NKB"
+  ],
+  "periodic_means": [
+    0.05310940652833506,
+    0.8480133455309797,
+    0.19180461951577674,
+    110.71700066188474
+  ],
+  "periodic_sd": [
+    0.0,
+    0.014153109161897475,
+    0.002957453734199037,
+    0.5460058330996961
+  ],
+  "periodic_protocol": {
+    "initial_separation": 1.35,
+    "final_time": 56.548667764616276,
+    "frames": 241
+  }
+}

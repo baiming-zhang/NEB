@@ -1,0 +1,15 @@
+# Gauge projectors and Poisson controls
+
+The finite projector uses the original constrained scalar space and harmonic removal. The spline projector uses all active tensor-product columns for both fitting and assessment. Native derivatives of the complete potential model supply the inputs; curl fields represent velocity, while potential fields supply the gauge objective.
+
+```sh
+python -c "import numpy as np; z=np.load('runs/source/samples.npz'); np.save('source_points.npy',z['fit']); np.save('query_points.npy',np.load('runs/source/independent16384.npy'))"
+python experiments/metaball/evaluate.py --method GCP-AL --field potential --K 32 --config experiments/metaball/configs/gcp-al_k32_e2000.json --checkpoint checkpoints/3d/gcp-al_k32_e2000.npz --samples runs/source/samples.npz --points source_points.npy --output runs/source-potential
+python experiments/metaball/evaluate.py --method GCP-AL --field potential --K 32 --config experiments/metaball/configs/gcp-al_k32_e2000.json --checkpoint checkpoints/3d/gcp-al_k32_e2000.npz --samples runs/source/samples.npz --points query_points.npy --output runs/query-potential
+python experiments/gauge/run.py --method finite --resolution 8 --config experiments/metaball/configs/gcp-al_k32_e2000.json --samples runs/source/samples.npz --source-fields runs/source-potential/basis.npy --query-points query_points.npy --query-fields runs/query-potential/basis.npy --output runs/finite-gauge
+python experiments/gauge/run.py --method spline --resolution 12 --config experiments/metaball/configs/gcp-al_k32_e2000.json --samples runs/source/samples.npz --source-fields runs/source-potential/basis.npy --query-points query_points.npy --query-fields runs/query-potential/basis.npy --output runs/spline-gauge
+python experiments/gauge/inputs.py --method fourier --resolution 193 --config experiments/metaball/configs/gcp-al_k32_e2000.json --checkpoint checkpoints/3d/gcp-al_k32_e2000.npz --samples runs/source/samples.npz --output runs/fourier-inputs
+python experiments/gauge/particular.py --method fourier --resolution 193 --forcing runs/fourier-inputs/forcing.npy --points query_points.npy --boundary-points runs/fourier-inputs/boundary_points.npy --boundary-sources runs/fourier-inputs/boundary_sources.npy --output runs/fourier-dirichlet
+```
+
+For the FMM control, use method fmm and resolution 128 in the last two commands. Its cell-centered source box is [-.02,1.02], and the Fourier node lattice is [-.06,1.06]. The forcing generator uses the original extension-power-2 analytic envelope continuation. The MFS correction uses the original displaced wall sources, complete incremental QR and its true transpose; all columns share the same factorization. Inputs are generated from one complete checkpoint and the same geometry configuration. source_points.npy is the fit array of runs/source/samples.npz; query_points.npy can be its independent16384.npy or the geometry's ordered validation points.

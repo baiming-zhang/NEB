@@ -1,0 +1,113 @@
+{
+  "initial_errors": [
+    {
+      "K": 32,
+      "velocity": 0.839273417075719,
+      "laplacian": 0.8452814858060611
+    },
+    {
+      "K": 128,
+      "velocity": 0.4005270096738145,
+      "laplacian": 0.34850867210813524
+    },
+    {
+      "K": 256,
+      "velocity": 0.28184500416806735,
+      "laplacian": 0.24272694428757546
+    },
+    {
+      "K": 512,
+      "velocity": 0.20954234386104603,
+      "laplacian": 0.19652964822984714
+    },
+    {
+      "K": 1024,
+      "velocity": 0.1704987128849427,
+      "laplacian": 0.17899074444929564
+    },
+    {
+      "K": 2048,
+      "velocity": 0.15617482887583636
+    }
+  ],
+  "training": [
+    {
+      "K": 32,
+      "inclusive_training_seconds": 3042.3375177717535,
+      "mean_stage_seconds": {
+        "checkpoint_IO": 0.04010721450089477,
+        "geometry_preparation": 0.7641872175491299,
+        "neural_forward_analytic_derivatives": 0.08579045144846896,
+        "neural_recompute_and_analytic_backward": 0.2763227384519996,
+        "optimizer": 0.004888626198458951,
+        "sampling": 0.0018568804493406788,
+        "velocity_sort_orthogonalization_objective": 0.004943094548943918
+      }
+    },
+    {
+      "K": 128,
+      "inclusive_training_seconds": 5361.585065497318,
+      "mean_stage_seconds": {
+        "checkpoint_IO": 0.13997216029878473,
+        "geometry_preparation": 0.7542577910019318,
+        "neural_forward_analytic_derivatives": 0.31569370000151686,
+        "neural_recompute_and_analytic_backward": 1.079084267800732,
+        "optimizer": 0.004695638850389514,
+        "sampling": 0.0017573470506467856,
+        "velocity_sort_orthogonalization_objective": 0.006218326051603071
+      }
+    },
+    {
+      "K": 256,
+      "inclusive_training_seconds": 8622.129424897605,
+      "mean_stage_seconds": {
+        "checkpoint_IO": 0.27783343350107315,
+        "geometry_preparation": 0.7565351761492785,
+        "neural_forward_analytic_derivatives": 0.6256098751507816,
+        "neural_recompute_and_analytic_backward": 2.161424730348692,
+        "optimizer": 0.004784213899984025,
+        "sampling": 0.001820034297707025,
+        "velocity_sort_orthogonalization_objective": 0.01847184460022254
+      }
+    },
+    {
+      "K": 512,
+      "inclusive_training_seconds": 14366.086971900077,
+      "mean_stage_seconds": {
+        "checkpoint_IO": 0.05453292300004978,
+        "geometry_preparation": 0.7682588778989738,
+        "neural_forward_analytic_derivatives": 1.2649739045011228,
+        "neural_recompute_and_analytic_backward": 4.376519733001129,
+        "optimizer": 0.008376150200725532,
+        "sampling": 0.0020595424007042312,
+        "velocity_sort_orthogonalization_objective": 0.06585459915077081
+      }
+    },
+    {
+      "K": 1024,
+      "inclusive_training_seconds": 27976.576712799957,
+      "mean_stage_seconds": {
+        "checkpoint_IO": 0.11318572665000101,
+        "geometry_preparation": 0.8962901133003761,
+        "neural_forward_analytic_derivatives": 2.698278041850892,
+        "neural_recompute_and_analytic_backward": 8.952445473450178,
+        "optimizer": 0.01804785075050313,
+        "sampling": 0.0019031951504875906,
+        "velocity_sort_orthogonalization_objective": 0.26593435335240795
+      }
+    },
+    {
+      "K": 2048,
+      "inclusive_training_seconds": 59575.549644100014,
+      "mean_stage_seconds": {
+        "checkpoint_IO": 0.23622785470000235,
+        "geometry_preparation": 0.7612394601517007,
+        "neural_forward_analytic_derivatives": 6.41301602670073,
+        "neural_recompute_and_analytic_backward": 19.181471071248698,
+        "optimizer": 0.03428944870101987,
+        "sampling": 0.0019363434499828146,
+        "velocity_sort_orthogonalization_objective": 1.0858200861985678
+      }
+    }
+  ]
+}

@@ -1,34 +1,27 @@
 [build-system]
-requires = ["setuptools>=69"]
+requires = ["setuptools>=75"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "eigenfluid"
-version = "0.1.0"
-description = "Geometry-conditioned Eigenfluid Net for spectral fluid bases and reduced dynamics"
+name = "neural-eigenfluid-bases"
+version = "1.0.0"
+description = "Continuous spectral coordinates for incompressible flow"
+readme = "README.md"
 requires-python = ">=3.11"
-dependencies = [
-  "h5py>=3.10",
-  "matplotlib>=3.8",
-  "numpy>=1.26",
-  "Pillow>=10",
-  "scipy>=1.12",
-  "torch>=2.5",
-]
+authors = [{name = "Baiming Zhang"}, {name = "Shiying Xiong"}, {name = "Zhecheng Wang"}]
+dependencies = ["numpy>=1.26", "scipy>=1.12", "matplotlib>=3.8", "psutil>=5.9", "Pillow>=10", "threadpoolctl>=3", "h5py>=3.10"]
 
 [project.optional-dependencies]
-cuda12 = ["cupy-cuda12x>=13"]
-dev = ["pytest>=8", "ruff>=0.6"]
+cuda = ["cupy-cuda12x>=13"]
+torch = ["torch>=2.5"]
+fem = ["scikit-fem>=11", "meshpy>=2022", "meshio>=5", "gmsh>=4.12", "trimesh>=4", "scikit-image>=0.24"]
+test = ["pytest>=8"]
+
+[project.scripts]
+neb = "neb.__main__:main"
+
+[project.urls]
+Repository = "https://github.com/baiming-zhang/NEB"
 
 [tool.setuptools.packages.find]
-where = ["cases/2D_Airfoil/src"]
-include = ["eigenfluid*"]
-
-[tool.ruff]
-line-length = 88
-target-version = "py311"
-
-[tool.pytest.ini_options]
-# Case-local packages share the eigenfluid namespace and are validated in
-# isolated pytest processes; the README lists the complete case matrix.
-testpaths = ["tests"]
+where = ["src"]

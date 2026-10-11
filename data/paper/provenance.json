@@ -1,0 +1,122 @@
+{
+  "manuscript_title": "Neural Eigenfluid Bases: Spectral Objectives, Gauge, and Topology",
+  "inputs": [
+    {
+      "paper_input": "merger_case_results.json",
+      "sha256": "052ac0113098e340be8fb4644dd09d87966113fc282fb98bf83f39e74e24c3fe",
+      "public_data": "periodic_merger.json",
+      "content": "measured curves and statistics"
+    },
+    {
+      "paper_input": "random_streamfunction_results.json",
+      "sha256": "82fc286fa2b763a27aed13c318d51c13852f5a067840967eefeecd9e99bd5649",
+      "public_data": "random_streamfunctions.json",
+      "content": "measured curves and statistics"
+    },
+    {
+      "paper_input": "random_energy_results.json",
+      "sha256": "f1974632f0b48bdeff4b29d83adaa35ddeef3a0b034a3cd7aa149d9a32056a07",
+      "public_data": "random_energy.json",
+      "content": "measured curves and statistics"
+    },
+    {
+      "paper_input": "case3_capacity_results.json",
+      "sha256": "2cf99383f7576a22b0fb92faab1d54ed05ba3ce9669e18b4cacd36e46b122fd1",
+      "public_data": "metaball_capacity.json",
+      "content": "measured curves and statistics"
+    },
+    {
+      "paper_input": "basis_quality_results.json",
+      "sha256": "779f320afbc48f766642f38082840f4ea9987497db1aa1dc7375da289eeefd72",
+      "public_data": "basis_quality.json",
+      "content": "measured curves and statistics"
+    },
+    {
+      "paper_input": "nkb_plot_data.json",
+      "sha256": "6eb19010252d58eb5618e849fcbfaee2afddedd363d3ce137fddfb72347a3f18",
+      "public_data": "nkb_comparison.json",
+      "content": "measured curves and statistics"
+    },
+    {
+      "paper_input": "Metaball K32-K256 same20-field initial representation",
+      "sha256": "67a3eb5e82cac3beabbe53a113c5a68509ec69f535f18c4057d227b1f101be11",
+      "public_data": "metaball20.csv",
+      "rows": 320,
+      "methods": [
+        "LEB",
+        "VRQ",
+        "CCQ",
+        "NKB"
+      ],
+      "statistic": "mean and sample standard deviation, ddof=1"
+    },
+    {
+      "public_data": "retained_k1024.json",
+      "content": "42 saved method-field results on six retained initial fields and own harmonic-span timeseries",
+      "original_inputs": [
+        {
+          "paper_input": "final_statistics.json",
+          "sha256": "d6964533a701c20e0f718df4a79fe699eaa41d4944717f0bb43939b7730d87be"
+        },
+        {
+          "paper_input": "trajectory_energy.json",
+          "sha256": "5f8648b936372ce9fa5b80ffb8b7cf98d993933e9f467e37c55fe69f496918ec"
+        }
+      ],
+      "public_sha256": "ef39b280f99838e50e07372d71dd712ac9e04d71e09313cea3c452edb9f0cc37"
+    },
+    {
+      "public_data": "gauge_solver.json",
+      "content": "Original all32 gauge-solver residuals and forward/reverse timings",
+      "original_inputs": [
+        {
+          "paper_input": "summary.json",
+          "sha256": "0fb82d6613278bd266abd06bf35ff40138c5eb5353331c49e8eaa175ea20c507"
+        }
+      ],
+      "public_sha256": "e21807372d98c1d66118e3d7e3d3719acb97485d721a56c9bb9977d1f9723bfc"
+    },
+    {
+      "public_data": "coefficient_acceleration.json",
+      "content": "Same-reference K512/K1024 coefficient curves and separately measured online/assembly/output costs",
+      "original_inputs": [
+        {
+          "paper_input": "comparison.json",
+          "sha256": "f00c378153fa2da2855131b9c3de873f3eb24a8ad56c1ab46a05c7c672bdd29d"
+        },
+        {
+          "paper_input": "metrics_dt0.000625.json",
+          "sha256": "86059f7b3c9836082cd449a093eb1641e9dae66dbe4b56510a0258e986bc98f9"
+        },
+        {
+          "paper_input": "diagnostics.json",
+          "sha256": "8ef91589bf688f869d8c19865d6ff08a540c30f3c58549a618ffa15855810c13"
+        },
+        {
+          "paper_input": "comparison.json",
+          "sha256": "3daf89d3b0e208c7e7d041bb117a0e160afd4f4a0bc759c0c64a544049ac3467"
+        },
+        {
+          "paper_input": "metrics_dt0.000625.json",
+          "sha256": "623784178a695bfbecb70af329ec17b80a2e468287d8fe9dda356d8329b2333b"
+        },
+        {
+          "paper_input": "diagnostics.json",
+          "sha256": "8ef91589bf688f869d8c19865d6ff08a540c30f3c58549a618ffa15855810c13"
+        }
+      ],
+      "public_sha256": "dbc7c22df2497490bbbee0c6dae5ee5b9a4822f379e97e7f72a2dcd15a0417cd"
+    },
+    {
+      "public_data": "initial_capacity_training.json",
+      "content": "Original VRQ/LEB capacity errors and full2000 training cost decomposition",
+      "original_inputs": [
+        {
+          "paper_input": "initial_comparison.json",
+          "sha256": "78d956a40328e8ec190d1848cd1052516e0edce069b84995004cd759f1eecf57"
+        }
+      ],
+      "public_sha256": "1bdbf5ee262e3f0b3db833370c892c6086104c512bbdc0c478f00cd8c487099b"
+    }
+  ]
+}

@@ -1,0 +1,32 @@
+{
+  "subcase": "one_circle",
+  "outer_tau": 0.0,
+  "harmonic_dimension": 1,
+  "K_total": 32,
+  "master_seed": 20261001,
+  "gt_seeds": 20,
+  "harmonic_energy_ratio_range": [
+    0.0,
+    0.3
+  ],
+  "vortex_count_range": [
+    3,
+    7
+  ],
+  "vortex_support_radius_range": [
+    0.65,
+    0.95
+  ],
+  "initial_peak_speed": 0.5,
+  "viscosity": 0.0013333333333333333,
+  "final_time": 1.0,
+  "dt": 0.002,
+  "dt_doubled": 0.004,
+  "snapshot_dt": 0.25,
+  "mesh": {
+    "max_triangle_area": 0.06,
+    "outer_boundary_points": 160,
+    "obstacle_boundary_points": 72,
+    "minimum_angle_deg": 28.0
+  }
+}
