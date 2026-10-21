@@ -5,6 +5,7 @@ Laplacian,128,1599754,3,float64,3576.8884494305,raw parameterized boundary,all s
 Laplacian,256,1599754,3,float64,5548.8571538925,raw parameterized boundary,all sampled basis output fsync and rename,True,True,0,False
 Laplacian,512,1599754,3,float64,9246.6690022945,raw parameterized boundary,all sampled basis output fsync and rename,True,True,0,False
 Laplacian,1024,1599754,3,float64,22049.0115473270,raw parameterized boundary,all sampled basis output fsync and rename,True,True,0,False
+Laplacian,2048,1599754,3,float64,40075.6584374905,raw parameterized boundary,all sampled basis output fsync and rename,True,True,0,False
 Velocity,512,1599754,3,float32,488.2863621000,raw parameterized boundary,all sampled basis output fsync and rename,True,False,0,False
 Velocity,1024,1599754,3,float32,747.6812867000,raw parameterized boundary,all sampled basis output fsync and rename,True,False,0,False
 Velocity,2048,1599754,3,float32,1379.8520033000,raw parameterized boundary,all sampled basis output fsync and rename,True,False,0,False

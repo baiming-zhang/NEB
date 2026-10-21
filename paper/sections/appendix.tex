@@ -326,7 +326,7 @@ $K$&Method&Normal training&State recovery&Boundary to all basis\\\midrule
 1024&Velocity&27976.58&\textemdash&747.68\\
 1024&Potential&\textemdash&\textemdash&\textemdash\\
 1024&Potential-AL/FG&\textemdash&\textemdash&\textemdash\\
-2048&Laplacian&\textemdash&\textemdash&\textemdash\\
+2048&Laplacian&\textemdash&\textemdash&40075.66\\
 2048&Velocity&59575.55&\textemdash&1379.85\\
 2048&Potential&\textemdash&\textemdash&\textemdash\\
 2048&Potential-AL/FG&\textemdash&\textemdash&\textemdash\\
@@ -336,6 +336,8 @@ $K$&Method&Normal training&State recovery&Boundary to all basis\\\midrule
 Initial-field evaluation is separate from training and basis generation: Potential takes 655.76 seconds at $K=256$ and 1182.42 seconds at $K=512$. At $K=512$, the saved-basis assessment of 20 independent random fields takes 123.32 seconds. High-capacity Potential training completes 25 updates at $K=1024$ and one update at $K=2048$, with zero scheduled validations, the original 2000-epoch learning-rate horizon, and full model/Adam endpoint checkpoints.
 
 At $K=1024$, Laplacian construction from raw geometry (marching-cubes resolution 80, mesh size $0.025$) through the full spectrum and coefficient archive takes 18769.83 seconds. The sampled-basis stage takes 477.10 seconds and writes all $1{,}599{,}754\times3\times1024$ FP64 values (39,315,554,304 payload bytes). The raw-geometry-to-output interval is 22049.01 seconds, including interstage waits, setup, paging, I/O, and background load. CPU construction uses one BLAS thread, a 7 GiB resident limit, and an 8 GiB resident-peak guard; GPU basis output reuses the completed analytic geometry prefix.
+
+At $K=2048$, CPU coefficient construction takes 37927.17 seconds. The uninterrupted solve uses one BLAS thread and a 32 GiB peak-memory budget; the reported interval retains the time under its initial 7 GiB resident limit.
 
 \input{sections/highK_training_runtime}
 
