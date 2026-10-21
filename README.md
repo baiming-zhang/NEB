@@ -14,7 +14,7 @@ The experiments connect three aspects of reduced fluid simulation: **spectral le
 
 The manuscript includes 26 main-comparison groups on the same 20 independent fields and four separately matched Potential-FG controls. All 27 included figures are supplied as PNG and vector PDF. Potential K512 completes 2000 training updates; Potential K1024 and K2048 complete 25 and one updates, respectively. Unmeasured full-training and accuracy entries are shown as dashes. The K1024 Laplacian raw-geometry-to-all-sampled-basis interval is 22049.01 s, including interstage waits, setup, paging, I/O and background load.
 
-The [boundary-to-all-basis timings](data/paper_results/primary_basis_runtime.csv) include Velocity K512/K1024/K2048 at 488.29/747.68/1379.85 s and Laplacian K32/K64 at 3467.56/2545.51 s. These intervals evaluate all 1,599,754 fluid points and all retained modes, including streamed output. The Laplacian interval additionally includes the fresh coefficient solve, interstage waits, setup, paging and background load. Remaining measurements appear as dashes in the manuscript.
+The [boundary-to-all-basis timings](data/paper_results/primary_basis_runtime.csv) include Velocity K512/K1024/K2048 at 488.29/747.68/1379.85 s and Laplacian K32/K64/K128 at 3467.56/2545.51/3576.89 s. These intervals evaluate all 1,599,754 fluid points and all retained modes, including streamed output. The Laplacian interval additionally includes the fresh coefficient solve, interstage waits, setup, paging and background load. Remaining measurements appear as dashes in the manuscript.
 
 ![Paired initial-field representation in the 3D Metaball domain](assets/figures/metaball20.png)
 
