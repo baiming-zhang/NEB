@@ -12,7 +12,7 @@ The experiments connect three aspects of reduced fluid simulation: **spectral le
 
 [Paper PDF](paper/Neural_Eigenfluid_Bases.pdf) · [LaTeX sources](paper/) · [460 paired NEW20 measurements](data/paper_results/mainfour_NEW20_460_measurements.csv)
 
-The manuscript reports 20 main-comparison groups through K512 on the same 20 independent fields (400 measurements), with three K1024 groups in the appendix (60 measurements), and four separately matched Potential-FG controls. All 27 included figures are supplied as PNG and vector PDF. Potential K512 completes 2000 training updates; the K1024 timing endpoint completes 25 updates. Unmeasured full-training and accuracy entries are shown as dashes.
+The manuscript reports 20 main-comparison groups through K512 on the same 20 independent fields (400 measurements), with three K1024 groups in the appendix (60 measurements), and four separately matched Potential-FG controls. All 27 included figures are supplied as PNG and vector PDF. Potential K512 completes 2000 training updates; the K1024 timing endpoint completes 25 updates. Training-cost projections are marked with an asterisk and remain separate from measured runs and accuracy results.
 
 The [boundary-to-all-basis timings](data/paper_results/primary_basis_runtime.csv) report Velocity K512/K1024 at 488.29/747.68 s and Laplacian K32/K64/K128/K256/K512/K1024 at 3467.56/2545.51/3576.89/5548.86/9246.67/22049.01 s. Each interval evaluates all 1,599,754 fluid points and all retained modes, including streamed output. The Laplacian interval also includes fresh coefficient construction, interstage waits, setup, paging and background load.
 
@@ -184,3 +184,5 @@ Velocity errors use the stated full-domain or observation-grid relative L2 measu
 ```
 
 See `CITATION.cff` for a machine-readable citation.
+
+Preparation-cost estimates and their measured update counts, fit coefficients and timing assumptions are provided in [`preparation_cost_estimates.json`](data/paper_results/preparation_cost_estimates.json). Asterisks identify forecasts; recovery marked `incl.` is already part of the recorded training total.

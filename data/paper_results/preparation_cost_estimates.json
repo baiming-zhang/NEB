@@ -1,0 +1,139 @@
+{
+  "unix": 1792626054.7523026,
+  "K1024_update_count": 22,
+  "K1024_epoch_range": [
+    3,
+    24
+  ],
+  "K1024_mean_update_seconds": 430.68008603635826,
+  "K512_ordinary_update_count": 166,
+  "K512_mean_update_seconds": 250.78182112650563,
+  "K512_measured_full_training_seconds": 504713.77,
+  "K1024_full_training_forecast_seconds": 866770.043023507,
+  "existing_measured_update_sources": [
+    {
+      "path": "E:\\Eigenbasis_runs\\projected_potential_scaleup_20261008_storage\\k1024\\timing25_no_validation_v4\\steps.jsonl",
+      "sha256": "e61a6fbfe6bcd43da99d230f321ea28fa7a643b4b2c5885315a16e6086f5cf2a"
+    },
+    {
+      "path": "E:\\Eigenbasis_runs\\projected_potential_scaleup_20261008_storage\\k512\\training_recovery_reboot_e1827_v1\\steps.jsonl",
+      "sha256": "217cb7761cd7ca4a38329e9767bbf2a686dbf70fdf6f4a475601414ce97c538f"
+    }
+  ],
+  "models": {
+    "Potential-AL": {
+      "measured_K": [
+        32,
+        64,
+        128
+      ],
+      "measured_training_seconds": [
+        6316.24,
+        10513.53,
+        18887.93
+      ],
+      "measured_basis_seconds": [
+        259.52,
+        273.65,
+        281.98
+      ],
+      "log_training_fit_coefficients": [
+        0.7901633520530619,
+        5.999661676778158
+      ],
+      "basis_affine_fit_coefficients": [
+        0.21912946428571423,
+        255.35500000000005
+      ],
+      "estimates": {
+        "512": {
+          "training_seconds": 55768.092939027716,
+          "basis_seconds": 367.5492857142857
+        },
+        "1024": {
+          "training_seconds": 96438.10411015378,
+          "basis_seconds": 479.7435714285714
+        }
+      }
+    },
+    "Potential-FG (matched)": {
+      "measured_K": [
+        32,
+        64,
+        128,
+        256
+      ],
+      "measured_training_seconds": [
+        7332.09,
+        11924.79,
+        20862.81,
+        39108.35
+      ],
+      "measured_basis_seconds": [
+        291.39,
+        346.78,
+        451.21,
+        665.15
+      ],
+      "log_training_fit_coefficients": [
+        0.8052510435031097,
+        6.0735276357435755
+      ],
+      "basis_affine_fit_coefficients": [
+        1.6646766304347835,
+        238.871304347826
+      ],
+      "estimates": {
+        "512": {
+          "training_seconds": 65969.31903154541,
+          "basis_seconds": 1091.1857391304352
+        },
+        "1024": {
+          "training_seconds": 115278.07594000269,
+          "basis_seconds": 1943.5001739130444
+        }
+      }
+    },
+    "Potential": {
+      "measured_K": [
+        32,
+        64,
+        128,
+        256,
+        512
+      ],
+      "measured_training_seconds": [
+        8170.08,
+        14404.07,
+        26569.77,
+        59879.95,
+        504713.77
+      ],
+      "measured_basis_seconds": [
+        255.5,
+        269.28,
+        281.03,
+        291.56,
+        348.12
+      ],
+      "basis_affine_fit_coefficients": [
+        0.1803053595430109,
+        253.32541666666685
+      ],
+      "estimates": {
+        "1024": {
+          "training_seconds": 866770.043023507,
+          "basis_seconds": 437.95810483871
+        }
+      },
+      "K1024_training_model": "K512 measured full 2000-update/80-validation/checkpoint-inclusive total multiplied by mean K1024 update / mean ordinary K512 update. Validation and checkpoint overhead use the same measured workload scaling factor; not a completed K1024 full run."
+    }
+  },
+  "new_training_or_GPU_run_launched": false,
+  "forecasts_are_not_measurements": true,
+  "recovery_forecast_assumes_uninterrupted_run": true,
+  "historical_recovery_inclusive_entries_are_not_zero": true,
+  "estimated_training_precision_seconds": 100,
+  "estimated_basis_precision_seconds": 10,
+  "no_new_GPU_sampling_required": "Existing complete lower-capacity full-point timings and native K1024 step timings are used; historical recovery episodes cannot be remeasured retrospectively."
+}

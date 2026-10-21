@@ -1,5 +1,5 @@
 {
-  "paper_PDF_sha256": "0fa5909915bb8ecea9391d8f5fb913ddbe8461452766c6ee4f54ad33e98dc036",
+  "paper_PDF_sha256": "edfe3d4d777b64a7a477d60b4a4bec0fea5e31e775de4927402dd43409fd89a5",
   "pages": 59,
   "figures": 27,
   "paired_measurements": 460,
@@ -19,7 +19,9 @@
     "512": 2000,
     "1024": 25
   },
-  "source_archive_sha256": "2b8dfc32816b7df08b0d5cbf2f447417c2cece28fb8f1fe1bd3fea7b239419be",
+  "source_archive_sha256": "b1ef49f732bd1578c6f02bb3b5fa06c93f977cd8d979bf8cbc7807f056b507df",
   "source_members": 77,
-  "primary_basis_runtime_rows": 8
+  "primary_basis_runtime_rows": 8,
+  "preparation_cost_estimate_rows": 5,
+  "estimates_marked_superscript_star": true
 }

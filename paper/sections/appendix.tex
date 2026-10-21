@@ -296,7 +296,7 @@ The finite projection leaves gradient directions in the curl kernel. For the adm
 \subsection{Training and boundary-to-basis costs}
 \label{app:Pot-cost}
 \begin{table}[!htb]\centering\scriptsize
-\caption{Three-dimensional training and basis-generation costs in seconds. Normal training includes the scheduled validation and checkpoint I/O of each run; state recovery is separate. The reported full training runs complete 2000 epochs. Basis generation measures one synchronized interval from the original parameterized boundary to all 1,599,754 points and all $K$ basis fields, including required streamed-output I/O. The Laplacian interval also includes interstage waits, setup, paging, and background load. Runtime/model loading, coefficient synthesis, projection, and diagnostics have separate boundaries. A dash denotes an unavailable measurement under the stated run and timing boundary; Laplacian has no training or recovery stage. Completed short high-capacity Potential runs are reported in \docref{Table}{tab:CCQ-highK-runtime}. $\dagger$ denotes an inclusive training-time counter. Matched Potential-FG rows complete 2000 epochs and 80 validations; their reconstruction and basis-generation results also appear in \docref{Figure}{fig:matched-FG-NEW20}.}
+\caption{Three-dimensional preparation costs in seconds. Training totals cover 2000 updates, scheduled validation and checkpoint I/O. Basis generation runs from the original parameterized boundary to all 1,599,754 points and all $K$ fields, including streamed-output I/O; Laplacian also includes coefficient construction, interstage waits, setup, paging and background load. A dash means that the stage is not applicable. Superscript $*$ marks an estimate, not a completed run; projected runs assume uninterrupted execution. ``incl.'' means recovery is already included in the training total and was not timed separately; $\dagger$ marks these inclusive counters. Estimates and the measured short $K=1024$ endpoint are explained below. Matched Potential-FG rows use the same training protocol.}
 \begin{tabular}{rlrrr}\toprule
 $K$&Method&Normal training&State recovery&Boundary to all basis\\\midrule
 32&Laplacian&\textemdash&\textemdash&3467.56\\
@@ -305,28 +305,30 @@ $K$&Method&Normal training&State recovery&Boundary to all basis\\\midrule
 32&Potential-AL&6316.24&0.00&259.52\\
 32&Potential-FG (matched)&7332.09&0.00&291.39\\
 64&Laplacian&\textemdash&\textemdash&2545.51\\
-64&Velocity&3930.13&\textemdash&307.32\\
+64&Velocity&$3930.13^{\dagger}$&incl.&307.32\\
 64&Potential&14404.07&0.00&269.28\\
-64&Potential-AL&10513.53&\textemdash&273.65\\
+64&Potential-AL&$10513.53^{\dagger}$&incl.&273.65\\
 64&Potential-FG (matched)&11924.79&0.00&346.78\\
 128&Laplacian&\textemdash&\textemdash&3576.89\\
-128&Velocity&5361.59&\textemdash&295.34\\
+128&Velocity&$5361.59^{\dagger}$&incl.&295.34\\
 128&Potential&26569.77&0.00&281.03\\
 128&Potential-AL&18887.93&4036.51&281.98\\
 128&Potential-FG (matched)&20862.81&0.00&451.21\\
 256&Laplacian&\textemdash&\textemdash&5548.86\\
-256&Velocity&8622.13&\textemdash&310.61\\
+256&Velocity&$8622.13^{\dagger}$&incl.&310.61\\
 256&Potential&59879.95&717.31&291.56\\
-256&Potential-FG (seed 0)&$23238.19^{\dagger}$&\textemdash&469.61\\
+256&Potential-FG (seed 0)&$23238.19^{\dagger}$&incl.&469.61\\
 256&Potential-FG (matched)&39108.35&0.00&665.15\\
 512&Laplacian&\textemdash&\textemdash&9246.67\\
-512&Velocity&14366.09&\textemdash&488.29\\
+512&Velocity&$14366.09^{\dagger}$&incl.&488.29\\
 512&Potential&504713.77&106.03&348.12\\
-512&Potential-AL/FG&\textemdash&\textemdash&\textemdash\\
+512&Potential-AL&$55800^{*}$&$0^{*}$&$370^{*}$\\
+512&Potential-FG (matched)&$66000^{*}$&$0^{*}$&$1090^{*}$\\
 1024&Laplacian&\textemdash&\textemdash&22049.01\\
-1024&Velocity&27976.58&\textemdash&747.68\\
-1024&Potential&\textemdash&\textemdash&\textemdash\\
-1024&Potential-AL/FG&\textemdash&\textemdash&\textemdash\\
+1024&Velocity&$27976.58^{\dagger}$&incl.&747.68\\
+1024&Potential&$866800^{*}$&$0^{*}$&$440^{*}$\\
+1024&Potential-AL&$96400^{*}$&$0^{*}$&$480^{*}$\\
+1024&Potential-FG (matched)&$115300^{*}$&$0^{*}$&$1940^{*}$\\
 \bottomrule\end{tabular}
 \label{tab:Pot-training-basis-cost}
 \end{table}
