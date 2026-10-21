@@ -206,4 +206,3 @@ A_{ij}=\ip{U_i}{\mathcal L U_j}_h,\quad
 \end{equation}
 
 The same quadrature defines $M$ and the two assembled operators. During inference, each time-integration stage contracts these fixed operators with the current coefficient vector and solves the full mass system using its cached Cholesky factor. The recurrent state is therefore the reduced vector $c(t)$ throughout the trajectory. Spatial reconstruction $u(t)=u_{\rm base}(t)+Uc(t)$ is performed only at requested output times, as illustrated in \docref{Figure}{fig:method}. This is an algebraic reorganization of the chosen Galerkin system. \docref{Appendix}{app:coefficient-acceleration} measures operator equivalence, integration time, offline cost, and flow error separately.
-
