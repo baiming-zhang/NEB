@@ -14,22 +14,22 @@ The experiments connect three aspects of reduced fluid simulation: **spectral le
 
 The manuscript includes 26 main-comparison groups on the same 20 independent fields and four separately matched Potential-FG controls. All 27 included figures are supplied as PNG and vector PDF. Potential K512 completes 2000 training updates; Potential K1024 and K2048 complete 25 and one updates, respectively. Unmeasured full-training and accuracy entries are shown as dashes. The K1024 Laplacian raw-geometry-to-all-sampled-basis interval is 22049.01 s, including interstage waits, setup, paging, I/O and background load.
 
-The [boundary-to-all-basis timings](data/paper_results/primary_basis_runtime.csv) include Velocity K512/K1024/K2048 at 488.29/747.68/1379.85 s and Laplacian K32/K64/K128 at 3467.56/2545.51/3576.89 s. These intervals evaluate all 1,599,754 fluid points and all retained modes, including streamed output. The Laplacian interval additionally includes the fresh coefficient solve, interstage waits, setup, paging and background load. Remaining measurements appear as dashes in the manuscript.
+The [boundary-to-all-basis timings](data/paper_results/primary_basis_runtime.csv) include Velocity K512/K1024/K2048 at 488.29/747.68/1379.85 s and Laplacian K32/K64/K128/K256/K512 at 3467.56/2545.51/3576.89/5548.86/9246.67 s. These intervals evaluate all 1,599,754 fluid points and all retained modes, including streamed output. The Laplacian interval additionally includes the fresh coefficient solve, interstage waits, setup, paging and background load. Remaining measurements appear as dashes in the manuscript.
 
-![Paired initial-field representation in the 3D Metaball domain](assets/figures/metaball20.png)
+![Paired initial-field representation in the 3D Metaball domain](assets/figures/metaball_independent_fields.png)
 
 ## Methods
 
 | Name | Formulation |
 |---|---|
 | **Potential** | Potential-space Rayleigh training in 2D and canonical potential-space training in 3D |
-| **Velocity** | Velocity-space Rayleigh training with a differential lift |
+| **Velocity** | Velocity-space Rayleigh training through a potential network and differential lift |
 | **Laplacian** | Numerical spectral basis at the same capacity |
 | **NKB** | Direct-velocity neural kinematic basis |
 | **Potential-FG** | Finite scalar/harmonic gauge control |
 | **Potential-AL** | Augmented-Lagrangian potential control |
 
-Spatial derivatives are evaluated analytically. Projection uses the full mass matrix, and the reduced dynamics evolve coefficients with the assembled Galerkin operators. Experiment configurations specify geometry, sampling, initialization, optimizer, precision, capacity, and validation cadence.
+Potential and Velocity both generate velocities from neural potentials; NKB outputs velocities directly. Spatial derivatives are evaluated analytically. Projection uses the full mass matrix, and the reduced dynamics evolve coefficients with the assembled Galerkin operators. Experiment configurations specify geometry, sampling, initialization, optimizer, precision, capacity, and validation cadence.
 
 ## Installation
 
@@ -147,11 +147,11 @@ python experiments/metaball/evaluate.py --method VRQ --K 32 \
   --output runs/metaball/vrq_basis
 ```
 
-The [Metaball guide](experiments/metaball/USAGE.md) continues with CCQ physical operators, full-mass paired projection, VRQ capacity sweeps and assembled coefficient dynamics. The [gauge guide](experiments/gauge/USAGE.md) gives finite-space, spline, volume-FMM and Fourier controls. The [quadratic geometry guide](experiments/metaball/GEOMETRY4.md) reproduces the held-out Nédélec mesh, curved physical chart, 264-vector Ritz solve and 256-mode reconstruction.
+The [Metaball guide](experiments/metaball/USAGE.md) continues with Potential physical operators, full-mass paired projection, Velocity capacity sweeps and assembled coefficient dynamics. The [gauge guide](experiments/gauge/USAGE.md) gives finite-space, spline, volume-FMM and Fourier controls. The [quadratic geometry guide](experiments/metaball/GEOMETRY4.md) reproduces the held-out Nédélec mesh, curved physical chart, 264-vector Ritz solve and 256-mode reconstruction.
 
-The paired-field comparison in `data/paper/metaball20.csv` contains 20 initial fields for each of 16 method-capacity groups. Error bars show the sample standard deviation across fields, with `ddof=1`. The `metaball_capacity.json` measurements separate initial representation from autonomous evolution.
+The paired-field comparison in [`data/paper_results/mainfour_NEW20_520_measurements.csv`](data/paper_results/mainfour_NEW20_520_measurements.csv) contains 26 method-capacity groups on the same 20 independent random fields, for 520 measurements. Potential-FG contributes four separately matched control groups. Error bars show the sample standard deviation across fields, with `ddof=1`. The `metaball_capacity.json` measurements separate initial representation from autonomous evolution.
 
-![Representation capacity and autonomous evolution](assets/figures/metaball_capacity.png)
+![Representation capacity and autonomous evolution](assets/figures/metaball_capacity_comparison.png)
 
 ## Repository layout
 

@@ -275,7 +275,7 @@ Potential-AL and Potential-FG are the noncanonical 3D potential controls. The Po
 
 \input{sections/matched_FG_results}
 \begin{table}[!htb]\centering\small
-\caption{Initial relative velocity $L^2$ errors on the original common initial field ($n=1$ per method and capacity), using all retained modes and all 1,599,754 fluid nodes. Potential completes 2000 epochs and 80 scheduled validations through $K=512$. The controls use Potential-AL at $K=32,64,128$ and Potential-FG at $K=256$. The $K=1024$ and $2048$ Potential training runs complete 25 and one optimizer updates, respectively; their completed update counts are reported separately from the full-training representation results.}
+\caption{Initial relative velocity $L^2$ errors on the original common initial field ($n=1$ per method and capacity), using all retained modes and all 1,599,754 fluid nodes. Potential completes 2000 epochs and 80 scheduled validations through $K=512$. The controls use Potential-AL at $K=32,64,128$ and Potential-FG at $K=256$. The $K=1024$ and $2048$ Potential training runs complete 25 optimizer updates and one update, respectively; their completed update counts are reported separately from the full-training representation results.}
 \label{tab:finite-potential-initial}
 \begin{tabular}{rrrrr}\toprule
 $K$&Potential&Velocity&Laplacian&Potential-AL/FG\\\midrule
@@ -313,12 +313,12 @@ $K$&Method&Normal training&State recovery&Boundary to all basis\\\midrule
 128&Potential&26569.77&0.00&281.03\\
 128&Potential-AL&18887.93&4036.51&281.98\\
 128&Potential-FG (matched)&20862.81&0.00&451.21\\
-256&Laplacian&\textemdash&\textemdash&\textemdash\\
+256&Laplacian&\textemdash&\textemdash&5548.86\\
 256&Velocity&8622.13&\textemdash&310.61\\
 256&Potential&59879.95&717.31&291.56\\
 256&Potential-FG (seed 0)&$23238.19^{\dagger}$&\textemdash&469.61\\
 256&Potential-FG (matched)&39108.35&0.00&665.15\\
-512&Laplacian&\textemdash&\textemdash&\textemdash\\
+512&Laplacian&\textemdash&\textemdash&9246.67\\
 512&Velocity&14366.09&\textemdash&488.29\\
 512&Potential&504713.77&106.03&348.12\\
 512&Potential-AL/FG&\textemdash&\textemdash&\textemdash\\
@@ -340,7 +340,7 @@ At $K=1024$, Laplacian construction from raw geometry (marching-cubes resolution
 \input{sections/highK_training_runtime}
 
 \subsection{Training geometry and frequency}
-The full 2000-epoch Potential and three-dimensional velocity runs use the original sampling and optimization computations: 6144 query points and eight 4096-point validation geometries every 25 epochs (80 scheduled validations). The high-capacity Potential training runs at $K=1024,2048$ retain the original sampling and learning-rate horizon and complete 25 and one updates with zero scheduled validations. Potential retains the established canonical objective and two-pass causal Gram--Schmidt; its canonical physical actions use FP64, while ANN parameters and analytic derivatives use FP32. The three-dimensional velocity capacity family uses a fixed training domain, first-layer frequency 40, and cosine learning-rate endpoints scaled by 0.1 relative to the original velocity configuration. Its reported checkpoints complete 2000 epochs with the original sampling and scheduled validation. The Potential-AL models at $K=32,64,128$ use seed 20260823, frequencies 40/36, and cosine learning-rate endpoints $2.8\times10^{-5}$ and $10^{-7}$. The Potential-FG $K=256$ model instead uses seed 0, frequencies 160/36, and endpoints $2.8\times10^{-4}$ and $10^{-6}$; it is not a matched cross-method control. \hyperref[app:unseen-geometry]{Geometry-conditioned evaluation on other domains} is reported separately below.
+The full 2000-epoch Potential and three-dimensional velocity runs use the original sampling and optimization computations: 6144 query points and eight 4096-point validation geometries every 25 epochs (80 scheduled validations). The high-capacity Potential training runs at $K=1024,2048$ retain the original sampling and learning-rate horizon and complete 25 optimizer updates and one update, respectively, with zero scheduled validations. Potential retains the established canonical objective and two-pass causal Gram--Schmidt; its canonical physical actions use FP64, while ANN parameters and analytic derivatives use FP32. The three-dimensional velocity capacity family uses a fixed training domain, first-layer frequency 40, and cosine learning-rate endpoints scaled by 0.1 relative to the original velocity configuration. Its reported checkpoints complete 2000 epochs with the original sampling and scheduled validation. The Potential-AL models at $K=32,64,128$ use seed 20260823, frequencies 40/36, and cosine learning-rate endpoints $2.8\times10^{-5}$ and $10^{-7}$. The Potential-FG $K=256$ model instead uses seed 0, frequencies 160/36, and endpoints $2.8\times10^{-4}$ and $10^{-6}$; it is not a matched cross-method control. \hyperref[app:unseen-geometry]{Geometry-conditioned evaluation on other domains} is reported separately below.
 
 
 \subsection{Capacity and unseen-geometry reconstruction}

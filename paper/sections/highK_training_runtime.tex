@@ -1,5 +1,5 @@
 \begin{table}[!htb]\centering\small
-\caption{High-capacity Potential training runtime. Elapsed time runs from the first native training-worker start to atomic publication of the complete model and Adam endpoint. It includes the intervening implementation repairs, recovery, waits, failed attempts and output I/O. Both runs use zero scheduled validations and retain the original 2000-epoch learning-rate horizon.}
+\caption{High-capacity Potential training runtime with update budgets of 25 at $K=1024$ and one at $K=2048$. Elapsed time covers the first native training-worker start through atomic publication of the full model and Adam state, including repairs, recovery, waits, failed attempts and output I/O. Both runs use zero scheduled validations and a learning-rate schedule defined over 2000 epochs.}
 \label{tab:CCQ-highK-runtime}
 \begin{tabular}{rrr}\toprule
 $K$ & Completed optimizer updates & Elapsed runtime (s)\\\midrule

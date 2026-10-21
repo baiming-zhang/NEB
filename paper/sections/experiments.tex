@@ -1,6 +1,6 @@
 \section{Experiments}
 \label{sec:experiments}
-\textbf{Method names.} Potential and Velocity identify the two learned spectral objectives; Laplacian is the numerical spectral baseline; NKB predicts velocity directly. Potential-FG and Potential-AL identify the finite-gauge and augmented-Lagrangian potential controls. These names identify the training objective and direct-velocity architecture consistently throughout all figures and tables.
+\textbf{Method names.} Potential and Velocity denote potential-space and velocity-space spectral training, respectively. Both generate velocity by differentiating neural potentials; NKB predicts velocity directly. Laplacian is the numerical spectral baseline. Potential-FG and Potential-AL denote the finite-gauge and augmented-Lagrangian potential controls. The same names label all figures and tables.
 
 We evaluate how spectral objectives, harmonic completion, and reduced dynamics shape a learned flow basis. A periodic vortex merger measures learned-basis autonomous accuracy and viscous decay. One-, two-, and three-hole domains test the circulation sector and the conditioning of its neural coordinates. A three-dimensional Metaball domain then connects spatial capacity to autonomous accuracy and coefficient-space cost (\docref{Table}{tab:experiment-map}).
 \begin{table}[!htb]
