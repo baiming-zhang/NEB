@@ -1,0 +1,7 @@
+method,K,points,components,dtype,seconds,timer_start,timer_end,includes_streamed_output_IO,includes_interstage_wait_setup_paging_background,training_updates,accuracy_evaluation
+Velocity,512,1599754,3,float32,488.2863621000,raw parameterized boundary,all sampled basis output fsync and rename,True,False,0,False
+Velocity,1024,1599754,3,float32,747.6812867000,raw parameterized boundary,all sampled basis output fsync and rename,True,False,0,False
+Velocity,2048,1599754,3,float32,1379.8520033000,raw parameterized boundary,all sampled basis output fsync and rename,True,False,0,False
+Laplacian,32,1599754,3,float64,3467.5581550598,raw parameterized boundary,all sampled basis output fsync and rename,True,True,0,False
+Laplacian,64,1599754,3,float64,2545.5133101940,raw parameterized boundary,all sampled basis output fsync and rename,True,True,0,False
+Laplacian,1024,1599754,3,float64,22049.0115473270,raw parameterized boundary,all sampled basis output fsync and rename,True,True,0,False

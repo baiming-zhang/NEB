@@ -14,6 +14,8 @@ The experiments connect three aspects of reduced fluid simulation: **spectral le
 
 The manuscript includes 26 main-comparison groups on the same 20 independent fields and four separately matched Potential-FG controls. All 27 included figures are supplied as PNG and vector PDF. Potential K512 completes 2000 training updates; Potential K1024 and K2048 complete 25 and one updates, respectively. Unmeasured full-training and accuracy entries are shown as dashes. The K1024 Laplacian raw-geometry-to-all-sampled-basis interval is 22049.01 s, including interstage waits, setup, paging, I/O and background load.
 
+The [boundary-to-all-basis timings](data/paper_results/primary_basis_runtime.csv) include Velocity K512/K1024/K2048 at 488.29/747.68/1379.85 s and Laplacian K32/K64 at 3467.56/2545.51 s. These intervals evaluate all 1,599,754 fluid points and all retained modes, including streamed output. The Laplacian interval additionally includes the fresh coefficient solve, interstage waits, setup, paging and background load. Remaining measurements appear as dashes in the manuscript.
+
 ![Paired initial-field representation in the 3D Metaball domain](assets/figures/metaball20.png)
 
 ## Methods
@@ -73,7 +75,7 @@ All eleven reference models are saved at epoch 2000. The manifest lists their in
 
 The periodic case compares learned and Fourier bases at K=1024 over 18π time units. It uses a 256×256 quadrature grid, a 128×128 observation grid, and 241 saved states. Three learned initialization seeds provide the paper's mean and sample standard deviation.
 
-Generate the reference flow and evaluate the supplied SF-R checkpoint:
+Generate the reference flow and evaluate the supplied Potential checkpoint:
 
 ```bash
 python experiments/periodic/run.py dns --output runs/periodic/dns
@@ -93,7 +95,7 @@ python experiments/periodic/run.py train \
   --output runs/periodic/sfr
 ```
 
-Use `K1024_velocity_rayleigh_seed0.json` and `--method Velocity` for VRQ. The method names in these commands match the original mathematical implementation; the paper labels are SF-R and VRQ.
+Use `K1024_velocity_rayleigh_seed0.json` and `--method Velocity` for the Velocity objective.
 
 ## Multiply connected domains
 
@@ -123,13 +125,13 @@ python experiments/multihole/evaluate.py \
   --output runs/multihole/circle_square/vrq_projection
 ```
 
-The configuration collection includes positive and harmonic training, raw and scaled lift controls, and fixed-capacity allocations. The [multihole guide](experiments/multihole/README.md) gives the P/PH projection commands. The [learned dynamics guide](experiments/multihole/learned_rom/README.md) constructs the full-mass Galerkin operators, advances autonomous trajectories and compares them with the physical reference. The [reference guide](experiments/multihole/reference/USAGE.md) provides adaptive meshes, P3 reference trajectories, compact-vortex ensembles and full-space LEB controls. The [NKB guide](experiments/2d/nkb/README.md) covers geometry-only training and its coefficient dynamics.
+The configuration collection includes positive and harmonic training, raw and scaled lift controls, and fixed-capacity allocations. The [multihole guide](experiments/multihole/README.md) gives the P/PH projection commands. The [learned dynamics guide](experiments/multihole/learned_rom/README.md) constructs the full-mass Galerkin operators, advances autonomous trajectories and compares them with the physical reference. The [reference guide](experiments/multihole/reference/USAGE.md) provides adaptive meshes, P3 reference trajectories, compact-vortex ensembles and full-space Laplacian controls. The [NKB guide](experiments/2d/nkb/README.md) covers geometry-only training and its coefficient dynamics.
 
 ## 3D Metaball
 
-The 3D experiments use the same physical target and same-capacity LEB controls for full-domain projection. They include the VRQ and CCQ objectives, gauge-constrained potential controls, NKB, gauge-solver ablations, held-out geometry, and coefficient-space dynamics. Capacities and method-specific configurations are supplied with the experiment sources.
+The 3D experiments use the same physical target and same-capacity Laplacian controls for full-domain projection. They include the Velocity and Potential objectives, gauge-constrained potential controls, NKB, gauge-solver ablations, held-out geometry, and coefficient-space dynamics. Capacities and method-specific configurations are supplied with the experiment sources.
 
-Generate the analytic source samples and evaluate the reference VRQ model on the full physical grid:
+Generate the analytic source samples and evaluate the reference Velocity model on the full physical grid:
 
 ```bash
 python experiments/metaball/prepare.py source --output runs/metaball/source

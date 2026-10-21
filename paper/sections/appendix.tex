@@ -269,16 +269,16 @@ Halving the ROM time step changes the trajectory by at most $2.67\times10^{-12}$
 \subsection{Differentiable auxiliary gauge projection}
 The Potential-FG configuration uses 441 effective scalar gauge directions for differentiable representative selection. A pure-gauge injection diagnostic quantifies the resolved gradient content, with 43.80\% amplitude retained after projection. Scalar corrections preserve the analytic curl exactly. The \hyperref[app:gauge-solvers]{solver comparison below} separately examines refinement, harmonic orthogonality, and derivative consistency using a frozen 32-network auxiliary-solver checkpoint after five updates; it is not the full-training Potential or Potential-FG capacity checkpoint.
 
-\subsection{Gauge-Constrained Potential controls and capacity}
+\subsection{Potential-AL and Potential-FG controls and capacity}
 \label{app:old-Pot}
-Gauge-Constrained Potential (GCP) denotes the noncanonical 3D control family. The Potential-AL models at $K=32,64,128$ use divergence and wall constraints with an augmented-Lagrangian objective. The seed-0 $K=256$ Potential-FG model uses finite scalar/harmonic gauge projection. Their original-field reconstruction results appear in \docref{Table}{tab:finite-potential-initial}. A separately trained, matched Potential-FG family spans $K=32,64,128,256$, with the results below.
+Potential-AL and Potential-FG are the noncanonical 3D potential controls. The Potential-AL models at $K=32,64,128$ use divergence and wall constraints with an augmented-Lagrangian objective. The seed-0 $K=256$ Potential-FG model uses finite scalar/harmonic gauge projection. Their original-field reconstruction results appear in \docref{Table}{tab:finite-potential-initial}. A separately trained, matched Potential-FG family spans $K=32,64,128,256$, with the results below.
 
 \input{sections/matched_FG_results}
 \begin{table}[!htb]\centering\small
 \caption{Initial relative velocity $L^2$ errors on the original common initial field ($n=1$ per method and capacity), using all retained modes and all 1,599,754 fluid nodes. Potential completes 2000 epochs and 80 scheduled validations through $K=512$. The controls use Potential-AL at $K=32,64,128$ and Potential-FG at $K=256$. The $K=1024$ and $2048$ Potential training runs complete 25 and one optimizer updates, respectively; their completed update counts are reported separately from the full-training representation results.}
 \label{tab:finite-potential-initial}
 \begin{tabular}{rrrrr}\toprule
-$K$&Potential&Velocity&Laplacian&GCP control\\\midrule
+$K$&Potential&Velocity&Laplacian&Potential-AL/FG\\\midrule
 32&0.843112&0.839273&0.845281&0.917776 (AL)\\
 64&0.515772&0.622647&0.521114&0.878704 (AL)\\
 128&0.343194&0.400527&0.348509&0.869497 (AL)\\
@@ -298,12 +298,12 @@ The finite projection leaves gradient directions in the curl kernel. For the adm
 \caption{Three-dimensional training and basis-generation costs in seconds. Normal training includes the scheduled validation and checkpoint I/O of each run; state recovery is separate. The reported full training runs complete 2000 epochs. Basis generation measures one synchronized interval from the original parameterized boundary to all 1,599,754 points and all $K$ basis fields, including required streamed-output I/O. The Laplacian interval also includes interstage waits, setup, paging, and background load. Runtime/model loading, coefficient synthesis, projection, and diagnostics have separate boundaries. A dash denotes an unavailable measurement under the stated run and timing boundary; Laplacian has no training or recovery stage. Completed short high-capacity Potential runs are reported in \docref{Table}{tab:CCQ-highK-runtime}. $\dagger$ denotes an inclusive training-time counter. Matched Potential-FG rows complete 2000 epochs and 80 validations; their reconstruction and basis-generation results also appear in \docref{Figure}{fig:matched-FG-NEW20}.}
 \begin{tabular}{rlrrr}\toprule
 $K$&Method&Normal training&State recovery&Boundary to all basis\\\midrule
-32&Laplacian&\textemdash&\textemdash&\textemdash\\
+32&Laplacian&\textemdash&\textemdash&3467.56\\
 32&Velocity&3042.38&0.00&267.91\\
 32&Potential&8170.08&200.31&255.50\\
 32&Potential-AL&6316.24&0.00&259.52\\
 32&Potential-FG (matched)&7332.09&0.00&291.39\\
-64&Laplacian&\textemdash&\textemdash&\textemdash\\
+64&Laplacian&\textemdash&\textemdash&2545.51\\
 64&Velocity&3930.13&\textemdash&307.32\\
 64&Potential&14404.07&0.00&269.28\\
 64&Potential-AL&10513.53&\textemdash&273.65\\
@@ -319,17 +319,17 @@ $K$&Method&Normal training&State recovery&Boundary to all basis\\\midrule
 256&Potential-FG (seed 0)&$23238.19^{\dagger}$&\textemdash&469.61\\
 256&Potential-FG (matched)&39108.35&0.00&665.15\\
 512&Laplacian&\textemdash&\textemdash&\textemdash\\
-512&Velocity&14366.09&\textemdash&\textemdash\\
+512&Velocity&14366.09&\textemdash&488.29\\
 512&Potential&504713.77&106.03&348.12\\
-512&GCP&\textemdash&\textemdash&\textemdash\\
+512&Potential-AL/FG&\textemdash&\textemdash&\textemdash\\
 1024&Laplacian&\textemdash&\textemdash&22049.01\\
-1024&Velocity&27976.58&\textemdash&\textemdash\\
+1024&Velocity&27976.58&\textemdash&747.68\\
 1024&Potential&\textemdash&\textemdash&\textemdash\\
-1024&GCP&\textemdash&\textemdash&\textemdash\\
+1024&Potential-AL/FG&\textemdash&\textemdash&\textemdash\\
 2048&Laplacian&\textemdash&\textemdash&\textemdash\\
-2048&Velocity&59575.55&\textemdash&\textemdash\\
+2048&Velocity&59575.55&\textemdash&1379.85\\
 2048&Potential&\textemdash&\textemdash&\textemdash\\
-2048&GCP&\textemdash&\textemdash&\textemdash\\
+2048&Potential-AL/FG&\textemdash&\textemdash&\textemdash\\
 \bottomrule\end{tabular}
 \label{tab:Pot-training-basis-cost}
 \end{table}
