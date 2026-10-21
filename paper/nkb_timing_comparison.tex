@@ -14,7 +14,7 @@ reported controls.
 Periodic entries summarize three seeds. The topology entries measure positive-basis
 training; the learned harmonic fields are shared by the potential and velocity arms,
 and their training is outside those timers. NKB learns direct velocity outputs without
-a separate harmonic stage. The 2D potential entries use Potential. The 3D entries at $K=128,256$ use Potential-FG with seed 0 and finite scalar/harmonic gauge projection. These configurations differ from Potential-AL and canonical Potential, whose 3D training costs appear in \docref{Appendix}{app:Pot-cost}. The velocity capacity family has gauge projection disabled and completes full training through $K=2048$. NKB covers autonomous capacities through $K=1024$ and initial representation at $K=2048$.
+a separate harmonic stage. The 2D potential entries use Potential. The 3D entries at $K=128,256$ use Potential-FG with seed 0 and finite scalar/harmonic gauge projection. These configurations differ from Potential-AL and canonical Potential, whose 3D training costs appear in \docref{Appendix}{app:Pot-cost}. The velocity capacity family has gauge projection disabled and completes full training through $K=1024$. NKB covers the same autonomous capacities through $K=1024$.
 
 \begin{table}[!htb]\centering\footnotesize\setlength{\tabcolsep}{4pt}
 \caption{Training wall time in minutes for complete 2000-update runs. Periodic entries are mean $\pm$ sample SD over three seeds. The 3D totals include all 80 scheduled validations. Topology totals exclude the separately trained harmonic lift shared within each potential/velocity pair. The potential column denotes Potential in 2D and the seed-0 Potential-FG runs in 3D; unavailable measurements are dashes. Canonical 3D Potential costs appear in Appendix~\ref{app:Pot-cost}. See the text for architecture and gauge settings.}
@@ -30,7 +30,6 @@ Periodic & 1024 & $106.428\pm3.196$ & $165.760\pm1.636$ & $2.649\pm0.003$\\
 3D & 256 & 387.30 & 143.70 & 1.22\\
 3D & 512 & -- & 239.43 & 2.33\\
 3D & 1024 & -- & 466.28 & 6.13\\
-3D & 2048 & -- & 992.93 & 20.85\\
 \bottomrule\end{tabular}\end{table}
 \begin{table}[!htb]\centering\footnotesize\setlength{\tabcolsep}{4pt}
 \caption{Instrumented 3D Velocity-training components, in minutes, summed over 2000 committed updates and 80 scheduled validations. Fwd./Rev. include analytic derivatives and the reverse pass includes recomputation. The full wall total also includes initialization, progress logging, cleanup, and other uninstrumented overhead; the listed components identify the principal computational stages. Checkpoints are saved every update through $K=256$ and every 25 updates at higher capacities.}
@@ -42,7 +41,6 @@ $K$&Fwd.&Rev.&Geometry&Ortho.&Validate&Save&Opt./sample\\\midrule
 256 & 20.85 & 72.05 & 25.22 & 0.62 & 10.76 & 9.26 & 0.22\\
 512 & 42.17 & 145.88 & 25.61 & 2.20 & 15.95 & 1.82 & 0.35\\
 1024 & 89.94 & 298.41 & 29.88 & 8.86 & 28.61 & 3.77 & 0.67\\
-2048 & 213.77 & 639.38 & 25.37 & 36.19 & 60.81 & 7.87 & 1.21\\
 \bottomrule\end{tabular}\end{table}
 \paragraph{Architecture and derivative workload.}
 The 3D velocity implementation assigns an independent width-128, five-hidden-layer sinusoidal representation network (SIREN) {\citep{sitzmann2020implicit}} to each mode: at $K=1024$ it has 70,126,592 trainable parameters. NKB uses a shared width-256, seven-hidden-layer network with all velocity outputs, totaling 1,188,352 parameters. For Velocity, the neural vector potential $A_\theta$ gives $u=\curl A_\theta$ and the velocity-gradient Rayleigh energy require second spatial derivatives of $A_\theta$ and their parameter adjoints. NKB directly predicts $u$ and its losses use first spatial derivatives. At $K=1024$, neural forward and reverse account for 83.3\% of the 466.28-minute wall time; gauge projection is disabled. The cost breakdown connects the derivative workload and network architecture to the measured training time.

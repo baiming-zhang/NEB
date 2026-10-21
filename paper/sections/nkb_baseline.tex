@@ -1,6 +1,6 @@
 \section{Neural kinematic basis comparison}
 \label{app:nkb}
-We compare the learned spectral spans with a direct-velocity neural kinematic basis (NKB), following the camera-ready formulation of \citet{liu2025neural}. Each NKB model is trained independently at the reported capacity on the original case geometry. Its initial coefficients are obtained from the same physical initial velocity through a full-mass least-squares projection. The trajectory comparisons evolve all coordinates autonomously; subsequent reference snapshots are used only for assessment. The $K=2048$ 3D measurement assesses initial spatial representation separately.
+We compare the learned spectral spans with a direct-velocity neural kinematic basis (NKB), following the camera-ready formulation of \citet{liu2025neural}. Each NKB model is trained independently at the reported capacity on the original case geometry. Its initial coefficients are obtained from the same physical initial velocity through a full-mass least-squares projection. The trajectory comparisons evolve all coordinates autonomously; subsequent reference snapshots are used only for assessment.
 
 \paragraph{Architecture and optimization.}
 Our native-CuPy reimplementation uses seven hidden layers of width 256 with LeakyReLU slope $0.01$, followed by an exponential linear unit (ELU) velocity output; LeakyReLU is the leaky rectified linear unit. It optimizes the six NKB penalties with weights $0.01$, $5$, $100$, $30$, $100$, and $100$ for spatial variation, divergence, orthogonality, boundary alignment, mean length, and small length, respectively. The target mean basis length is $0.37$, and the small-length threshold is $0.05$. We realize the orthogonality penalty as the mean squared off-diagonal entry of the global velocity Gram matrix, a nonnegative implementation of the paper's printed signed sum. Spatial Jacobians and their parameter adjoints are evaluated analytically. The periodic model uses sine/cosine coordinates; bounded domains retain their original implicit surfaces and use a soft boundary band of width $0.05$ times the domain side length. Direct velocity outputs use the stated soft kinematic penalties; Eigenfluid uses differential lifts, spectral objectives, and explicit harmonic coordinates.
@@ -14,7 +14,6 @@ Periodic errors use the common $128^2$ observation grid and all 241 frames throu
 
 \input{nkb_results}
 
-At $K=2048$, the completed 2000-update NKB model takes 1251.13 seconds including scheduled validation. Its full-mass initial projection on all 1,599,754 fluid nodes has relative error .216462 and captures $95.314\%$ of the initial energy (\docref{Table}{tab:initial2048}). This capacity measurement extends the spatial comparison; autonomous NKB trajectories are assessed through $K=1024$.
 
 
 \begin{figure}[!htb]

@@ -228,15 +228,15 @@ $K$ & Best representation & In-span evolution\\\midrule
 \label{app:3d-controls}
 \subsection{High-capacity initial representation and training cost}
 \label{app:3d-high-capacity}
-{The fixed-domain velocity models at $K=512,1024,2048$ each receive 2000 training epochs. Full-mass projection of the common initial numerical velocity on all 1,599,754 fluid nodes gives relative errors of $20.95\%,17.05\%,15.62\%$, compared with $19.65\%,17.90\%,17.27\%$ for the same-capacity Laplacian bases. Doubling learned capacity from 1024 to 2048 reduces initial error by a further 1.43 percentage points and yields an error 1.65 points below the matched numerical control (\docref{Table}{tab:initial2048}). \docref{Figure}{fig:case3-initial-capacity} relates these representation measurements to the training cost.}
+{The fixed-domain velocity models at $K=512,1024$ each receive 2000 training epochs. Full-mass projection of the common initial numerical velocity on all 1,599,754 fluid nodes gives relative errors of $20.95\%,17.05\%$, compared with $19.65\%,17.90\%$ for the same-capacity Laplacian bases. \docref{Figure}{fig:case3-initial-capacity} relates these representation measurements to the training cost.}
 
 \begin{figure}[!htb]
 \centering\includegraphics[width=\linewidth,height=.72\textheight,keepaspectratio]{unified_names_20261021_v1/case3_initial_capacity_training.pdf}
-\caption{\textbf{Initial representation and training cost in three dimensions.} (a) Full-mass initial projection error on all fluid nodes, using every mode. {Numerical Laplacian and learned velocity results both extend through $K=2048$ and measure initial representation.} (b) Wall time for 2000 epochs: forward and backward computation plus other training costs, including validation and checkpoint I/O. Total times at $K=512,1024,2048$ are 3.99, 7.77, and 16.55 hours.}
+\caption{\textbf{Initial representation and training cost in three dimensions.} (a) Full-mass initial projection error on all fluid nodes, using every mode. {Numerical Laplacian and learned velocity results extend through $K=1024$ and measure initial representation.} (b) Wall time for 2000 epochs: forward and backward computation plus other training costs, including validation and checkpoint I/O. Total times at $K=512,1024$ are 3.99 and 7.77 hours.}
 \label{fig:case3-initial-capacity}
 \end{figure}
 
-\input{sections/k2048_review_status}
+
 
 \subsection{Coefficient-only acceleration of the 3D Galerkin system}
 \label{app:coefficient-acceleration}
@@ -266,6 +266,8 @@ Halving the ROM time step changes the trajectory by at most $2.67\times10^{-12}$
 \label{app:randomfield-values}
 \input{sections/mainfour_NEW20_values}
 
+\input{sections/mainfour_K1024_values}
+
 \subsection{Differentiable auxiliary gauge projection}
 The Potential-FG configuration uses 441 effective scalar gauge directions for differentiable representative selection. A pure-gauge injection diagnostic quantifies the resolved gradient content, with 43.80\% amplitude retained after projection. Scalar corrections preserve the analytic curl exactly. The \hyperref[app:gauge-solvers]{solver comparison below} separately examines refinement, harmonic orthogonality, and derivative consistency using a frozen 32-network auxiliary-solver checkpoint after five updates; it is not the full-training Potential or Potential-FG capacity checkpoint.
 
@@ -275,7 +277,7 @@ Potential-AL and Potential-FG are the noncanonical 3D potential controls. The Po
 
 \input{sections/matched_FG_results}
 \begin{table}[!htb]\centering\small
-\caption{Initial relative velocity $L^2$ errors on the original common initial field ($n=1$ per method and capacity), using all retained modes and all 1,599,754 fluid nodes. Potential completes 2000 epochs and 80 scheduled validations through $K=512$. The controls use Potential-AL at $K=32,64,128$ and Potential-FG at $K=256$. The $K=1024$ and $2048$ Potential training runs complete 25 optimizer updates and one update, respectively; their completed update counts are reported separately from the full-training representation results.}
+\caption{Initial relative velocity $L^2$ errors on the original common initial field ($n=1$ per method and capacity), using all retained modes and all 1,599,754 fluid nodes. Potential completes 2000 epochs and 80 scheduled validations through $K=512$. The controls use Potential-AL at $K=32,64,128$ and Potential-FG at $K=256$. The $K=1024$ Potential training run completes 25 optimizer updates; its update count is reported separately from the full-training representation results.}
 \label{tab:finite-potential-initial}
 \begin{tabular}{rrrrr}\toprule
 $K$&Potential&Velocity&Laplacian&Potential-AL/FG\\\midrule
@@ -285,7 +287,6 @@ $K$&Potential&Velocity&Laplacian&Potential-AL/FG\\\midrule
 256&0.235699&0.281845&0.242727&0.994937 (FG)\\
 512&0.201610&0.209542&0.196530&\textemdash\\
 1024&\textemdash&0.170499&0.178991&\textemdash\\
-2048&\textemdash&0.156175&0.172679&\textemdash\\
 \bottomrule\end{tabular}\end{table}
 
 The finite projection leaves gradient directions in the curl kernel. For the admissible analytic potential $A=\nabla[e(x)^2\sin(2\pi f(x_1+2x_2+3x_3))]$, where $e$ is the boundary envelope, curl vanishes and $A$ is zero on the boundary. At $f=4$, the scalar and harmonic correction leaves $99.86\%$ of its source-point mass, despite a scalar-system residual below $5\times10^{-15}$. Residual gradient content can enlarge the potential quotient's denominator without adding velocity energy. On the frozen 256-mode model, replacing 441 scalar directions with a nonnested 1392-direction space changes retained potential mass by $44.91\%$ and the mean orthogonalized quotient by a factor of $4.62$, while preserving each raw curl. This measures representative sensitivity rather than auxiliary-space convergence. The measured FP32/FP64 analytic-curl discrepancy is $0.0111\%$. For the Potential-FG seed-0 control, these probes connect finite-gauge sensitivity to its velocity representation; they are not diagnostics of the distinct Potential-AL loss. Full-mass best projection is invariant to nonzero column scaling, so reduced curl amplitude alone does not explain the reconstruction error. Resolving gradient content is the necessary qualification for this 3D potential objective.
@@ -326,23 +327,18 @@ $K$&Method&Normal training&State recovery&Boundary to all basis\\\midrule
 1024&Velocity&27976.58&\textemdash&747.68\\
 1024&Potential&\textemdash&\textemdash&\textemdash\\
 1024&Potential-AL/FG&\textemdash&\textemdash&\textemdash\\
-2048&Laplacian&\textemdash&\textemdash&40075.66\\
-2048&Velocity&59575.55&\textemdash&1379.85\\
-2048&Potential&\textemdash&\textemdash&\textemdash\\
-2048&Potential-AL/FG&\textemdash&\textemdash&\textemdash\\
 \bottomrule\end{tabular}
 \label{tab:Pot-training-basis-cost}
 \end{table}
-Initial-field evaluation is separate from training and basis generation: Potential takes 655.76 seconds at $K=256$ and 1182.42 seconds at $K=512$. At $K=512$, the saved-basis assessment of 20 independent random fields takes 123.32 seconds. High-capacity Potential training completes 25 updates at $K=1024$ and one update at $K=2048$, with zero scheduled validations, the original 2000-epoch learning-rate horizon, and full model/Adam endpoint checkpoints.
+Initial-field evaluation is separate from training and basis generation: Potential takes 655.76 seconds at $K=256$ and 1182.42 seconds at $K=512$. At $K=512$, the saved-basis assessment of 20 independent random fields takes 123.32 seconds. Potential training at $K=1024$ completes 25 updates, with zero scheduled validations, the original 2000-epoch learning-rate horizon, and a full model/Adam endpoint checkpoint.
 
 At $K=1024$, Laplacian construction from raw geometry (marching-cubes resolution 80, mesh size $0.025$) through the full spectrum and coefficient archive takes 18769.83 seconds. The sampled-basis stage takes 477.10 seconds and writes all $1{,}599{,}754\times3\times1024$ FP64 values (39,315,554,304 payload bytes). The raw-geometry-to-output interval is 22049.01 seconds, including interstage waits, setup, paging, I/O, and background load. CPU construction uses one BLAS thread, a 7 GiB resident limit, and an 8 GiB resident-peak guard; GPU basis output reuses the completed analytic geometry prefix.
 
-At $K=2048$, CPU coefficient construction takes 37927.17 seconds. The uninterrupted solve uses one BLAS thread and a 32 GiB peak-memory budget; the reported interval retains the time under its initial 7 GiB resident limit.
 
 \input{sections/highK_training_runtime}
 
 \subsection{Training geometry and frequency}
-The full 2000-epoch Potential and three-dimensional velocity runs use the original sampling and optimization computations: 6144 query points and eight 4096-point validation geometries every 25 epochs (80 scheduled validations). The high-capacity Potential training runs at $K=1024,2048$ retain the original sampling and learning-rate horizon and complete 25 optimizer updates and one update, respectively, with zero scheduled validations. Potential retains the established canonical objective and two-pass causal Gram--Schmidt; its canonical physical actions use FP64, while ANN parameters and analytic derivatives use FP32. The three-dimensional velocity capacity family uses a fixed training domain, first-layer frequency 40, and cosine learning-rate endpoints scaled by 0.1 relative to the original velocity configuration. Its reported checkpoints complete 2000 epochs with the original sampling and scheduled validation. The Potential-AL models at $K=32,64,128$ use seed 20260823, frequencies 40/36, and cosine learning-rate endpoints $2.8\times10^{-5}$ and $10^{-7}$. The Potential-FG $K=256$ model instead uses seed 0, frequencies 160/36, and endpoints $2.8\times10^{-4}$ and $10^{-6}$; it is not a matched cross-method control. \hyperref[app:unseen-geometry]{Geometry-conditioned evaluation on other domains} is reported separately below.
+The full 2000-epoch Potential and three-dimensional velocity runs use the original sampling and optimization computations: 6144 query points and eight 4096-point validation geometries every 25 epochs (80 scheduled validations). The $K=1024$ Potential training run retains the original sampling and learning-rate horizon and completes 25 optimizer updates with zero scheduled validations. Potential retains the established canonical objective and two-pass causal Gram--Schmidt; its canonical physical actions use FP64, while ANN parameters and analytic derivatives use FP32. The three-dimensional velocity capacity family uses a fixed training domain, first-layer frequency 40, and cosine learning-rate endpoints scaled by 0.1 relative to the original velocity configuration. Its reported checkpoints complete 2000 epochs with the original sampling and scheduled validation. The Potential-AL models at $K=32,64,128$ use seed 20260823, frequencies 40/36, and cosine learning-rate endpoints $2.8\times10^{-5}$ and $10^{-7}$. The Potential-FG $K=256$ model instead uses seed 0, frequencies 160/36, and endpoints $2.8\times10^{-4}$ and $10^{-6}$; it is not a matched cross-method control. \hyperref[app:unseen-geometry]{Geometry-conditioned evaluation on other domains} is reported separately below.
 
 
 \subsection{Capacity and unseen-geometry reconstruction}

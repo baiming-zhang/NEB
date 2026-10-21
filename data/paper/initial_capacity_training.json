@@ -24,10 +24,6 @@
       "K": 1024,
       "velocity": 0.1704987128849427,
       "laplacian": 0.17899074444929564
-    },
-    {
-      "K": 2048,
-      "velocity": 0.15617482887583636
     }
   ],
   "training": [
@@ -94,19 +90,6 @@
         "optimizer": 0.01804785075050313,
         "sampling": 0.0019031951504875906,
         "velocity_sort_orthogonalization_objective": 0.26593435335240795
-      }
-    },
-    {
-      "K": 2048,
-      "inclusive_training_seconds": 59575.549644100014,
-      "mean_stage_seconds": {
-        "checkpoint_IO": 0.23622785470000235,
-        "geometry_preparation": 0.7612394601517007,
-        "neural_forward_analytic_derivatives": 6.41301602670073,
-        "neural_recompute_and_analytic_backward": 19.181471071248698,
-        "optimizer": 0.03428944870101987,
-        "sampling": 0.0019363434499828146,
-        "velocity_sort_orthogonalization_objective": 1.0858200861985678
       }
     }
   ]

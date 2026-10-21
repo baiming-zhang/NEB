@@ -116,7 +116,16 @@
           "sha256": "78d956a40328e8ec190d1848cd1052516e0edce069b84995004cd759f1eecf57"
         }
       ],
-      "public_sha256": "1bdbf5ee262e3f0b3db833370c892c6086104c512bbdc0c478f00cd8c487099b"
+      "public_sha256": "be76c429017609aa6944176bb3cbf5cd5f46184a677cc43225a6055383bd90c0",
+      "reported_max_K": 1024
+    },
+    {
+      "public_data": "../paper_results/mainfour_NEW20_460_measurements.csv",
+      "public_sha256": "67b8b0c936e4f744da899cac5a0f7080165f8656f5b41fb660ecd89a67691229",
+      "rows": 460,
+      "main_figure_rows": 400,
+      "appendix_K1024_rows": 60,
+      "reported_max_K": 1024
     }
   ]
 }

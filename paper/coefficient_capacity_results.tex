@@ -1,5 +1,5 @@
 \paragraph{Capacity scaling of the assembled ROM.}
-Increasing velocity-basis capacity improves autonomous accuracy while increasing online integration cost ({\docref{Table}{tab:coefficient-capacity}}). {\docref{Figure}{fig:coefficient-capacity}} shows the corresponding full-fluid error and energy trajectories. All trained coordinates are retained. Packed FP64 tensors occupy 0.501 and 4.004 GiB and remain on the GPU throughout integration. The $K=2048$ measurement in {\docref{Figure}{fig:case3-initial-capacity}} evaluates initial representation.
+Increasing velocity-basis capacity improves autonomous accuracy while increasing online integration cost ({\docref{Table}{tab:coefficient-capacity}}). {\docref{Figure}{fig:coefficient-capacity}} shows the corresponding full-fluid error and energy trajectories. All trained coordinates are retained. Packed FP64 tensors occupy 0.501 and 4.004 GiB and remain on the GPU throughout integration.
 \begin{table}[!htb]\centering\small
 \caption{Coefficient-ROM capacity scaling at $\Delta t=0.000625$, $T=1.16$. \docref{Figure}{fig:coefficient-capacity} shows accuracy against the matched-step NS reference. Assembly measures the offline tensor construction, excluding training and field preparation. Synchronized online NS/ROM wall times define the speed ratio.}
 \label{tab:coefficient-capacity}

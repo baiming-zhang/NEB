@@ -10,11 +10,11 @@ The experiments connect three aspects of reduced fluid simulation: **spectral le
 
 ## Manuscript and measured results
 
-[Paper PDF](paper/Neural_Eigenfluid_Bases.pdf) · [LaTeX sources](paper/) · [520 paired NEW20 measurements](data/paper_results/mainfour_NEW20_520_measurements.csv)
+[Paper PDF](paper/Neural_Eigenfluid_Bases.pdf) · [LaTeX sources](paper/) · [460 paired NEW20 measurements](data/paper_results/mainfour_NEW20_460_measurements.csv)
 
-The manuscript includes 26 main-comparison groups on the same 20 independent fields and four separately matched Potential-FG controls. All 27 included figures are supplied as PNG and vector PDF. Potential K512 completes 2000 training updates; Potential K1024 and K2048 complete 25 and one updates, respectively. Unmeasured full-training and accuracy entries are shown as dashes. The K1024 Laplacian raw-geometry-to-all-sampled-basis interval is 22049.01 s, including interstage waits, setup, paging, I/O and background load.
+The manuscript reports 20 main-comparison groups through K512 on the same 20 independent fields (400 measurements), with three K1024 groups in the appendix (60 measurements), and four separately matched Potential-FG controls. All 27 included figures are supplied as PNG and vector PDF. Potential K512 completes 2000 training updates; the K1024 timing endpoint completes 25 updates. Unmeasured full-training and accuracy entries are shown as dashes.
 
-The [boundary-to-all-basis timings](data/paper_results/primary_basis_runtime.csv) include Velocity K512/K1024/K2048 at 488.29/747.68/1379.85 s and Laplacian K32/K64/K128/K256/K512/K1024/K2048 at 3467.56/2545.51/3576.89/5548.86/9246.67/22049.01/40075.66 s. These intervals evaluate all 1,599,754 fluid points and all retained modes, including streamed output. The Laplacian interval additionally includes the fresh coefficient solve, interstage waits, setup, paging and background load. K2048 CPU coefficient construction takes 37927.17 s; its uninterrupted solve uses a 32 GiB peak-memory budget, with time under the initial 7 GiB resident limit retained. Unmeasured training and accuracy entries remain dashes.
+The [boundary-to-all-basis timings](data/paper_results/primary_basis_runtime.csv) report Velocity K512/K1024 at 488.29/747.68 s and Laplacian K32/K64/K128/K256/K512/K1024 at 3467.56/2545.51/3576.89/5548.86/9246.67/22049.01 s. Each interval evaluates all 1,599,754 fluid points and all retained modes, including streamed output. The Laplacian interval also includes fresh coefficient construction, interstage waits, setup, paging and background load.
 
 ![Paired initial-field representation in the 3D Metaball domain](assets/figures/metaball_independent_fields.png)
 
@@ -149,7 +149,9 @@ python experiments/metaball/evaluate.py --method VRQ --K 32 \
 
 The [Metaball guide](experiments/metaball/USAGE.md) continues with Potential physical operators, full-mass paired projection, Velocity capacity sweeps and assembled coefficient dynamics. The [gauge guide](experiments/gauge/USAGE.md) gives finite-space, spline, volume-FMM and Fourier controls. The [quadratic geometry guide](experiments/metaball/GEOMETRY4.md) reproduces the held-out Nédélec mesh, curved physical chart, 264-vector Ritz solve and 256-mode reconstruction.
 
-The paired-field comparison in [`data/paper_results/mainfour_NEW20_520_measurements.csv`](data/paper_results/mainfour_NEW20_520_measurements.csv) contains 26 method-capacity groups on the same 20 independent random fields, for 520 measurements. Potential-FG contributes four separately matched control groups. Error bars show the sample standard deviation across fields, with `ddof=1`. The `metaball_capacity.json` measurements separate initial representation from autonomous evolution.
+The paired-field comparison in [`data/paper_results/mainfour_NEW20_460_measurements.csv`](data/paper_results/mainfour_NEW20_460_measurements.csv) contains 23 method-capacity groups on the same 20 independent random fields: 20 groups through K512 in the main figure and three K1024 groups in the appendix. Potential-FG contributes four separately matched control groups. Error bars show sample standard deviation across fields, with `ddof=1`. The `metaball_capacity.json` measurements separate initial representation from autonomous evolution. At K512, Potential training takes 140.20 h versus 3.99 h for Velocity, while the Potential and Laplacian random-field mean errors differ by 0.17 percentage points. Velocity or Laplacian is therefore the practical choice for larger capacities in this 3D case.
+
+Regenerate the reported random-field and initial-capacity panels with `python tools/redraw_metaball_reported_scope.py --output outputs/reported_metaball`.
 
 ![Representation capacity and autonomous evolution](assets/figures/metaball_capacity_comparison.png)
 

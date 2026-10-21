@@ -1,0 +1,11 @@
+\begin{table}[!htb]\centering\small
+\caption{Randomized-field representation at $K=1024$. Each frozen basis projects the same 20 independent fields used in Figure~\ref{fig:case3-Pot-capacity}, with all 1,599,754 fluid points and all retained modes. Entries are relative velocity $L^2$ error in percent, reported as mean $\pm$ sample standard deviation.}
+\label{tab:randomfield-K1024}
+\begin{tabular}{lc}\toprule
+Method&Relative error (\%)\\\midrule
+Laplacian&$23.00\pm4.11$\\
+Velocity&$23.03\pm4.46$\\
+NKB&$27.77\pm1.82$\\
+\bottomrule\end{tabular}
+\end{table}
+At $K=1024$, Velocity and Laplacian have nearly identical mean reconstruction error, while NKB gives $27.77\%$. Potential is assessed through $K=512$ on this ensemble. Its $K=512$ training takes 140.20 hours, compared with 3.99 hours for Velocity; the Potential and Laplacian mean errors differ by 0.17 percentage points. This cost--accuracy comparison motivates Velocity or Laplacian bases at larger capacities in this three-dimensional case.
