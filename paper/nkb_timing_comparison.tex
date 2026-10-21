@@ -1,0 +1,195 @@
+
+\section{Computational cost}
+\label{app:runtime}
+We distinguish basis training, offline preparation, online evolution, and field output.
+The tables collect the recorded costs for the case comparisons and their numerical checks.
+Times are measured wall times on the RTX 4080 SUPER workstation; each caption specifies
+the workload and timer boundary. Superscript R marks synchronized complete-workload measurements with all points and modes. Other entries use the recorded stage timers. Entries marked n.r. have no separate timer, excl. denotes a branch outside the stated comparison, and m.f. denotes matrix-free evaluation. Composite workloads are listed as bundles.
+The analytic Fourier basis is available directly; numerical Laplacian eigensolves
+belong to offline preparation. Existing Laplacian modes are reused in the
+reported controls.
+
+\subsection{Training cost and its components}
+\docref{Table}{tab:runtime-training} groups the completed 2000-update training runs.
+Periodic entries summarize three seeds. The topology entries measure positive-basis
+training; the learned harmonic fields are shared by the potential and velocity arms,
+and their training is outside those timers. NKB learns direct velocity outputs without
+a separate harmonic stage. The 2D potential entries use Potential. The 3D entries at $K=128,256$ use Potential-FG with seed 0 and finite scalar/harmonic gauge projection. These configurations are distinct from Potential-AL and the canonical Potential objective; Potential training costs are reported separately in \docref{Appendix}{app:Pot-cost}. The velocity capacity family has gauge projection disabled and completes full training through $K=2048$. NKB covers autonomous capacities through $K=1024$ and initial representation at $K=2048$.
+
+\begin{table}[!htb]\centering\footnotesize\setlength{\tabcolsep}{4pt}
+\caption{Training wall time in minutes for complete 2000-update runs. Periodic entries are mean $\pm$ sample SD over three seeds. The 3D totals include all 80 scheduled validations. Topology totals exclude the separately trained harmonic lift shared within each potential/velocity pair. The potential column denotes Potential in 2D and the seed-0 Potential-FG runs in 3D; unavailable measurements are dashes. Potential is reported separately. See the text for architecture and gauge settings.}
+\label{tab:runtime-training}
+\label{tab:k1024-cost}
+\begin{tabular}{lrrrr}\toprule
+Case&$K$&Potential / FG&Velocity&NKB\\\midrule
+Periodic & 1024 & $106.428\pm3.196$ & $165.760\pm1.636$ & $2.649\pm0.003$\\
+1 hole & 1024 & 232.61 & 423.97 & 2.68\\
+2 holes & 1024 & 235.48 & 376.76 & 2.71\\
+3 holes & 1024 & 233.88 & 388.71 & 2.80\\
+3D & 128 & 195.80 & 89.36 & 0.84\\
+3D & 256 & 387.30 & 143.70 & 1.22\\
+3D & 512 & -- & 239.43 & 2.33\\
+3D & 1024 & -- & 466.28 & 6.13\\
+3D & 2048 & -- & 992.93 & 20.85\\
+\bottomrule\end{tabular}\end{table}
+\begin{table}[!htb]\centering\footnotesize\setlength{\tabcolsep}{4pt}
+\caption{Instrumented 3D Velocity-training components, in minutes, summed over 2000 committed updates and 80 scheduled validations. Fwd./Rev. include analytic derivatives and the reverse pass includes recomputation. The full wall total also includes initialization, progress logging, cleanup, and other uninstrumented overhead; the listed components identify the principal computational stages. Checkpoints are saved every update through $K=256$ and every 25 updates at higher capacities.}
+\label{tab:runtime-training-components}
+
+\begin{tabular}{rrrrrrrr}\toprule
+$K$&Fwd.&Rev.&Geometry&Ortho.&Validate&Save&Opt./sample\\\midrule
+128 & 10.52 & 35.97 & 25.14 & 0.21 & 8.35 & 4.67 & 0.22\\
+256 & 20.85 & 72.05 & 25.22 & 0.62 & 10.76 & 9.26 & 0.22\\
+512 & 42.17 & 145.88 & 25.61 & 2.20 & 15.95 & 1.82 & 0.35\\
+1024 & 89.94 & 298.41 & 29.88 & 8.86 & 28.61 & 3.77 & 0.67\\
+2048 & 213.77 & 639.38 & 25.37 & 36.19 & 60.81 & 7.87 & 1.21\\
+\bottomrule\end{tabular}\end{table}
+\paragraph{Architecture and derivative workload.}
+The 3D velocity implementation assigns an independent width-128, five-hidden-layer sinusoidal representation network (SIREN) {\citep{sitzmann2020implicit}} to each mode: at $K=1024$ it has 70,126,592 trainable parameters. NKB uses a shared width-256, seven-hidden-layer network with all velocity outputs, totaling 1,188,352 parameters. For Eigenfluid, the neural vector potential $A_\theta$ gives $u=\curl A_\theta$ and the velocity-gradient Rayleigh energy require second spatial derivatives of $A_\theta$ and their parameter adjoints. NKB directly predicts $u$ and its losses use first spatial derivatives. At $K=1024$, neural forward and reverse account for 83.3\% of the 466.28-minute wall time; gauge projection is disabled. The cost breakdown connects the derivative workload and network architecture to the measured training time.
+
+\begin{table}[!htb]\centering\footnotesize\setlength{\tabcolsep}{4pt}
+\caption{NKB training timers, in seconds. Updates sum the 2000 measured optimization iterations, including sampling, analytic network forward/reverse, losses, Adam, and checkpoint writes within those iterations. Validation sums the 80 scheduled events. Total additionally includes preflight, initialization, and other run overhead. Topology seed is 1 and the 3D seed is 20260823; update totals measure the combined neural forward/reverse and optimization workload.}
+\label{tab:runtime-nkb-training}
+
+\begin{tabular}{lrrrrr}\toprule
+Case&$K$&Seed&Updates&Validate&Total\\\midrule
+Periodic & 1024 & 0 & 151.75 & 3.17 & 159.13\\
+Periodic & 1024 & 1 & 151.59 & 3.19 & 158.98\\
+Periodic & 1024 & 2 & 151.45 & 3.17 & 158.78\\
+1 hole & 1024 & 1 & 153.04 & 3.28 & 160.96\\
+2 holes & 1024 & 1 & 154.53 & 3.33 & 162.52\\
+3 holes & 1024 & 1 & 159.76 & 3.52 & 167.91\\
+3D & 128 & 20260823 & 41.68 & 4.72 & 50.63\\
+3D & 256 & 20260823 & 61.90 & 7.01 & 73.30\\
+3D & 512 & 20260823 & 121.50 & 13.69 & 139.66\\
+3D & 1024 & 20260823 & 325.27 & 37.50 & 367.58\\
+\bottomrule\end{tabular}\end{table}
+
+\subsection{Offline basis, projection, and operator preparation}
+For bounded domains, basis inference evaluates the frozen NKB model on every assessment node and all modes.
+It is the median of three synchronized passes including coordinate/input transfer
+and checksum reduction, excluding derivatives and output storage. Projection/preparation
+contains the recorded full-mass initial projection and reference/error-moment preparation.
+Derived-field preparation contains the derivative caches and linear operators.
+Each independently timed pass characterizes its stated workload; production queries reuse the prepared basis and operators.
+
+\begin{table}[!htb]\centering\footnotesize\setlength{\tabcolsep}{4pt}
+\caption{Offline costs in seconds. Basis gives all-node field-evaluation times; periodic entries include analytic derivatives. Projection includes the recorded reference preparation where bundled. Derived means field/linear-operator preparation, and $Q$ denotes accepted assembly of the quadratic tensor $\mathcal Q$. The incl. periodic derivative fields are included in basis evaluation, and their nonlinear loads are matrix-free. n.r. marks components without a separate measurement. The $K=512$ derived cost covers all 512 modes, basis-cache transposition, and linear-operator preparation. These columns exclude neural training and online integration.}
+\label{tab:runtime-offline}
+
+\begin{tabular}{lrlrrrr}\toprule
+Case&$K$&Basis&Basis eval.&Projection&Derived&$Q$\\\midrule
+3D & 512 & EF velocity & $454.46^{\mathrm R}$ & 18.50 & 3036.39 & 3645.51\\
+3D & 1024 & EF velocity & $679.90^{\mathrm R}$ & 41.25 & 10381.08 & 32434.41\\
+Periodic s0 & 1024 & Potential & 143.21 & 1.73 & \textit{incl.} & \textit{m.f.}\\
+Periodic s1 & 1024 & Potential & 142.83 & 1.73 & \textit{incl.} & \textit{m.f.}\\
+Periodic s2 & 1024 & Potential & 143.98 & 1.63 & \textit{incl.} & \textit{m.f.}\\
+Periodic s0 & 1024 & Velocity & 144.22 & 1.63 & \textit{incl.} & \textit{m.f.}\\
+Periodic s1 & 1024 & Velocity & 149.66 & 1.72 & \textit{incl.} & \textit{m.f.}\\
+Periodic s2 & 1024 & Velocity & 141.75 & 1.61 & \textit{incl.} & \textit{m.f.}\\
+Periodic s0 & 1024 & NKB & 1.36 & 1.68 & \textit{incl.} & \textit{m.f.}\\
+Periodic s1 & 1024 & NKB & 1.10 & 1.64 & \textit{incl.} & \textit{m.f.}\\
+Periodic s2 & 1024 & NKB & 1.09 & 1.63 & \textit{incl.} & \textit{m.f.}\\
+1 hole & 1024 & NKB & 3.55 & 31.34 & $22.58^{\mathrm R}$ & 3247.81\\
+2 holes & 1024 & NKB & 14.02 & 118.76 & $90.01^{\mathrm R}$ & 12682.87\\
+3 holes & 1024 & NKB & 13.88 & 118.83 & $90.00^{\mathrm R}$ & 12685.85\\
+3D & 128 & NKB & 2.99 & 30.18 & 139.57 & 83.94\\
+3D & 256 & NKB & 3.50 & 95.56 & 311.72 & 576.10\\
+3D & 512 & NKB & 4.67 & 190.53 & 728.16 & 3841.67\\
+3D & 1024 & NKB & 7.20 & 322.78 & 1939.69 & 32446.09\\
+\bottomrule\end{tabular}\end{table}
+For periodic flow, basis evaluation includes the analytic velocity and curl fields on all $256^2$ quadrature nodes; projection includes the full mass/curl-stiffness assembly and generalized eigensolve. The rotational nonlinear load is evaluated matrix-free.
+The synchronized 3D Velocity basis pass evaluates analytic curl on all 1,599,754 nodes in the original FP32 spatial arithmetic, with FP64 checksum accumulation; coordinate/input transfer and checksum reduction are included, and storage is excluded. Its checksum agrees with the original full-mass basis energy to $1.10\times10^{-14}$ relative error. The topology basis passes evaluate every field and derivative and assemble the full mass, derivative, and divergence moments on 1,048,576 nodes for one hole and 4,194,304 for two and three holes. Each saved matrix agrees with its original operator to the reported precision.
+
+
+
+
+\subsection{Online evolution, output, and assessment}
+\docref{Table}{tab:nkb-runtime} separates coefficient evolution from output costs in 3D.
+Laplacian controls use the original grid-based reduced generator, whereas the listed
+Eigenfluid and NKB trajectories use assembled coefficient operators. The NS reference
+uses its original split viscosity/normal-penalty integrator. The common physical interval and fine time step support comparison of the recorded execution strategies.
+Flow errors accompany these timings in the capacity plots. Output measures field
+reconstruction, transfer, storage, and recorded diagnostics.
+
+\begin{table}[!htb]\centering\footnotesize\setlength{\tabcolsep}{4pt}
+\caption{3D online costs in seconds, $T=1.16$. Coarse/fine steps are $0.00125/0.000625$. ROM output timers cover three selected fields; NS output timers cover its 30 saved fields. Laplacian online timers include the field operations required at every integration step, excluding assessment outside the stepping timer. Repeated NS rows are the measured reference runs for the two capacity experiments; n.a. indicates that NS has no retained-mode count.}
+\label{tab:nkb-runtime}
+
+\begin{tabular}{rllrrr}\toprule
+$K$&Method&Execution&Coarse&Fine&Output\\\midrule
+128 & NKB & Coefficient & 3.57 & 6.84 & $22.30^{\mathrm R}$\\
+256 & NKB & Coefficient & 4.90 & 9.78 & $22.26^{\mathrm R}$\\
+512 & EF velocity & Coefficient & 3.85 & 7.03 & 20.41\\
+512 & Laplacian & Grid ROM & 119.45 & 238.71 & $0.26^{\mathrm R}$\\
+512 & NKB & Coefficient & 8.29 & 16.58 & 7.98\\
+1024 & EF velocity & Coefficient & 24.30 & 48.59 & 32.72\\
+1024 & Laplacian & Grid ROM & 130.04 & 260.17 & $0.26^{\mathrm R}$\\
+1024 & NKB & Coefficient & 766.10 & 1532.83 & 14.56\\
+\textit{n.a.} & NS (K512 comparison) & Grid NS & $63.71^{\mathrm R}$ & 124.75 & 7.01\\
+\textit{n.a.} & NS (K1024 comparison) & Grid NS & $63.66^{\mathrm R}$ & 126.68 & 7.04\\
+\bottomrule\end{tabular}\end{table}
+\begin{table}[!htb]\centering\footnotesize\setlength{\tabcolsep}{4pt}
+\caption{2D measured execution intervals in seconds, $K=1024$. Each periodic method--seed pair is listed once. Periodic runs reach $T=18\pi$ with 241 saved fields; topology runs reach $T=1$ with 20 initial states. Periodic integration timers include synchronized coefficient capture and exclude field reconstruction and file writing. The matched potential, velocity and NKB runs use $256^2$ operator points and $128^2$ observations. Topology entries time their original 20-state batches.}
+\label{tab:runtime-2d-online}
+
+\begin{tabular}{llrll}\toprule
+Case&Method&$\Delta t$&Time (s)&Timer scope\\\midrule
+Periodic s0 & Potential & $0.005$ & 182.62 & Integration + coefficient capture\\
+Periodic s1 & Potential & $0.005$ & 182.63 & Integration + coefficient capture\\
+Periodic s2 & Potential & $0.005$ & 182.64 & Integration + coefficient capture\\
+Periodic s0 & Velocity & $0.005$ & 185.97 & Integration + coefficient capture\\
+Periodic s1 & Velocity & $0.005$ & 183.62 & Integration + coefficient capture\\
+Periodic s2 & Velocity & $0.005$ & 181.99 & Integration + coefficient capture\\
+Periodic s0 & NKB & $0.005$ & 182.99 & Integration + coefficient capture\\
+Periodic s1 & NKB & $0.005$ & 182.81 & Integration + coefficient capture\\
+Periodic s2 & NKB & $0.005$ & 182.59 & Integration + coefficient capture\\
+1 hole & NKB & $0.001$ & 408.46 & 20-state coefficient batch\\
+2 holes & NKB & $0.001$ & 402.47 & 20-state coefficient batch\\
+3 holes & NKB & $0.001$ & 418.86 & 20-state coefficient batch\\
+\bottomrule\end{tabular}\end{table}
+\begin{table}[!htb]\centering\footnotesize\setlength{\tabcolsep}{4pt}
+\caption{High-capacity Velocity pipeline wall times, in seconds. Process-stage intervals are grouped by purpose for each 20-state topology experiment. They include process startup, I/O, and process monitoring, and are kept separate from the synchronized NKB coefficient timers in \docref{Table}{tab:runtime-2d-online}. Shared harmonic training is excluded.}
+\label{tab:runtime-topology-pipeline}
+
+\begin{tabular}{lrrr}\toprule
+Stage&1 hole&2 holes&3 holes\\\midrule
+Boundary fields and assessment & 60.05 & 70.07 & 70.04\\
+Initial projection & 20.01 & 40.03 & 40.02\\
+Linear/operator preparation & 874.27 & 977.54 & 978.13\\
+Nonlinear tensor & 3484.71 & 3504.59 & 3501.97\\
+ROM execution & 520.06 & 610.08 & 610.08\\
+Reference fields and error assessment & 570.13 & 2250.30 & 2280.28\\
+\bottomrule\end{tabular}\end{table}
+The one-hole kernel comparison in \docref{Appendix}{app:protocol} measures
+0.393 s per assembled coefficient step versus 153.8 s for streamed field contraction
+of the same reduced operator (about $391\times$), with its separately recorded
+57.9-minute tensor assembly. These kernel-level intervals differ from the process
+receipts in \docref{Table}{tab:runtime-topology-pipeline}.
+
+
+\subsection{Numerical checks and auxiliary costs}
+\begin{table}[!htb]\centering\footnotesize\setlength{\tabcolsep}{4pt}
+\caption{Additional 3D measured costs in seconds. EF check includes full-grid RHS and one-step comparisons; refined projection uses the matched-step NS reference. EF/NKB evaluation bundles include both trajectories, checks, and output and overlap the preceding component timers. NKB capacities time evaluation after operator preparation. Laplacian refresh includes both time steps and fresh FP64 projection. Bundle totals and individual components describe their respective timer boundaries.}
+\label{tab:runtime-3d-checks}
+
+\begin{tabular}{rrrrrrr}\toprule
+$K$&EF load&EF check&Refined proj.&EF eval.&NKB eval.&Lap. refresh\\\midrule
+512 & 0.71 & 183.30 & 19.37 & 386.33 & 69.50 & 376.58\\
+1024 & 3.36 & 438.64 & 35.32 & 761.22 & 2337.10 & 407.83\\
+\bottomrule\end{tabular}\end{table}
+At $K=128,256$, joint Eigenfluid/Laplacian evaluation costs 547.33 and 3449.86 s, covering both methods, both time steps, and their field outputs. The corresponding NKB evaluation bundles take 25.91 and 30.12 s. These totals characterize the complete evaluation workloads at the two capacities.
+
+\paragraph{NKB operator precision.}
+The accepted K1024 tensor assembly costs 32446.09 s and uses FP64 short-dot products and compensated accumulation. Every online RK4 stage uses compensated products and summation; this implementation is included in its 1532.83 s online cost. Independent full-grid RHS comparisons verify the assembled operator to the reported precision (\docref{Table}{tab:nkb-3d-checks}).
+
+\paragraph{Gauge-solver timings.}
+\docref{Table}{tab:gauge-solver-ablation} groups setup, forward, reverse, and independent
+assessment at the frozen checkpoint, with residuals visualized in \docref{Figure}{fig:gauge-solver-ablation}.
+\docref{Table}{tab:gauge-precision} adds source-evaluation times for the precision controls.
+The workload evaluates 32 frozen columns with reused geometry-dependent MFS factors;
+the listed timers cover the source evaluation, correction, differentiation, and assessment stages.
+
+
+
+\input{sections/inference_cost_details}

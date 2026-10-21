@@ -1,0 +1,12 @@
+\begingroup
+\paragraph{Matched $K=2048$ initial representation.}
+At 2048 coordinates, the learned velocity basis captures $97.561\%$ of the initial kinetic energy, compared with $97.018\%$ for the same-mesh Laplacian basis (\docref{Table}{tab:initial2048}). Full-mass projections of the common NS initial field retain every mode and all 1,599,754 fluid nodes. The Laplacian modes solve the consistent-mass eigenproblem with relative residuals below $10^{-6}$; the mapped mass agrees with its 1024-mode prefix to $10^{-10}$. Independent direct-field errors and quadratic projection energies agree with $\eta=1-e_0^2$ to $10^{-10}$.
+\begin{table}[!htb]\centering\small
+\caption{Initial velocity representation at $K=2048$. Learned and Laplacian bases project the same NS initial field with the full mass matrix on all fluid nodes. The table gives captured energy; \docref{Figure}{fig:case3-initial-capacity} plots the corresponding initial velocity errors, and \docref{Figure}{fig:case3-capacity} gives autonomous errors through $K=1024$.}
+\label{tab:initial2048}
+\begin{tabular}{lr}\toprule
+Basis & Captured kinetic energy (\%)\\\midrule
+Laplacian & 97.018\\
+Velocity & 97.561\\
+NKB & 95.314\\
+\bottomrule\end{tabular}\end{table}\par\endgroup

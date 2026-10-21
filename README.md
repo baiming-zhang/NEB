@@ -8,18 +8,24 @@ Neural eigenfluids learn spatial coordinates that satisfy incompressibility thro
 
 The experiments connect three aspects of reduced fluid simulation: **spectral learning**, **topological completion**, and **reusable coefficient dynamics**. At K=1024, the periodic vortex-merger experiment achieves sub-percent mean velocity error with the streamfunction formulation. The multiply connected experiments examine positive-mode and circulation allocation on the same physical initial fields. The 3D experiments compare representation capacity and autonomous evolution, then reuse assembled operators for rapid coefficient updates.
 
+## Manuscript and measured results
+
+[Paper PDF](paper/Neural_Eigenfluid_Bases.pdf) · [LaTeX sources](paper/) · [520 paired NEW20 measurements](data/paper_results/mainfour_NEW20_520_measurements.csv)
+
+The manuscript includes 26 main-comparison groups on the same 20 independent fields and four separately matched Potential-FG controls. All 27 included figures are supplied as PNG and vector PDF. Potential K512 completes 2000 training updates; Potential K1024 and K2048 complete 25 and one updates, respectively. Unmeasured full-training and accuracy entries are shown as dashes. The K1024 Laplacian raw-geometry-to-all-sampled-basis interval is 22049.01 s, including interstage waits, setup, paging, I/O and background load.
+
 ![Paired initial-field representation in the 3D Metaball domain](assets/figures/metaball20.png)
 
 ## Methods
 
 | Name | Formulation |
 |---|---|
-| **SF-R** | Streamfunction Rayleigh learning in 2D |
-| **VRQ** | Velocity Rayleigh Quotient learning |
-| **CCQ** | Canonical Curl Quotient learning in 3D |
-| **LEB** | Laplacian Eigenbasis at the same basis capacity |
-| **NKB** | Neural kinematic basis controls |
-| **GCP-AL / GCP-FG** | Gauge-constrained potential controls with the corresponding augmented-Lagrangian or finite-gauge objective |
+| **Potential** | Potential-space Rayleigh training in 2D and canonical potential-space training in 3D |
+| **Velocity** | Velocity-space Rayleigh training with a differential lift |
+| **Laplacian** | Numerical spectral basis at the same capacity |
+| **NKB** | Direct-velocity neural kinematic basis |
+| **Potential-FG** | Finite scalar/harmonic gauge control |
+| **Potential-AL** | Augmented-Lagrangian potential control |
 
 Spatial derivatives are evaluated analytically. Projection uses the full mass matrix, and the reduced dynamics evolve coefficients with the assembled Galerkin operators. Experiment configurations specify geometry, sampling, initialization, optimizer, precision, capacity, and validation cadence.
 
@@ -56,10 +62,10 @@ Select individual models with `--only CHECKPOINT_ID`. Files are verified after d
 
 | Experiment | Reference models | Capacity |
 |---|---|---:|
-| Periodic vortex merger | SF-R, VRQ, NKB | 1024 |
-| Two- and three-hole domains | VRQ | 32 |
+| Periodic vortex merger | Potential, Velocity, NKB | 1024 |
+| Two- and three-hole domains | Velocity | 32 |
 | Harmonic circulation | Raw and scaled lifts | 1 |
-| 3D Metaball | CCQ, VRQ, GCP-AL, NKB | 32 |
+| 3D Metaball | Potential, Velocity, Potential-AL, NKB | 32 |
 
 All eleven reference models are saved at epoch 2000. The manifest lists their individual download IDs, sizes and hashes; adjacent JSON files retain the model configurations.
 

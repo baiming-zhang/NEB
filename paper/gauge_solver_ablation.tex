@@ -1,0 +1,51 @@
+\subsection{Accuracy and cost of the auxiliary gauge solve}
+\label{app:gauge-solvers}
+
+The auxiliary solve selects the potential representative entering the Rayleigh quotient. Its accuracy depends on the space used to represent the Poisson correction as well as on the precision of the linear algebra. We compare these effects on a fixed 32-network checkpoint obtained after five updates with Fourier projection and a method-of-fundamental-solutions (MFS) boundary correction. All methods use the same smooth Metaball geometry, neural parameters, analytic derivatives, and relative harmonic field, isolating representative selection from learning.
+
+\paragraph{Common assessment.}
+Let $A_\theta$ denote the neural vector potential, with raw column $A_j$. Its scalar divergence forcing is $f_j=\diver A_j$, and $\phi_j$ denotes its numerical scalar correction. We define $\epsilon_P$ as the maximum relative Poisson residual over columns $j=1,\ldots,32$; the sums below use unit weights on independent points $x_q$. On 8192 identical independent fluid points, we report
+\begin{equation}
+\epsilon_P=\max_{j\leq32}
+\frac{\left(\sum_q|f_j(x_q)-\Delta\phi_j(x_q)|^2\right)^{1/2}}
+{\left(\sum_q|f_j(x_q)|^2\right)^{1/2}}.
+\label{eq:gauge-solver-residual}
+\end{equation}
+The residual measures the fraction of divergence forcing left after the scalar correction, since $\diver(A_j-\nabla\phi_j)=f_j-\Delta\phi_j$. Relative harmonic overlap is measured on a disjoint 110592-node volume rule after the column transform, and tangential trace on 8192 independent points per wall. Columnwise diagnostics characterize gradient correction, harmonic orthogonality, and boundary trace across all 32 modes. Setup, forward, reverse, and assessment times are measured separately on an RTX 4080 SUPER using native CuPy. Forward/reverse measurements use a 4 GiB allocation pool; the R-marked synchronized setup and assessment measurements use a 12 GiB pool with the same complete workload.
+
+\paragraph{Fourier particular solution and boundary correction.}
+On an auxiliary box of side $L=1.12$, an exterior continuation agrees with the original neural potential throughout the fluid. Its divergence is sampled on $193^3$ nodes. Let $k\in\mathbb Z^3$ be an integer wavevector ($\mathbb Z$ denotes integers), $\kappa_k=2\pi k/L$ its physical frequency, $x_0$ the box origin, and $\widehat f_k$ the Fourier coefficients of the sampled forcing. The scalar particular solution $\phi_p$ is
+\begin{equation}
+\phi_p(x)=-\sum_{k\ne0}\frac{\widehat f_k}{|\kappa_k|^2}
+e^{\mathrm i\kappa_k\cdot(x-x_0)}
++\widehat f_0\frac{|x-(0.5,0.5,0.5)|^2}{6}.
+\end{equation}
+The mean term preserves nonzero-mean forcing. The represented Laplacian is the Fourier interpolant $f_N$ with $N=193$ nodes per axis. The independent residual $f_j-f_N$ measures the source representation at this resolution. A Laplace method-of-fundamental-solutions (MFS) correction with 6144 exterior sources and 18432 boundary collocation nodes enforces the zero Dirichlet trace in least squares \citep{fairweather1998method}. This harmonic boundary correction complements the volume particular solution. We separately test the training arithmetic, FP64 fast Fourier transforms (FFTs) on the same FP32 samples, and an FP64 source/FFT path. A reuse control combines repeated source FFTs and accumulates spectral cotangents before the source-grid inverse FFT, keeping the represented operator unchanged.
+
+\paragraph{Smooth weak projection.}
+For a scalar test function $v\in H_0^1(\Omega)$, integration by parts gives the same continuous Dirichlet problem in the form
+\begin{equation}
+\int_\Omega\nabla v\cdot\nabla\phi\,\dd x
+=\int_\Omega\nabla v\cdot A_\theta\,\dd x,
+\qquad v\in H_0^1(\Omega).
+\end{equation}
+We use $C^2$ tensor cubic B-splines {\citep{deboor1978splines}} multiplied by the original analytic zero-trace envelope. Let $b_i$ be the enveloped spline basis functions, $\zeta_i$ their coefficients in $\phi_h=\sum_i\zeta_i b_i$, $\zeta=(\zeta_i)$ their coefficient vector, $\mathsf K$ the gradient stiffness matrix, and $r=(r_i)$ the load vector. The discretization is
+\begin{equation}
+\mathsf K_{ij}=\sum_qw_q\nabla b_i(x_q)\cdot\nabla b_j(x_q),\quad
+r_i=\sum_qw_q\nabla b_i(x_q)\cdot A_\theta(x_q),\quad \mathsf K\zeta=r.
+\end{equation}
+The neural right-hand side and its parameter reverse require potential values rather than divergence derivatives. Basis gradients and Laplacians are analytic, including across spline knots. Resolution-12, -20, and -24 spaces use 32768, 110592, and 262144 fitting quadrature points. {Matrix-free conjugate gradients \citep{hestenes1952methods} apply the weighted gradient Gram operator; a standard two-level construction \citep{briggs2000multigrid} uses cubic refinement prolongation, symmetric smoothing, and a factored coarse solve.} Severely cut supports are removed when their quadrature gradient-energy diagonal is at most $10^{-5}$ of the maximum. The selection and quadrature remain fixed during differentiation. The algebraic solve residual measures convergence within this space, while \doceqref{eq:gauge-solver-residual} measures the resolved neural forcing.
+
+\paragraph{Volume potential with multipole acceleration.}
+{The alternative particular solution follows volume-potential methods \citep{malhotra2016volume} and uses the Newton potential of the piecewise-constant source density $f_h$ over the auxiliary box $B$, with $y$ the integration point:}
+\begin{equation}
+\phi_p(x)=-\frac1{4\pi}\int_B\frac{f_h(y)}{|x-y|}\,\dd y.
+\end{equation}
+The volume representation uses constant cuboid densities in $B=[-0.02,1.02]^3$, with the same interior forcing and exterior continuation. Near cuboids, including self interactions, are integrated analytically. {Degree-six Cartesian multipole-to-multipole, multipole-to-local, and local-to-local translations follow the fast multipole method (FMM) \citep{greengard1987fast} to evaluate the far field, whose local Taylor polynomials are harmonic.} The same MFS correction enforces the boundary trace. A source-adaptation variant refines coarse cells when a neighboring density difference, normalized by the per-column coarse-source root mean square (RMS) and maximized over the 32 columns, exceeds $0.5$. The sampling map is fixed for the adjoint, and evaluation uses a uniform tree. The fixed sampling map permits consistent differentiation through the adaptive piecewise-constant representation, following the volume-potential construction \citep{malhotra2016volume}.
+
+\input{gauge_solver_ablation_tables}
+
+\paragraph{Connection to the velocity span.}
+At a fixed network, each scalar correction has zero curl, so all solvers retain the same 32-dimensional analytic velocity span. The solver comparison therefore measures representative selection for the potential objective; changes to the learned velocity span arise through subsequent optimization.
+
+

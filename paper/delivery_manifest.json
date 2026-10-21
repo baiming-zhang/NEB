@@ -1,0 +1,12 @@
+{
+  "paper_PDF_sha256": "98af4faf3f0dc867dad64f027bedd0d0797765a8bf89f38c6188edd6e89d32ca",
+  "pages": 59,
+  "figures": 27,
+  "paired_measurements": 520,
+  "source_build": "pdflatex main.tex (three passes; main.bbl included)",
+  "Potential_optimizer_updates": {
+    "512": 2000,
+    "1024": 25,
+    "2048": 1
+  }
+}
