@@ -33,7 +33,7 @@ def main(argv=None):
     a.output.mkdir(parents=True,exist_ok=False);stop=guard(cp,a.output);started=time.perf_counter()
     try:
         if a.mode=='operators':
-            base=Path(__file__).resolve().parents[2]/'2d/_vendor';top=base/'ICLR2027_campaign/cases/topology3';learned=top/'learned_stable_v2'
+            base=Path(__file__).resolve().parents[2]/'2d/_backend';top=base/'flow/cases/topology3';learned=top/'learned_basis'
             os.environ['NEB_2D_VENDOR_ROOT']=str(base)
             sys.path[:0]=[str(learned/'positive/src'),str(learned/'positive/scripts'),str(learned/'harmonic/scripts'),str(learned)]
             from neb2d.basisnet.metaball2d import hardcoded_backend as be
@@ -74,7 +74,7 @@ def main(argv=None):
                 from .compact_fields import load
                 velocities,cells=load(a.fields,cfg.subcase,a.quadrature,a.vortex_config)
             else:
-                path=top/'random_streamfunction_20260928/preview_random_streamfunction.py'
+                path=top/'random_streamfunctions/preview_random_streamfunction.py'
                 spec=importlib.util.spec_from_file_location('neb_rom_quintic',path);mod=importlib.util.module_from_spec(spec);sys.modules[spec.name]=mod;spec.loader.exec_module(mod)
                 fields=[]
                 for sample in range(20):

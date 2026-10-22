@@ -71,7 +71,7 @@
     "analytic_eigenmodes": false,
     "degenerate_block_direction_alignment": false,
     "rank_reporting": "peeled_only",
-    "result_root": "ICLR2027_campaign\\cases\\topology3\\learned_fresh_v1\\runs\\circle_square_potential_k32_seed1",
+    "result_root": "runs/circle_square-potential-k32-seed1",
     "peeling_relative_mass_floor": 0.0001,
     "peeling_overlap_tolerance": 0.001
   },

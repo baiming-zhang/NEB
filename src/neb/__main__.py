@@ -11,7 +11,7 @@ def main():
     sub = parser.add_subparsers(dest="command", required=True)
     plot = sub.add_parser("figures", help="plot the supplied paper measurements")
     plot.add_argument("--output", type=Path, default=Path("outputs/paper_figures"))
-    weights = sub.add_parser("checkpoints", help="download and verify reference checkpoints")
+    weights = sub.add_parser("checkpoints", help="list and download reference checkpoints")
     weights.add_argument("--download", action="store_true")
     weights.add_argument("--only", nargs="*", help="checkpoint IDs to select")
     args = parser.parse_args()

@@ -9,8 +9,8 @@ def build(args):
     meta=json.loads(args.checkpoint.with_suffix('.json').read_text());c=meta['config'];assert meta['epoch']==2000 and c['case']==args.case
     k=c['K'];model=Model(cp,c['input_dim'],c['dim'],k,c['seed'],c['width'],c['hidden_layers'],dtype='float64');model.load(args.checkpoint)
     domain=Domain(c['case'],cp)
-    top=Path(__file__).resolve().parents[1]/'_vendor/ICLR2027_campaign/cases/topology3'
-    path=top/'random_streamfunction_20260928/preview_random_streamfunction.py'
+    top=Path(__file__).resolve().parents[1]/'_backend/flow/cases/topology3'
+    path=top/'random_streamfunctions/preview_random_streamfunction.py'
     spec=importlib.util.spec_from_file_location('nkb_quintic',path);mod=importlib.util.module_from_spec(spec);sys.modules[spec.name]=mod;spec.loader.exec_module(mod)
     fields=[]
     for sample in range(20):

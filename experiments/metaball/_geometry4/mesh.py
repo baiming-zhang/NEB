@@ -1,13 +1,14 @@
 from __future__ import annotations
-import os,sys,time,json,hashlib,ast,gc,itertools
+import os, sys, time, json, ast, gc, itertools
 from pathlib import Path
-import numpy as np,scipy.sparse as sp,scipy.sparse.linalg as sla
+import numpy as np, scipy.sparse as sp, scipy.sparse.linalg as sla
 from scipy.sparse.csgraph import connected_components
-from skfem import MeshTet,Basis,ElementTetN1
-PAIRS=[(0,1),(1,2),(0,2),(0,3),(1,3),(2,3)]
-import gmsh,meshio
+from skfem import MeshTet, Basis, ElementTetN1
+PAIRS = [(0, 1), (1, 2), (0, 2), (0, 3), (1, 3), (2, 3)]
+import gmsh, meshio
 from skimage.measure import marching_cubes
 from scipy.special import logsumexp
+
 def mesh_metaball(geometry, h, n, out):
     axis = np.linspace(0, 1, n)
     x = np.stack(np.meshgrid(axis, axis, axis, indexing='ij'), axis=-1)

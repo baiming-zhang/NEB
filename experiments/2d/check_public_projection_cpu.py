@@ -11,7 +11,7 @@ def load(path,name):
     spec=importlib.util.spec_from_file_location(name,path);m=importlib.util.module_from_spec(spec);sys.modules[name]=m;spec.loader.exec_module(m);return m
 def main():
     core=load(ROOT/'nkb/core.py','core')
-    mod=load(ROOT/'_vendor/ICLR2027_campaign/cases/topology3/random_streamfunction_20260928/preview_random_streamfunction.py','projection_test_fields')
+    mod=load(ROOT/'_backend/flow/cases/topology3/random_streamfunctions/preview_random_streamfunction.py','projection_test_fields')
     fake=types.ModuleType('cupy');fake.__getattr__=lambda key:getattr(np,key)
     fake.asnumpy=np.asarray
     sys.modules['cupy']=fake

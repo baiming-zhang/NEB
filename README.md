@@ -4,7 +4,7 @@
 
 Code and trained models for **Neural Eigenfluid Bases: Spectral Objectives, Gauge, and Topology**, by Baiming Zhang, Shiying Xiong, and Zhecheng Wang.
 
-[Paper (53 pages)](paper/Neural_Eigenfluid_Bases.pdf) · [Reproduction guide](docs/REPRODUCIBILITY.md) · [Checkpoints](https://github.com/baiming-zhang/NEB/releases/tag/paper) · [Experiment index](docs/EXPERIMENTS.md)
+[Paper (53 pages)](paper/Neural_Eigenfluid_Bases.pdf) · [Reproduction guide](docs/REPRODUCIBILITY.md) · [Checkpoints](https://github.com/baiming-zhang/NEB/releases/tag/paper) · [Executed checks](docs/REPRODUCTION_CHECKS.md) · [Experiment index](docs/EXPERIMENTS.md)
 
 Neural eigenfluids combine analytic differential lifts, spectral ordering, and harmonic circulation coordinates. These spatial bases support full-mass projection and autonomous Galerkin evolution with reusable operators. The experiments study periodic vortex merger, flow around multiple obstacles, and three-dimensional Metaball flow.
 
@@ -61,6 +61,8 @@ neb checkpoints --download
 Downloaded models are placed under `checkpoints/2d/` and `checkpoints/3d/`, beside their metadata. Use the model's `config` path from the index for training or evaluation.
 
 The collection contains 88 models trained for 2000 updates, the K1024 Potential 25-update timing endpoint, and three Potential-AL multiplier archives.
+
+All 89 model configurations and 92 model/state files are retained. Names describe the case, method, capacity and replicate. Metaball's `seed0` is a replicate label; its numerical RNG seed is preserved in the configuration. Run `python tools/check_reproduction.py --models` after downloading to open the saved parameter and optimizer arrays; add `--native` for small saved-model execution checks. No SHA manifests are needed.
 
 | Experiment | Models supplied |
 |---|---|

@@ -1,12 +1,15 @@
 {
-  "exports/full_completion_20261005/geometry4_curved_complex.py": null,
-  "exports/full_completion_20261005/geometry4_quadratic_probe.py": null,
-  "exports/full_completion_20261005/geometry4_optimize_mesh.py": null,
-  "exports/full_completion_20261005/geometry4_local_repair.py": null,
-  "exports/full_completion_20261005/geometry4_boundary_flow_certificate.py": null,
-  "exports/full_completion_20261005/verify_boundary_manifold.py": null,
-  "exports/full_completion_20261005/geometry4_curved_solve.py": null,
-  "ICLR2027_campaign/cases/metaball/case4_numerical_k256_20261005/run.py": null,
-  "ICLR2027_campaign/cases/metaball/case4_numerical_k256_20261005/fitted_target_core.py": null,
-  "ICLR2027_campaign/cases/metaball/case4_numerical_k256_20261005/pardiso_ooc.py": null
+  "entrypoint": "../heldout_geometry4.py",
+  "components": {
+    "mesh.py": "fitted tetrahedral mesh",
+    "fitted_target_core.py": "target geometry levels and map",
+    "chart_builder.py": "quadratic chart construction",
+    "curved.py": "curved finite-element assembly",
+    "quality.py": "chart quality",
+    "repair.py": "local chart repair",
+    "boundary.py": "boundary-flow construction",
+    "manifold.py": "boundary manifold checks",
+    "solve.py": "full spectral solve",
+    "pardiso_ooc.py": "PARDISO factorization"
+  }
 }

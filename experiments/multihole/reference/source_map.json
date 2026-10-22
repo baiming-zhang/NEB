@@ -1,10 +1,10 @@
 {
   "geometry.py": {
-    "original_source": "ICLR2027_campaign\\cases\\topology3\\baseline_fresh_v1\\src\\geometry.py",
+    "original_source": "flow\\cases\\topology3\\reference_solver\\src\\geometry.py",
     "import_only_changes": []
   },
   "mesh_builder.py": {
-    "original_source": "ICLR2027_campaign\\cases\\topology3\\baseline_fresh_v1\\src\\mesh_builder.py",
+    "original_source": "flow\\cases\\topology3\\reference_solver\\src\\mesh_builder.py",
     "import_only_changes": [
       [
         "from geometry import",
@@ -13,7 +13,7 @@
     ]
   },
   "solver_sparse.py": {
-    "original_source": "ICLR2027_campaign\\cases\\topology3\\solver_sparse.py",
+    "original_source": "flow\\cases\\topology3\\solver_sparse.py",
     "import_only_changes": [
       [
         "from geometry import",
@@ -26,7 +26,7 @@
     ]
   },
   "high_order_reference.py": {
-    "original_source": "ICLR2027_campaign\\cases\\topology3\\random_streamfunction_20260928\\high_order_reference.py",
+    "original_source": "flow\\cases\\topology3\\random_streamfunctions\\high_order_reference.py",
     "import_only_changes": [
       [
         "from preflight import TOPO\n",
@@ -39,7 +39,7 @@
     ]
   },
   "random_fields.py": {
-    "original_source": "ICLR2027_campaign\\cases\\topology3\\random_streamfunction_20260928\\preview_random_streamfunction.py",
+    "original_source": "flow\\cases\\topology3\\random_streamfunctions\\preview_random_streamfunction.py",
     "functions_AST_preserved": [
       "Jet",
       "RandomField",
@@ -49,7 +49,7 @@
     ]
   },
   "gpu_field.py": {
-    "original_source": "ICLR2027_campaign\\cases\\topology3\\random_streamfunction_20260928\\gpu_field.py",
+    "original_source": "flow\\cases\\topology3\\random_streamfunctions\\gpu_field.py",
     "import_only_changes": [
       [
         "HERE/'preview_random_streamfunction.py'",
@@ -66,41 +66,41 @@
     ]
   },
   "baseline_dense.py": {
-    "original_source": "ICLR2027_campaign/cases/topology3/baseline_fresh_v1/src/solver.py",
+    "original_source": "flow/cases/topology3/reference_solver/src/solver.py",
     "portable_changes": [
       "relative imports only"
     ]
   },
   "laplacian_controls.py": {
-    "original_source": "ICLR2027_campaign/cases/topology3/learned_fresh_v1/positive/scripts/run_laplacian_baseline.py",
+    "original_source": "flow/cases/topology3/learned_fresh_v1/positive/scripts/run_laplacian_baseline.py",
     "portable_changes": [
       "exact mathematical functions extracted; portable generator"
     ]
   },
   "lobpcg_true_residual.py": {
-    "original_source": "ICLR2027_campaign/cases/topology3/lobpcg_true_residual.py",
+    "original_source": "flow/cases/topology3/lobpcg_true_residual.py",
     "portable_changes": []
   },
   "sparse_controls.py": {
-    "original_source": "ICLR2027_campaign/cases/topology3/run_sparse1024_true_residual_v3.py",
+    "original_source": "flow/cases/topology3/run_sparse1024_true_residual_v3.py",
     "portable_changes": [
       "parameterized full-mode block/mesh/initial iterate; original full consistent-mass assembly and residual checks; P/PH harmonic completion; guarded operator forwarding"
     ]
   },
   "configs/one_circle_random20.json": {
-    "original_source": "ICLR2027_campaign/cases/topology3/baseline_fresh_v1/configs/one_circle_random20_k32.json",
+    "original_source": "flow/cases/topology3/reference_solver/configs/one_circle_random20_k32.json",
     "portable_changes": [
       "retain exact scientific configuration; omit controller/status descriptions"
     ]
   },
   "configs/circle_square_random20.json": {
-    "original_source": "ICLR2027_campaign/cases/topology3/baseline_fresh_v1/configs/circle_square_random20_k32.json",
+    "original_source": "flow/cases/topology3/reference_solver/configs/circle_square_random20_k32.json",
     "portable_changes": [
       "retain exact scientific configuration; omit controller/status descriptions"
     ]
   },
   "configs/circle_square_triangle_random20.json": {
-    "original_source": "ICLR2027_campaign/cases/topology3/baseline_fresh_v1/configs/circle_square_triangle_random20_k32.json",
+    "original_source": "flow/cases/topology3/reference_solver/configs/circle_square_triangle_random20_k32.json",
     "portable_changes": [
       "retain exact scientific configuration; omit controller/status descriptions"
     ]

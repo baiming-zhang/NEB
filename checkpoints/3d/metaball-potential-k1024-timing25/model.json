@@ -80,5 +80,6 @@
     ]
   },
   "purpose": "25-update preparation timing endpoint",
-  "validations": 0
+  "validations": 0,
+  "seed_index": 0
 }

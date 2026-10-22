@@ -21,7 +21,7 @@ The source-map command writes the full ordered analytic curl operator and invers
 ```sh
 python experiments/metaball/train.py --method Potential --K 32 --config experiments/metaball/configs/spectral_k32.json --samples runs/source/samples.npz --physical runs/physical --source-operator runs/source-map/B_source_curl.npz --source-map runs/source-map/source_inverse_map.npz --output runs/ccq32
 python experiments/metaball/train.py --method Velocity --K 32 --config experiments/metaball/configs/spectral_k32.json --output runs/vrq32
-python experiments/metaball/train.py --method Potential-AL --K 32 --config experiments/metaball/configs/metaball-potential-al-k32-seed20260823.json --samples runs/source/samples.npz --output runs/gcp-al32
+python experiments/metaball/train.py --method Potential-AL --K 32 --config experiments/metaball/configs/metaball-potential-al-k32-seed0.json --samples runs/source/samples.npz --output runs/gcp-al32
 python experiments/metaball/train.py --method Potential-FG --finite-gauge-setting scalar-gauge --K 256 --config experiments/metaball/configs/metaball-potential-fg-k256-seed0-scalar-gauge.json --samples runs/source/samples.npz --output runs/gcp-fg256
 python experiments/metaball/train.py --method NKB --K 32 --config experiments/metaball/configs/spectral_k32.json --output runs/nkb32
 python experiments/metaball/capacity.py --K 128 --output runs/vrq128
@@ -52,4 +52,4 @@ For a held-out learned basis, put samples.npz fit_points and assessment_points i
 
 The default canonical backend preserves the original oneMKL/PARDISO factorization and projected solves. Set `NEB_MKL_RUNTIME` to the directory containing `libmkl_rt.so` on Linux or `mkl_rt.dll` on Windows (for example, `export NEB_MKL_RUNTIME=/opt/intel/oneapi/mkl/latest/lib`); the loader searches that directory recursively. To select the cuDSS 0.8 variant, set NEB_CUDSS_LIBRARY to the installed library and pass `--canonical-module experiments/metaball/cudss.py --canonical-class TreeCanonicalLift`; its true N/T solves use the original unshifted matrix. Resource journals enforce aggregate RAM/GPU limits and available-memory reserves with a dynamic pool budget.
 
-For the matched finite-gauge comparison, use `--method Potential-FG --K 32 --config experiments/metaball/configs/metaball-potential-fg-k32-seed20260823.json` with the source samples. Repeat the K64/K128/K256 configurations from the checkpoint index. This entry uses the original finite441 projector and its true transpose, the shared Velocity sampler and Adam, and all eight scheduled geometry diagnostics.
+For the matched finite-gauge comparison, use `--method Potential-FG --K 32 --config experiments/metaball/configs/metaball-potential-fg-k32-seed0.json` with the source samples. Repeat the K64/K128/K256 configurations from the checkpoint index. This entry uses the original finite441 projector and its true transpose, the shared Velocity sampler and Adam, and all eight scheduled geometry diagnostics.

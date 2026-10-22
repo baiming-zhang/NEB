@@ -10,6 +10,21 @@ For total K=1024, a one-hole completed basis combines 1023 positive coordinates 
 
 Models retain numerical parameters, Adam moments, and optimizer counters. Potential-AL additionally supplies multipliers, rho, and the preceding constraint residual. Use one GPU experiment at a time. Metaball runners log memory use and preserve host/GPU memory reserves. Full K=1024 physical basis storage requires about 39.3 GB, with additional space for references and operators. CPU contractions stream the complete arrays in bounded blocks.
 
+### Check the checkout before a long run
+
+```bash
+python tools/check_reproduction.py
+neb checkpoints --download
+python tools/check_reproduction.py --models
+python tools/check_reproduction.py --native --output outputs/checkpoint_queries
+# To execute every downloaded model rather than representative configurations:
+python tools/check_reproduction.py --native --all-models --output outputs/all_checkpoint_queries
+```
+
+The first command checks all configuration/metadata pairs. `--models` reads every saved parameter, Adam moment and optimizer counter, plus the supplied multiplier arrays. `--native` loads one representative checkpoint for each case, method and raw/scaled harmonic lift and evaluates all its modes on four query points. Metaball NKB retains its NumPy evaluator; the other learned field paths use their native CuPy backends. These checks do not train models or rerun the full physical projection, DNS or trajectories. The commands below regenerate those results at their stated full sizes.
+
+Public paths describe the case and purpose: `periodic_core`, `flow`, `learned_basis`, `reference_solver`, `shared_runtime`, and `canonical_potential`. Capacity and replicate labels remain in model names. For Metaball, `seed0` identifies the replicate; the actual numerical RNG seed remains `20260823` in its configuration. File hashes and source-signature gates are not required. Shape, finite-value, complete-state and numerical-residual checks remain part of the computations.
+
 ## Periodic vortex merger
 
 Generate DNS with `experiments/periodic/run.py dns` and the K=1024 Fourier control with `run.py laplacian`. Evaluate Potential, Velocity, and NKB on the common DNS with `run.py evaluate`; repeat seeds 0, 1, 2. Fresh training uses:

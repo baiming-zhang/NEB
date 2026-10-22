@@ -8,7 +8,7 @@ from core import features
 
 
 def topology_module():
-    path = CAMPAIGN/'cases/topology3/baseline_fresh_v1/src/geometry.py'
+    path = CAMPAIGN/'cases/topology3/reference_solver/src/geometry.py'
     spec = importlib.util.spec_from_file_location('nkb_original_topology_geometry', path)
     mod = importlib.util.module_from_spec(spec); sys.modules[spec.name] = mod; spec.loader.exec_module(mod)
     return mod
@@ -22,7 +22,7 @@ class Domain:
         self.descriptor = None
         if name == 'metaball':
             self.base_config = read(CAMPAIGN/'cases/metaball/results/ablation_failure_v1/lr_training32_v1/config.json')
-            with np.load(CAMPAIGN/'cases/metaball/results/velocity_k1024_full2000_v1/checkpoint_comparison20/case_01/samples.npz') as z:
+            with np.load(CAMPAIGN/'cases/metaball/results/velocity/checkpoint_comparison20/case_01/samples.npz') as z:
                 self.geo = z['geometry'].copy()
             self.descriptor = self.geo.ravel()
             self.lo, self.hi, self.bandwidth = np.zeros(3), np.ones(3), .05
@@ -90,7 +90,7 @@ class Domain:
         if self.name != 'metaball': return [None]
         # Read only unchanged NumPy sampler definitions; never import Torch.
         import ast, math
-        path = WORK/'3d_metaball_reproduction_latest/cases/3D_Metaball/scripts/train_validate.py'
+        path = WORK/'metaball_reference/cases/3D_Metaball/scripts/train_validate.py'
         names = {'geometry_from_token', 'overlap_graph_connected', 'sphere_directions', 'spheres_inside_rounded_cube'}
         tree = ast.parse(path.read_text(encoding='utf-8-sig'))
         module = ast.Module(body=[x for x in tree.body if isinstance(x, ast.FunctionDef) and x.name in names], type_ignores=[])

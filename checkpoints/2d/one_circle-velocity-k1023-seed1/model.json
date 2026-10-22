@@ -71,7 +71,7 @@
     "analytic_eigenmodes": false,
     "degenerate_block_direction_alignment": false,
     "rank_reporting": "peeled_only",
-    "result_root": "one_circle_velocity_k1023_seed1",
+    "result_root": "runs/one_circle-velocity-k1023-seed1",
     "peeling_relative_mass_floor": 9.094947017729282e-13,
     "peeling_overlap_tolerance": 0.001
   },

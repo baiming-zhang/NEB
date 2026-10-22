@@ -1,11 +1,12 @@
 from __future__ import annotations
-import os,sys,time,json,hashlib,ast,gc,itertools
+import os, sys, time, json, ast, gc, itertools
 from pathlib import Path
-import numpy as np,scipy.sparse as sp,scipy.sparse.linalg as sla
+import numpy as np, scipy.sparse as sp, scipy.sparse.linalg as sla
 from scipy.sparse.csgraph import connected_components
-from skfem import MeshTet,Basis,ElementTetN1
-PAIRS=[(0,1),(1,2),(0,2),(0,3),(1,3),(2,3)]
+from skfem import MeshTet, Basis, ElementTetN1
+PAIRS = [(0, 1), (1, 2), (0, 2), (0, 3), (1, 3), (2, 3)]
 from scipy.optimize import minimize
+
 def main():
     assert not (OUT / 'mesh_complete.json').exists(), 'Do not repeat a completed repair'
     with np.load(CHART / 'chart_coefficients.npz') as z:
@@ -69,4 +70,4 @@ def main():
     assert np.all(det * old > 0), 'A cell outside the patch became invalid'
     assert abs(np.abs(det).sum() - np.abs(old).sum()) / np.abs(old).sum() < 1e-12
     np.savez(OUT / 'mesh_arrays.npz', p=repaired, t=t)
-    write('mesh_complete.json', dict(status='local_quality_repair_complete_global_chart_qualification_pending', interior_vertices_moved=free.tolist(), affected_cells=len(patch), boundary_identical=True, all_polyhedral_cell_orientations_preserved=True, all_local_cubic_Bernstein_coefficients_positive=True, original_h=0.025, surface_resolution=80, source_mesh_sha256=hashlib.sha256((SOURCE / 'mesh_arrays.npz').read_bytes()).hexdigest(), seconds=time.perf_counter() - START, spectral_solve_started=False))
+    write('mesh_complete.json', dict(status='local_quality_repair_complete_global_chart_qualification_pending', interior_vertices_moved=free.tolist(), affected_cells=len(patch), boundary_identical=True, all_polyhedral_cell_orientations_preserved=True, all_local_cubic_Bernstein_coefficients_positive=True, original_h=0.025, surface_resolution=80, seconds=time.perf_counter() - START, spectral_solve_started=False))

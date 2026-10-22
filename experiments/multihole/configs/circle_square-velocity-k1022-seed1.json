@@ -69,7 +69,7 @@
   "analytic_eigenmodes": false,
   "degenerate_block_direction_alignment": false,
   "rank_reporting": "peeled_only",
-  "result_root": "circle_square_velocity_k1022_seed1",
+  "result_root": "runs/circle_square-velocity-k1022-seed1",
   "peeling_relative_mass_floor": 9.094947017729282e-13,
   "peeling_overlap_tolerance": 0.001
 }

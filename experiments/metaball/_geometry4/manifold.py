@@ -1,10 +1,11 @@
 from __future__ import annotations
-import os,sys,time,json,hashlib,ast,gc,itertools
+import os, sys, time, json, ast, gc, itertools
 from pathlib import Path
-import numpy as np,scipy.sparse as sp,scipy.sparse.linalg as sla
+import numpy as np, scipy.sparse as sp, scipy.sparse.linalg as sla
 from scipy.sparse.csgraph import connected_components
-from skfem import MeshTet,Basis,ElementTetN1
-PAIRS=[(0,1),(1,2),(0,2),(0,3),(1,3),(2,3)]
+from skfem import MeshTet, Basis, ElementTetN1
+PAIRS = [(0, 1), (1, 2), (0, 2), (0, 3), (1, 3), (2, 3)]
+
 def main():
     """Independent connectedness and complete vertex-link checks for both walls."""
     with np.load(CHART / 'chart_coefficients.npz') as z:
@@ -49,7 +50,7 @@ def main():
         chi = len(np.unique(f)) - len(e) + len(f)
         assert chi == 2
         components.append(dict(vertices=len(np.unique(f)), edges=len(e), faces=len(f), Euler=chi, connected=True))
-    r = dict(status='verified_closed_connected_spheres', components=components, every_edge_incidence=2, every_vertex_link_single_cycle=True, source_chart_sha256=sha(CHART / 'chart_coefficients.npz'))
+    r = dict(status='verified_closed_connected_spheres', components=components, every_edge_incidence=2, every_vertex_link_single_cycle=True)
     path = HERE / 'geometry4_boundary_flow/boundary_manifold_verified.json'
     path.write_text(json.dumps(r, indent=2) + '\n')
     print(json.dumps(r, indent=2))

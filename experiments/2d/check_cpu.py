@@ -2,11 +2,11 @@
 from pathlib import Path
 import importlib.util,json,sys
 import numpy as np
-BASE=Path(__file__).resolve().parent/'_vendor'
+BASE=Path(__file__).resolve().parent/'_backend'
 def load(path,name):
     spec=importlib.util.spec_from_file_location(name,path);m=importlib.util.module_from_spec(spec);sys.modules[name]=m;spec.loader.exec_module(m);return m
 def main():
-    dns=load(BASE/'native_periodic/2D_Vortex_Merger/scripts/generate_gt.py','neb_cpu_dns')
+    dns=load(BASE/'periodic_core/vortex_merger/scripts/generate_gt.py','neb_cpu_dns')
     n=16;solver=dns.VorticityDNS(n,2*np.pi,.0010742913669168762,.005)
     x,y=np.meshgrid(np.arange(n)*2*np.pi/n,np.arange(n)*2*np.pi/n)
     omega=np.sin(2*x)*np.cos(y);hat=solver.filtered_hat(omega)
@@ -17,7 +17,7 @@ def main():
     # Original solver's scalar vorticity convention and velocity are tested directly.
     assert np.max(abs(curl-w))<1e-12
     assert np.isfinite(solver.step(hat)).all()
-    mod=load(BASE/'ICLR2027_campaign/cases/topology3/random_streamfunction_20260928/preview_random_streamfunction.py','neb_cpu_quintic')
+    mod=load(BASE/'flow/cases/topology3/random_streamfunctions/preview_random_streamfunction.py','neb_cpu_quintic')
     field=mod.RandomField('one_circle',0);points=np.array([[2.3,2.2],[7.2,-2.1],[3.1,-1.9]])
     a=field.evaluate(points);eps=1e-5
     dx=(field.evaluate(points+[eps,0])[:,0]-field.evaluate(points-[eps,0])[:,0])/(2*eps)

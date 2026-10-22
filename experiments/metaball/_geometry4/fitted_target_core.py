@@ -1,12 +1,13 @@
 from __future__ import annotations
-import os,sys,time,json,hashlib,ast,gc,itertools
+import os, sys, time, json, ast, gc, itertools
 from pathlib import Path
-import numpy as np,scipy.sparse as sp,scipy.sparse.linalg as sla
+import numpy as np, scipy.sparse as sp, scipy.sparse.linalg as sla
 from scipy.sparse.csgraph import connected_components
-from skfem import MeshTet,Basis,ElementTetN1
-PAIRS=[(0,1),(1,2),(0,2),(0,3),(1,3),(2,3)]
-from skfem import BilinearForm,asm
-from skfem.helpers import dot,curl
+from skfem import MeshTet, Basis, ElementTetN1
+PAIRS = [(0, 1), (1, 2), (0, 2), (0, 3), (1, 3), (2, 3)]
+from skfem import BilinearForm, asm
+from skfem.helpers import dot, curl
+
 @BilinearForm
 def mass(u, v, w):
     return dot(u, v)
