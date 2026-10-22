@@ -2,6 +2,10 @@
 import json
 from pathlib import Path
 import re
+import ast
+import importlib.util
+import sys
+from types import SimpleNamespace
 
 ROOT=Path(__file__).resolve().parents[1]
 
@@ -39,3 +43,22 @@ def test_published_metadata_is_portable():
     readme=(ROOT/'README.md').read_text(encoding='utf-8')
     for path in re.findall(r'\]\(([^)]+)\)',readme):
         if not path.startswith(('http:','https:','#')):assert (ROOT/path).is_file(),path
+
+
+def test_static_configuration_dependencies_exist():
+    names={p.name for p in (ROOT/'experiments').rglob('*.json')}
+    for p in (ROOT/'experiments').rglob('*.py'):
+        tree=ast.parse(p.read_text(encoding='utf-8'))
+        for n in ast.walk(tree):
+            if isinstance(n,ast.Constant) and isinstance(n.value,str) and 'configs/' in n.value and n.value.endswith('.json'):
+                assert Path(n.value).name in names,(p,n.value)
+
+
+def test_periodic_evaluator_uses_only_packaged_runtime(monkeypatch):
+    # Import orchestration without native execution, with no experiment workspace.
+    monkeypatch.setitem(sys.modules,'cupy',SimpleNamespace())
+    p=ROOT/'experiments/periodic/paper_rollout.py'
+    spec=importlib.util.spec_from_file_location('isolated_paper_rollout',p)
+    m=importlib.util.module_from_spec(spec);spec.loader.exec_module(m)
+    assert m.WORK.resolve()==(ROOT/'experiments/2d/_vendor').resolve()
+    assert m.guard.__module__=='neb_periodic_runtime'

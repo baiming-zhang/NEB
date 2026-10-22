@@ -13,10 +13,10 @@ import scipy.linalg as la
 from scipy.signal import resample
 import cupy as cp
 
-WORK=Path(__file__).resolve().parents[4]
-NKB=WORK/'ICLR2027_campaign/nkb_baseline_20260928'
-sys.path.insert(0,str(NKB))
-from runtime import guard, read, write
+WORK=Path(__file__).resolve().parents[1]/'2d/_vendor'
+_runtime_spec=importlib.util.spec_from_file_location('neb_periodic_runtime',Path(__file__).with_name('runtime.py'))
+_runtime=importlib.util.module_from_spec(_runtime_spec);_runtime_spec.loader.exec_module(_runtime)
+guard,read,write=_runtime.guard,_runtime.read,_runtime.write
 SOURCE=WORK/'exports/2d_vortex_animation_20260923/wider'
 OUT=Path('outputs/periodic')
 OLD=WORK/'ICLR2027_campaign/cases/vortex_merger/results/reuse_v1/formal'
