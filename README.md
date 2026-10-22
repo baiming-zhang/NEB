@@ -96,7 +96,7 @@ The 3D comparisons use all 1,599,754 fluid points and every retained coordinate.
 
 [Generation, training, and evaluation](experiments/metaball/USAGE.md) · [Gauge experiments](experiments/gauge/USAGE.md) · [Curved held-out geometry](experiments/metaball/GEOMETRY4.md)
 
-![Representation of independent large-eddy fields](assets/figures/metaball_random_fields.png)
+![Independent-field representation and autonomous evolution](assets/figures/case3_representation_evolution_combined.png)
 
 ## Repository layout
 

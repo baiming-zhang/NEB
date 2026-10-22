@@ -56,7 +56,7 @@ For the K1024 Potential preparation-timing experiment, select its timing configu
 
 ```bash
 neb figures --output outputs/paper_figures
-python tools/redraw_metaball_reported_scope.py --output outputs/metaball_paper
+python tools/redraw_combined_metaball.py --repo . --output outputs/metaball_paper
 ```
 
 Both commands export PNG/vector PDF. The main Metaball figure uses 400 measurements through K=512; its K=1024 appendix uses 60. Sample deviations use `ddof=1`. Preparation-cost estimates, fit coefficients, and assumptions are supplied in `data/paper_results/preparation_cost_estimates.json`; measured full-basis times are in `primary_basis_runtime.csv`.
