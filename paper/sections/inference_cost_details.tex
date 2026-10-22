@@ -1,14 +1,14 @@
 \subsection{Inference accounting and reuse thresholds}
 \label{app:inference-amortization}
-Continuous basis evaluation and autonomous integration answer different cost questions. A neural basis query evaluates a frozen vector-valued function and its required analytic derivatives, followed by the specified geometry-local normalization and orthogonalization. A numerical basis construction includes the geometry-specific spectral solve and evaluation at the same requested points. Numerical preparation comprises mesh generation, point mapping, factorization, and the spectral solve. The recorded 687.17 s solve/reconstruction on unseen 3D geometry 2 measures the spectral and reconstruction stages after mesh and point-map preparation. \docref{Table}{tab:runtime-offline} gives the all-node NKB query benchmarks. The reuse analysis below measures the autonomous integration workload with shared spatial bases and operators.
+Basis-query timing follows the continuous evaluation boundary in \docref{Section}{sec:inference-cost}; numerical construction additionally charges geometry-specific mesh preparation, point mapping, factorization, and the spectral solve. \docref{Table}{tab:runtime-offline} reports all-node evaluation costs, while \docref{Appendix}{app:unseen-geometry} gives fresh numerical constructions on unseen domains. The reuse counts below concern trajectories that share spatial bases and operators.
 
 \begin{table}[!htb]\centering\small
 \caption{Reuse thresholds computed from original wall-time receipts, without rounding inputs. A reuse is one $T=1.16$, 1856-step trajectory on the same geometry, with the same time step and existing operators. The baseline is the numerical NS integration timer. Training-only counts set $T_{\rm off}=0$; adding recorded assembly or derived-field preparation charges those stages once. Derived-field costs include the recovered $K=512$ preparation timers. Per-query projection/output and separately unrecorded stages lie outside these integration-only thresholds.}
 \label{tab:inference-amortization}
-\begin{tabular}{rrrrrr}\toprule
-$K$&Training (h)&NS/ROM&Training only&+ $Q$ assembly&+ derived fields\\\midrule
-512&3.9906&17.74$\times$&123&154&179\\
-1024&7.7713&2.61$\times$&359&774&907\\
+\begin{tabular}{rrrr}\toprule
+$K$&Training only&+ $Q$ assembly&+ derived fields\\\midrule
+512&123&154&179\\
+1024&359&774&907\\
 \bottomrule\end{tabular}\end{table}
 
 For a full workload, replace the denominator of \doceqref{eq:inference-break-even} by the difference between complete per-query costs, including initial projection, selected field reconstruction, transfers, and storage. Output costs are assigned according to the requested number of reconstructed fields: the recorded NS workload saves 30 fields, and the ROM workload reconstructs three selected fields.
@@ -30,20 +30,5 @@ m_\star(d)=\left\lceil r_\star(d)\right\rceil.
 \end{equation}
 Here $d$ counts varied physical or query parameters and $n_\star$ is the integration-only reuse count in \doceqref{eq:inference-break-even}.
 
-For a threshold $N_\star$, $m^d\geq N_\star$ is equivalent to $m\geq N_\star^{1/d}$. \docref{Table}{tab:sweep-resolution} gives two-, three-, and four-parameter sampling densities under the recorded cost boundaries.
 
-\begin{table}[!htb]\centering\small
-\caption{Per-axis break-even resolution $r_\star(d)=N_\star^{1/d}$ for the integration-only thresholds in \docref{Table}{tab:inference-amortization}. $Q$ denotes reusable quadratic assembly and fields denotes the additionally recorded derived-field preparation. Roots are rounded to two decimals; the integer three-parameter resolution $m_\star(3)$ is computed before rounding. Every row retains its original cost boundary.}
-\label{tab:sweep-resolution}
-\setlength{\tabcolsep}{5pt}
-\begin{tabular}{rlrrrrr}\toprule
-$K$&One-time cost&$N_\star$&$r_\star(2)$&$r_\star(3)$&$r_\star(4)$&$m_\star(3)$\\\midrule
-512&Training&123&11.09&4.97&3.33&5\\
-512&Training + $Q$&154&12.41&5.36&3.52&6\\
-512&Training + $Q$ + fields&179&13.38&5.64&3.66&6\\
-1024&Training&359&18.95&7.11&4.35&8\\
-1024&Training + $Q$&774&27.82&9.18&5.27&10\\
-1024&Training + $Q$ + fields&907&30.12&9.68&5.49&10\\
-\bottomrule\end{tabular}\end{table}
-
-Unequal axis counts $m_1,\ldots,m_d$ meet the threshold when $\prod_{j=1}^d m_j\geq N_\star$; their geometric mean $(\prod_jm_j)^{1/d}$ is the mean per-axis resolution. Sparse, constrained, or correlated sweeps use the actual query count. With per-query savings $\Delta T_i$ and reusable cost $T_{\rm one\mbox{-}time}$, break-even requires $\sum_i\Delta T_i\geq T_{\rm one\mbox{-}time}$, including per-case preparation. Fixed-geometry initial-condition sweeps reuse the frozen basis and operators; geometry sweeps additionally charge geometry generation and required operator assembly.
+Unequal axis counts $m_1,\ldots,m_d$ meet the threshold when $\prod_{j=1}^d m_j\geq n_\star$; their geometric mean $(\prod_jm_j)^{1/d}$ is the mean per-axis resolution. Sparse, constrained, or correlated sweeps use the actual query count. With per-query savings $\Delta T_i$ and reusable cost $T_{\rm one\mbox{-}time}$, break-even requires $\sum_i\Delta T_i\geq T_{\rm one\mbox{-}time}$, including per-case preparation. Fixed-geometry initial-condition sweeps reuse the frozen basis and operators; geometry sweeps additionally charge geometry generation and required operator assembly.

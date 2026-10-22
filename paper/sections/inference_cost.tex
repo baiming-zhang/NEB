@@ -4,7 +4,7 @@ The learned object is the map $(\mathbf x,\mathbf g)\mapsto U_\theta(\mathbf x;\
 
 \paragraph{Online latency and numerical comparison.}
 \begingroup
-The map supplies spatial fields once a geometry is selected; operator assembly then prepares their recurrent coefficient dynamics. Synchronized measurements give mean RK4 update times of 3.79 ms at $K=512$ and 26.18 ms at $K=1024$, with field reconstruction charged at requested outputs. \docref{Table}{tab:coefficient-capacity} reports NS integration speedups, alongside the flow errors in \docref{Figure}{fig:coefficient-capacity}. This cost separation makes reuse explicit: trajectories on one geometry share the basis and assembled operators, while initial projection and selected field outputs belong to each query.
+The map supplies spatial fields once a geometry is selected; operator assembly then prepares their recurrent coefficient dynamics. Synchronized measurements give mean RK4 update times of 3.79 ms at $K=512$ and 26.18 ms at $K=1024$, with field reconstruction charged at requested outputs. \docref{Figure}{fig:coefficient-capacity} places integration costs alongside flow errors. This cost separation makes reuse explicit: trajectories on one geometry share the basis and assembled operators, while initial projection and selected field outputs belong to each query.
 \par\endgroup
 
 \paragraph{When repeated inference recovers training cost.}

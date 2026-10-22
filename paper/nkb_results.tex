@@ -1,6 +1,6 @@
 \begin{table}[!htb]
 \centering\small
-\caption{Initial full-mass projection errors for the 2D NKB adaptation at $K=1024$ (\%). Periodic entries are mean $\pm$ sample SD over three seeds; multi-hole entries average 20 initial states. Trajectory comparisons are shown in \docref{Figure}{fig:nkb-completed}, 3D initial errors in \docref{Figure}{fig:case3-capacity}(b), and training costs in \docref{Table}{tab:runtime-training}.}
+\caption{Initial full-mass projection errors for the 2D NKB adaptation at $K=1024$ (\%). Periodic entries are mean $\pm$ sample SD over three seeds; multi-hole entries average 20 initial states. Trajectory comparisons are shown in \docref{Figure}{fig:nkb-completed}, 3D initial errors in \docref{Figure}{fig:case3-capacity}(b), and NKB training costs in \docref{Table}{tab:runtime-nkb-training}.}
 \label{tab:nkb-matched}
 \begin{tabular}{lr}\toprule
 Case&Initial velocity error (\%)\\\midrule
@@ -14,11 +14,7 @@ Three holes&22.201\\
 \paragraph{Kinematic residuals and numerical refinement.}
 The periodic NKB initial states have a three-seed mean divergence-to-curl norm ratio of $0.195$. Their full-mass condition numbers range from $1.236\times10^{8}$ to $1.899\times10^{8}$. The maximum double-time-step trajectory difference is $4.412\times10^{-12}$. For seed 0, the $128^2$ to $256^2$ operator-quadrature trajectory sensitivity on this same case is $46.100\%$; these measurements separately characterize spatial quadrature and temporal resolution.
 
-On the one hole domain, the mean initial divergence-to-curl ratio is $0.721$, and the sampled boundary-normal root mean square (RMS) relative to domain velocity RMS is $0.170$. The maximum time-step and operator-quadrature trajectory differences are $7.03\times10^{-6}$ and $1.24\times10^{-2}$, respectively.
-
-On the two holes domain, the mean initial divergence-to-curl ratio is $0.770$, and the sampled boundary-normal RMS relative to domain velocity RMS is $0.216$. The maximum time-step and operator-quadrature trajectory differences are $1.26\times10^{-5}$ and $3.94\times10^{-3}$, respectively.
-
-On the three holes domain, the mean initial divergence-to-curl ratio is $0.722$, and the sampled boundary-normal RMS relative to domain velocity RMS is $0.231$. The maximum time-step and operator-quadrature trajectory differences are $4.15\times10^{-6}$ and $2.99\times10^{-3}$, respectively.
+For the one-, two-, and three-hole domains, respectively, the mean initial divergence-to-curl ratios are $(0.721,0.770,0.722)$ and the sampled boundary-normal root mean square (RMS) relative to domain velocity RMS is $(0.170,0.216,0.231)$. Maximum trajectory differences under time-step refinement are $(7.03\times10^{-6},1.26\times10^{-5},4.15\times10^{-6})$; those under operator-quadrature refinement are $(1.24\times10^{-2},3.94\times10^{-3},2.99\times10^{-3})$.
 
 \paragraph{Three-dimensional trajectory and kinematic diagnostics.}
 \docref{Tables}{tab:nkb-3d-checks} and~\ref{tab:nkb-3d-kinematics} supplement the final errors with trajectory means, full-mass conditioning, and initial/final kinematic residuals. The trajectory mean averages all 30 stored frames, including $t=0$ and $T=1.16$. The mass condition number $\kappa(M)$ is the largest-to-smallest eigenvalue ratio of the symmetric FP64 mass matrix; all $K$ coordinates are retained.
