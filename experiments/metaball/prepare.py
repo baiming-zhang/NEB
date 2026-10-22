@@ -107,6 +107,17 @@ def volume(args):
     if not np.isfinite(cells).all() or np.any(cells<=0):raise FloatingPointError('Positive complete physical volume required')
     np.save(out/'cell_volumes.npy',cells,allow_pickle=False)
     (out/'complete.json').write_text(json.dumps(dict(physical_volume=float(np.sum(cells,dtype=np.float64)),cells=len(t),quadrature_points=len(bary)),indent=2))
+def conditioned_dns_factory(native,dns_config,initial_protocol):
+    """Retain the paper's 0.02-time initial conditioning before refined stepping."""
+    def factory(protocol,*args,**kwargs):
+        solver=native(protocol,*args,**kwargs)
+        def initialize():
+            initial=native(dns_config(**initial_protocol),*args,**kwargs)
+            return initial.initialize()
+        solver.initialize=initialize
+        return solver
+    return factory
+
 def dns(args):
     module=load('metaball_dns',V/'3d_metaball_reproduction_latest/cases/3D_Metaball/physical_dns/scripts/generate_independent_dns_gt_128.py')
     import dataclasses
@@ -118,6 +129,8 @@ def dns(args):
         return training
     module.load_training_module=training_module
     protocol=json.loads((HERE/'configs/dns.json').read_text(encoding='utf-8'))
+    initial=json.loads((HERE/'configs/initial_condition.json').read_text(encoding='utf-8'))
+    module.PseudoSpectralDNS=conditioned_dns_factory(module.PseudoSpectralDNS,module.DNSConfig,initial)
     module.CONFIG_PATH=Path(args.config);module.run_dns(Path(args.output),module.DNSConfig(**protocol))
     mask=np.load(Path(args.output)/'fluid_mask.npy',allow_pickle=False)
     np.save(Path(args.output)/'fluid_flat_indices.npy',np.flatnonzero(mask.reshape(-1)),allow_pickle=False)

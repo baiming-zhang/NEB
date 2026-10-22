@@ -46,7 +46,7 @@ Follow the [Metaball guide](../experiments/metaball/USAGE.md) in order:
 
 Use the paper method name with the matching configuration. Potential requires the full physical complex and source map. Matched Potential-FG uses the Velocity architecture, initialization, optimizer, sampler, and validation settings. `--finite-gauge-setting scalar-gauge` selects the supplied seed-0 finite-space setting for transfer/control comparisons.
 
-`configs/large_eddy20.json` supplies the 20 independent Philox keys and the 16 Fourier wavevectors. `configs/initial_condition.json` specifies the original random-field conditioning, RMS normalization, and four warm-up substeps. `configs/dns.json` specifies the 30-frame trajectory reference. All are under `experiments/metaball/`.
+`configs/large_eddy20.json` supplies the 20 independent Philox keys and the 16 Fourier wavevectors. `configs/initial_condition.json` specifies initial-field conditioning, RMS normalization, and four 0.005 warm-up substeps. `configs/dns.json` specifies the 30-frame trajectory reference at step 0.0025. The reference generator retains the same conditioned initial state when refining the integration step. All configurations are under `experiments/metaball/`.
 
 The [gauge guide](../experiments/gauge/USAGE.md) covers finite, spline, FMM, and Fourier controls. `heldout_samples.py` regenerates each transfer domain and its disjoint 16,384-point fitting/assessment sets. The [fourth-domain guide](../experiments/metaball/GEOMETRY4.md) builds the quadratic physical chart and its 256-mode reference.
 

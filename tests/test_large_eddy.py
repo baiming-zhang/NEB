@@ -3,6 +3,7 @@ import importlib.util
 import json
 from pathlib import Path
 import numpy as np
+from types import SimpleNamespace
 
 ROOT=Path(__file__).resolve().parents[1]
 
@@ -25,3 +26,21 @@ def test_philox_keys_and_analytic_vector_potential_curl():
     d=[(potential(x+np.eye(3)[a]*h)-potential(x-np.eye(3)[a]*h))/(2*h) for a in range(3)]
     curl=np.stack((d[1][:,2]-d[2][:,1],d[2][:,0]-d[0][:,2],d[0][:,1]-d[1][:,0]),axis=1)
     np.testing.assert_allclose(m.curl_points(raw,x),curl,rtol=2e-8,atol=3e-8)
+
+
+def test_dns_refinement_preserves_the_original_initial_conditioning():
+    p=ROOT/'experiments/metaball/prepare.py'
+    spec=importlib.util.spec_from_file_location('metaball_prepare',p)
+    m=importlib.util.module_from_spec(spec);spec.loader.exec_module(m)
+    folder=ROOT/'experiments/metaball/configs'
+    initial=json.loads((folder/'initial_condition.json').read_text())
+    trajectory=json.loads((folder/'dns.json').read_text())
+    class NativeProtocol:
+        def __init__(self,protocol):self.protocol=protocol
+        def initialize(self):
+            return self.protocol.warmup_substeps*self.protocol.frame_dt/self.protocol.substeps_per_frame
+    factory=m.conditioned_dns_factory(NativeProtocol,SimpleNamespace,initial)
+    solver=factory(SimpleNamespace(**trajectory))
+    assert solver.protocol.frames==30
+    assert solver.protocol.frame_dt/solver.protocol.substeps_per_frame==.0025
+    assert solver.initialize()==.02
