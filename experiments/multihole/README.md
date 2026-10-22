@@ -7,9 +7,9 @@ causal order when selecting positive columns.
 
 ```sh
 python experiments/multihole/run.py fields --case one_circle --output outputs/multihole/one_circle/fields
-python experiments/multihole/run.py prepare --config experiments/multihole/configs/one_circle_p1023_h1_e2000.json --output outputs/multihole/one_circle/init
+python experiments/multihole/run.py prepare --config experiments/multihole/configs/one_circle-potential-k1023-seed1.json --output outputs/multihole/one_circle/init
 python experiments/multihole/run.py train --checkpoint outputs/multihole/one_circle/init/initial_epoch0000.npz --output outputs/multihole/one_circle/train
-python experiments/multihole/run.py harmonic-train --config experiments/multihole/configs/one_circle_harmonic_seed1.json --output outputs/multihole/one_circle/harmonic
+python experiments/multihole/run.py harmonic-train --config experiments/multihole/configs/one_circle-harmonic-k1-seed1-raw.json --output outputs/multihole/one_circle/harmonic
 python -m experiments.multihole.reference.run --help
 python -m experiments.multihole.reference.run --mode mesh --case one_circle --output outputs/multihole/one_circle/mesh
 python -m experiments.multihole.reference.run --mode operators --case one_circle --mesh outputs/multihole/one_circle/mesh/mesh.npz --output outputs/multihole/one_circle/operators

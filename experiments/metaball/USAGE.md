@@ -21,8 +21,8 @@ The source-map command writes the full ordered analytic curl operator and invers
 ```sh
 python experiments/metaball/train.py --method Potential --K 32 --config experiments/metaball/configs/spectral_k32.json --samples runs/source/samples.npz --physical runs/physical --source-operator runs/source-map/B_source_curl.npz --source-map runs/source-map/source_inverse_map.npz --output runs/ccq32
 python experiments/metaball/train.py --method Velocity --K 32 --config experiments/metaball/configs/spectral_k32.json --output runs/vrq32
-python experiments/metaball/train.py --method Potential-AL --K 32 --config experiments/metaball/configs/potential_al_k32_e2000.json --samples runs/source/samples.npz --output runs/gcp-al32
-python experiments/metaball/train.py --method Potential-FG --finite-gauge-setting scalar-gauge --K 256 --config experiments/metaball/configs/potential_fg_scalar_k256.json --samples runs/source/samples.npz --output runs/gcp-fg256
+python experiments/metaball/train.py --method Potential-AL --K 32 --config experiments/metaball/configs/metaball-potential-al-k32-seed20260823.json --samples runs/source/samples.npz --output runs/gcp-al32
+python experiments/metaball/train.py --method Potential-FG --finite-gauge-setting scalar-gauge --K 256 --config experiments/metaball/configs/metaball-potential-fg-k256-seed0-scalar-gauge.json --samples runs/source/samples.npz --output runs/gcp-fg256
 python experiments/metaball/train.py --method NKB --K 32 --config experiments/metaball/configs/spectral_k32.json --output runs/nkb32
 python experiments/metaball/capacity.py --K 128 --output runs/vrq128
 ```
