@@ -2,8 +2,12 @@ name: Reproduction
 
 on:
   push:
-    branches: [main, codex/readable-reproduction]
+    branches: [main]
   pull_request:
+
+concurrency:
+  group: reproduction-${{ github.head_ref || github.ref_name }}
+  cancel-in-progress: true
 
 jobs:
   cpu:
