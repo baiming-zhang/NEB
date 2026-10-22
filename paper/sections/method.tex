@@ -5,7 +5,7 @@
 The construction has two stages (\docref{Figure}{fig:method}). During learning, the differential lifts of Neural Conservation Laws \citep{richterpowell2022neural} and potential boundary traces restrict the candidates to divergence-free, impermeable velocities. Geometry-local spectral orthogonalization follows Shape Space Spectra \citep{chang2025shapespacespectra}; harmonic circulation fields complete the span as in spectral fluid reduction \citep{liu2015model}. For a selected geometry, initial projection and preassembled Galerkin operators then turn this spatial basis into an autonomous coefficient model. The resulting state can be reconstructed at any requested spatial locations and output times.
 \par\endgroup
 \begin{figure}[!htb]
-\centering\includegraphics[width=\linewidth,height=.72\textheight,keepaspectratio]{unified_names_20261021_v1/method_overview.pdf}
+\centering\includegraphics[width=\linewidth,height=.72\textheight,keepaspectratio]{method_overview.pdf}
 \caption{\textbf{Shape-dependent training and coefficient-only inference.} (a) Geometry parameters vary obstacle position, scale and orientation within a fixed rounded-square outer boundary. A hard boundary envelope acts on geometry-conditioned potentials. Paired, oppositely oriented red and blue marks depict the antisymmetric tensor in the Neural Conservation Laws (NCL) construction {\citep{richterpowell2022neural}}; its row-wise divergence generates divergence-free velocities. {Gauge fixing and geometry-local causal orthogonalization produce normalized candidates within the divergence-free, impermeable trial space; the Rayleigh contours depict their energy minimization.} Training yields the parameter-to-basis neural map. (b) For a selected geometry, the map supplies positive modes, completed by harmonic circulation fields. Initial projection and geometry-specific preassembled mass, linear and quadratic operators support coefficient-only ROM stepping; spatial fields are reconstructed at selected times. The schematic uses $M$ for the velocity mass matrix, $A$ for the reduced linear operator, $Q$ for the quadratic advection tensor, and $t_0,t_1,t_2$ for selected output times. }
 \label{fig:method}
 \end{figure}
@@ -148,7 +148,7 @@ A second orthogonalization pass reduces accumulated projection error. The causal
 The velocity objective uses the velocity inner product and corresponding energy, applying the same coefficient transform to every derivative channel. Spatial derivatives and parameter adjoints use an analytic CuPy implementation. At repeated eigenvalues, the identifiable object is the eigenspace; the mode atlas is interpreted up to signs and orthogonal rotations within that space.
 
 \begin{figure}[!t]
-\centering\includegraphics[width=0.7\linewidth,height=.72\textheight,keepaspectratio]{unified_names_20261021_v1/harmonic_airfoil.pdf}
+\centering\includegraphics[width=0.7\linewidth,height=.72\textheight,keepaspectratio]{harmonic_airfoil.pdf}
 \caption{\textbf{Harmonic circulation completes the flow representation.} (a) A base flow combined with positive modes gives an incomplete, zero-circulation description of a lifting airfoil, with an incorrect sharp-trailing-edge flow. (b) Adding harmonic circulation permits smooth outflow satisfying the Kutta condition and generates lift in the presence of the base flow. Streamlines schematically illustrate the decomposition in \doceqref{eq:completion}.}
 \label{fig:harmonic-airfoil}
 \end{figure}

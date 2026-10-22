@@ -1,4 +1,4 @@
-"""Physical quadratic-chart LEB reconstruction on the fourth held-out domain."""
+"""Physical quadratic-chart Laplacian reconstruction on the fourth held-out domain."""
 from __future__ import annotations
 import argparse, hashlib, importlib, json, os, threading, time
 from pathlib import Path
@@ -29,7 +29,7 @@ def run(args):
                 raise ValueError('All original finite 16384 fit and assessment points required')
     source=Path(args.samples).resolve()
     target=dict(case=4,K=256,h=.025,surface_resolution=80,geometry=geometry.tolist(),source_samples=str(source))
-    binding=dict(config_sha256=sha(args.config),samples_sha256=sha(source),legacy_config=config,target_config=target)
+    binding=dict(config_sha256=sha(args.config),samples_sha256=sha(source),source_config=config,target_config=target)
     if args.stage=='mesh':
         root.mkdir(parents=True,exist_ok=False)
         (root/'inputs.json').write_text(json.dumps(binding,indent=2),encoding='utf-8')
@@ -109,7 +109,7 @@ def run(args):
 def main():
     p=argparse.ArgumentParser(__doc__)
     p.add_argument('--stage',choices=['mesh','quality','chord','repair','chart','manifold','boundary','assemble','solve','evaluate'],required=True)
-    p.add_argument('--config',type=Path,default=HERE/'configs/vrq_ccq_k32.json')
+    p.add_argument('--config',type=Path,default=HERE/'configs/spectral_k32.json')
     p.add_argument('--samples',type=Path,required=True);p.add_argument('--output',type=Path,required=True)
     p.add_argument('--mkl-library',type=Path);p.add_argument('--RAM-limit',type=int,default=62_500_000_000);p.add_argument('--timeout-seconds',type=float,default=7200)
     run(p.parse_args())

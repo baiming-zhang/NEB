@@ -37,7 +37,7 @@ Refinement systematically improves the spline and volume corrections (\docref{Fi
 FMM evaluation and transpose consistency are tested using $16^3$ cuboids, 48 query points, and two random right-hand sides. The analytic cuboid kernel agrees with nonsingular Gauss integration to relative $7.30\times10^{-11}$. Against direct cuboid integration, increasing the far expansion degree from four to six reduces relative gradient error from $1.38\times10^{-3}$ to $1.90\times10^{-4}$; the degree-six transpose discrepancy is $2.73\times10^{-16}$. These comparisons isolate evaluation of the chosen density from density approximation. For the manufactured scalar $e(x)[1+0.2\sin(2\pi x_1)+0.1x_2x_3]$, the refined spline method gives relative gradient and Poisson errors of $2.85\times10^{-4}$ and $8.82\times10^{-4}$, with linear residual $4.95\times10^{-9}$. Together with \docref{Figure}{fig:gauge-solver-ablation} and \docref{Table}{tab:gauge-solver-ablation}, these checks connect accurate operator evaluation to systematic control through auxiliary-space refinement.
 
 \begin{figure}[!htb]
-\centering\includegraphics[width=\linewidth,height=.72\textheight,keepaspectratio]{unified_names_20261021_v1/gauge_solver_ablation.pdf}
+\centering\includegraphics[width=\linewidth,height=.72\textheight,keepaspectratio]{gauge_solver_ablation.pdf}
 \caption{\textbf{Gauge-solver accuracy and cost.} Left: all-32 forward-plus-reverse time versus independent Poisson residual. Right: per-column residuals for Fourier--MFS and the finest tested spline and volume spaces. All methods evaluate the same fixed neural checkpoint.}
 \label{fig:gauge-solver-ablation}
 \end{figure}

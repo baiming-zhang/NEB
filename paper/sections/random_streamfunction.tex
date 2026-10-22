@@ -131,7 +131,7 @@ Reference refinement tests compare the same physical fields under time-step, pol
 \docref{Figure}{fig:random-k1024-energy} gives initial capture and compression, and \docref{Figure}{fig:random-k1024-errors} shows all autonomous error curves. The paired allocation gains are reported in \docref{Table}{tab:completion-improvement}.
 
 \begin{figure}[!htb]\centering
-\includegraphics[width=\linewidth,height=.72\textheight,keepaspectratio]{unified_names_20261021_v1/random_k1024_final_velocity_errors.pdf}
+\includegraphics[width=\linewidth,height=.72\textheight,keepaspectratio]{random_k1024_final_velocity_errors.pdf}
 \caption{All six autonomous random-field comparisons at $K=1024$ against qualified references. Each panel is one predetermined physical field, and every curve uses all 51 saved times and the original common mask. The numerical control has the same total coordinate count and the corresponding P or P+H allocation.}
 \label{fig:random-k1024-errors}
 \end{figure}
@@ -139,7 +139,7 @@ Reference refinement tests compare the same physical fields under time-step, pol
 For a saved coefficient vector, let $M_{\rm assessment}=U^{\top}WU$ denote the full mass matrix on assessment nodes. Its quadratic energy is $c^{\top}M_{\rm assessment}c$ (twice the kinetic energy). Explicit harmonic components are reported both through their own coefficients and as the mass-orthogonal projection of the full velocity onto each method's harmonic span. Let $H$ index the harmonic coordinates, $M_{HH}$ be their mass block, and $\ell_H$ the harmonic entries of the full velocity load. The latter quadratic energy is $\ell_H^{\top}M_{HH}^{-1}\ell_H$, with $\ell_H=(M_{\rm assessment}c)_H$, retaining P/H cross terms. Learned harmonic fields use their original learned representation throughout.
 
 \begin{figure}[htbp]\centering
-\includegraphics[width=\linewidth,height=.72\textheight,keepaspectratio]{unified_names_20261021_v1/random_k1024_trajectory_harmonic_fraction.pdf}
+\includegraphics[width=\linewidth,height=.72\textheight,keepaspectratio]{random_k1024_trajectory_harmonic_fraction.pdf}
 \caption{Energy projected onto each representation's explicit harmonic span as a fraction of its instantaneous total energy. The projection measures occupation of each representation's explicit circulation coordinates.}
 \label{fig:random-k1024-harmonic}
 \end{figure}

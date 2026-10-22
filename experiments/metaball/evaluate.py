@@ -1,4 +1,4 @@
-"""Complete analytic bases, mapped LEB fields and held-out geometry diagnostics."""
+"""Complete analytic bases, mapped Laplacian fields and held-out geometry diagnostics."""
 from __future__ import annotations
 import argparse,json,os,sys,time,gc
 from pathlib import Path
@@ -30,22 +30,22 @@ def field_provider(args,c,out):
             f,_=domain.encode(np.asarray(x,'f8'));value,_,_=model.forward(f)
             return value.transpose(0,2,1)
         return fields,lambda:None
-    if args.method=='LEB':
+    if args.method=='Laplacian':
         import scipy.sparse as sp
         mapping=load('public_mapping',V/'exports/projected_potential_loss_20261008/implementation/source_curl_mapping.py')
         entry=load('public_canonical_entry',V/'exports/projected_potential_loss_20261008/support/train_quotient_entry.py')
         with np.load(args.mesh,allow_pickle=False) as z:p=z['p'].T.copy();t=z['t'].T.copy();free=z['free_edges'].copy();co=z['potential'][:,:args.K].copy();lam=z['eigenvalues'][:args.K].copy()
-        if len(lam)!=args.K or np.any(lam<=0):raise ValueError('Complete positive LEB spectrum required')
+        if len(lam)!=args.K or np.any(lam<=0):raise ValueError('Complete positive Laplacian spectrum required')
         pipe=entry.MethodPipeline.__new__(entry.MethodPipeline);pipe.mapping=mapping;pipe.sp=sp;pipe.p=p;pipe.t=t;pipe.free=free;pipe.locator=None;pipe.log=lambda *a,**k:None
         pipe.radial=mapping.RadialCPU(p,t,np.asarray(c.fixed_training_geometry,'f8'),vars(c),pipe.log)
         edges=np.unique(np.sort(t[:,np.array(mapping.PAIRS)].reshape(-1,2),axis=1),axis=0);codes=edges[:,0]*len(p)+edges[:,1]
         local=np.sort(t[:,np.array(mapping.PAIRS)],axis=2);ids=np.searchsorted(codes,local[:,:,0]*len(p)+local[:,:,1]);slots=np.full(len(edges),-1,'i8');slots[free]=np.arange(len(free));pipe.cell_slots=slots[ids]
         with np.load(Path(args.physical)/'complex.npz') as z:H=z['H'].copy()
         pipe.inverse=SimpleNamespace(G=sp.load_npz(Path(args.physical)/'G.npz'),H=H)
-        def fields(x):return (pipe.operator(x,'LEB_fullpoint')@co/np.sqrt(lam)[None,:]).reshape(len(x),3,args.K)
+        def fields(x):return (pipe.operator(x,'Laplacian_fullpoint')@co/np.sqrt(lam)[None,:]).reshape(len(x),3,args.K)
         return fields,lambda:None
     import cupy as cp
-    if args.method=='VRQ':
+    if args.method=='Velocity':
         case=V/'ICLR2027_campaign/cases/metaball';sys.path.insert(0,str(case));d=case/'velocity_k1024_full2000_v1';sys.path.insert(0,str(d))
         core=load('core',d/'core.py');load('fused',d/'fused.py').install();load('fast_path',d/'fast_path.py').install()
         model=core.Model(c,args.K,c.seed);load_model(model,args.checkpoint);geo=cp.asarray(c.fixed_training_geometry,'f4')
@@ -57,18 +57,18 @@ def field_provider(args,c,out):
     model=cm.train.Model(c,args.K,c.seed);load_model(model,args.checkpoint);geo=cp.asarray(c.fixed_training_geometry,'f8')
     def raw(x):
         resource(cp,out);data=cm.rt.NeuralPoints(x,geo,c,'f4');kind={'curl':'u','potential':'a','divergence':'d'}[getattr(args,'field','curl')];return cp.asnumpy(cm.rt.grouped8.network_fields(model,data,kind)[kind]).astype('f8')
-    if args.method!='CCQ':return lambda x:raw(x).reshape(len(x),1 if getattr(args,'field','curl')=='divergence' else 3,args.K),lambda:None
-    if getattr(args,'field','curl')!='curl':raise ValueError('CCQ represents velocity through its canonical curl lift')
+    if args.method!='Potential':return lambda x:raw(x).reshape(len(x),1 if getattr(args,'field','curl')=='divergence' else 3,args.K),lambda:None
+    if getattr(args,'field','curl')!='curl':raise ValueError('Potential represents velocity through its canonical curl lift')
     entry=load('public_canonical_entry',V/'exports/projected_potential_loss_20261008/support/train_quotient_entry.py');entry.K=args.K
     source=np.load(args.samples,allow_pickle=False)['fit'];ind=cm.rt.fluid_points(c,geo,16384,919000)
     state=dict(source_points=source,independent_points=ind)
     pipe=canonical_pipeline(entry,args,vars(c),state,cp,out)
-    fitted=pipe.evaluate(raw(source),raw(ind),pipe.independent,reverse=False,label='complete_fitted_CCQ')
+    fitted=pipe.evaluate(raw(source),raw(ind),pipe.independent,reverse=False,label='complete_fitted_Potential')
     Z=fitted['full_linear_fields']['lift_Z']
     return lambda x:(pipe.operator(x,'all_points')@Z).reshape(len(x),3,args.K),pipe.close
 
 def main():
-    p=argparse.ArgumentParser(__doc__);p.add_argument('--method',choices=['CCQ','VRQ','GCP-AL','GCP-FG-historical','NKB','LEB'],required=True)
+    p=argparse.ArgumentParser(__doc__);p.add_argument('--method',choices=['Potential','Velocity','Potential-AL','Potential-FG','NKB','Laplacian'],required=True)
     p.add_argument('--K',type=int,required=True);p.add_argument('--config',required=True);p.add_argument('--checkpoint');p.add_argument('--flat');p.add_argument('--coordinates');p.add_argument('--points');p.add_argument('--output',required=True)
     p.add_argument('--field',choices=['curl','potential','divergence'],default='curl')
     p.add_argument('--mesh');p.add_argument('--data-dir',default='data/metaball');p.add_argument('--samples');p.add_argument('--physical');p.add_argument('--source-operator');p.add_argument('--source-map');p.add_argument('--physical-volume',type=float,default=.7585406920021169);p.add_argument('--canonical-module');p.add_argument('--canonical-class',default='CanonicalLift');p.add_argument('--factor-options')
@@ -76,8 +76,8 @@ def main():
     out=Path(args.output);out.mkdir(parents=True,exist_ok=False);os.environ['CUPY_CACHE_DIR']=str(out/'cupy_cache')
     c=SimpleNamespace(**json.loads(Path(args.config).read_text()));flat=np.load(args.flat,allow_pickle=False) if args.flat else None;coord=np.load(args.coordinates,allow_pickle=False) if args.coordinates else None;explicit=np.load(args.points,allow_pickle=False) if args.points else None
     if explicit is None and (flat is None or coord is None or flat.shape!=(1599754,) or coord.shape!=(128,)):raise ValueError('Original complete grid/point order required')
-    if args.method!='LEB' and not args.checkpoint:raise ValueError('Reference checkpoint required')
-    if args.field!='curl' and args.method not in ('GCP-AL','GCP-FG-historical'):raise ValueError('Analytic potential and divergence use potential models')
+    if args.method!='Laplacian' and not args.checkpoint:raise ValueError('Reference checkpoint required')
+    if args.field!='curl' and args.method not in ('Potential-AL','Potential-FG'):raise ValueError('Analytic potential and divergence use potential models')
     if explicit is not None and (explicit.ndim!=2 or explicit.shape[1]!=3 or not np.isfinite(explicit).all()):raise ValueError('Finite ordered XYZ points required')
     count=len(explicit) if explicit is not None else len(flat)
     start=time.perf_counter();get,close=field_provider(args,c,out)

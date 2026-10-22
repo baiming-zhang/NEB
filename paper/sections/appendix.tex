@@ -231,7 +231,7 @@ $K$ & Best representation & In-span evolution\\\midrule
 {The fixed-domain velocity models at $K=512,1024$ each receive 2000 training epochs. Full-mass projection of the common initial numerical velocity on all 1,599,754 fluid nodes gives relative errors of $20.95\%,17.05\%$, compared with $19.65\%,17.90\%$ for the same-capacity Laplacian bases. \docref{Figure}{fig:case3-initial-capacity} relates these representation measurements to the training cost.}
 
 \begin{figure}[!htb]
-\centering\includegraphics[width=\linewidth,height=.72\textheight,keepaspectratio]{unified_names_20261021_v1/case3_initial_capacity_training.pdf}
+\centering\includegraphics[width=\linewidth,height=.72\textheight,keepaspectratio]{case3_initial_capacity_training.pdf}
 \caption{\textbf{Initial representation and training cost in three dimensions.} (a) Full-mass initial projection error on all fluid nodes, using every mode. {Numerical Laplacian and learned velocity results extend through $K=1024$ and measure initial representation.} (b) Wall time for 2000 epochs: forward and backward computation plus other training costs, including validation and checkpoint I/O. Total times at $K=512,1024$ are 3.99 and 7.77 hours.}
 \label{fig:case3-initial-capacity}
 \end{figure}
@@ -254,7 +254,7 @@ On an NVIDIA RTX 4080 SUPER, the 1856 RK4 steps with $\Delta t=0.000625$ to $T=1
 
 Halving the ROM time step changes the trajectory by at most $2.67\times10^{-12}$ in relative mass norm, confirming temporal convergence of the assembled dynamics. Refining the NS reference from $0.0025$ to $0.000625$ changes its final velocity by $2.12\%$. \docref{Figure}{fig:coefficient-acceleration} presents the flow error and kinetic energy alongside the measured online and preparation costs, characterizing the accuracy--cost tradeoff of coefficient-space execution.
 \begin{figure}[!htb]
-\centering\includegraphics[width=\linewidth,height=.72\textheight,keepaspectratio]{unified_names_20261021_v1/case3_coefficient_acceleration.pdf}
+\centering\includegraphics[width=\linewidth,height=.72\textheight,keepaspectratio]{case3_coefficient_acceleration.pdf}
 \caption{\textbf{Accuracy, energy, and cost of coefficient-space dynamics.} Red and blue denote $K=512$ and $1024$. (a) Autonomous velocity errors against the shared refined NS reference on all 1,599,754 fluid nodes; the dotted gray curve assesses $K=512$ against the original reference. (b) Fluid kinetic energy. (c) Synchronized NS/ROM online integration, offline tensor assembly, and three-frame output times. Both 2000-epoch models use full-mass initial projection, all retained coordinates, and $\Delta t=0.000625$. Time-step checks are given in the adjacent text; \docref{Table}{tab:coefficient-capacity} reports cost ratios.}
 \label{fig:coefficient-acceleration}
 \label{fig:coefficient-capacity}
@@ -365,13 +365,13 @@ The geometry-2 numerical basis uses a fitted mesh with 80,890 vertices and 354,1
 \subsection{Random large-vortex ablations and matched flow views}
 These figures report the random large-vortex ensemble used for the $K=1024$ lift-conditioning comparisons in \docref{Section}{sec:case2}. The direct random-streamfunction ensemble is reported separately in \docref{Appendix}{app:random-streamfunction}.
 \begin{figure}[!htb]
-\centering\includegraphics[width=\linewidth,height=.72\textheight,keepaspectratio]{unified_names_20261021_v1/case2_h2_k1024_fourway_houdini.pdf}
+\centering\includegraphics[width=\linewidth,height=.72\textheight,keepaspectratio]{case2_h2_k1024_fourway_houdini.pdf}
 \caption{\textbf{Random large-vortex flow around two holes with a shared harmonic lift.} Numerical reference, Laplacian, potential-trained, and velocity-trained trajectories at $K=1024$, $t=1$, seed 1, state 00. Both learned bases use scaled $H_2$. Shared height and contour mappings preserve amplitude differences; annotations give full-domain velocity error.}
 \label{fig:case2-velocity-water}
 \end{figure}
 
 \begin{figure}[!htb]
-\centering\includegraphics[width=\linewidth,height=.72\textheight,keepaspectratio]{unified_names_20261021_v1/case2_ablations.pdf}
+\centering\includegraphics[width=\linewidth,height=.72\textheight,keepaspectratio]{case2_ablations.pdf}
 \caption{\textbf{Harmonic completion, lift conditioning, and objective choice.} One-, two-, and three-hole trajectories use total-$1024$ bases and average the same 20 random large-vortex states. Red/blue denote potential/velocity learning, dashed gray numerical completion, dotted red raw lifts, and dash-dot blue the raw-$H_2$ velocity control. Matched learned bases share raw $H_1$, scaled $H_2$, and scaled $H_3$. Curve endpoints give the final-error comparison; positive-basis training costs appear in \docref{Table}{tab:runtime-training}.}
 \label{fig:case2-ablation}
 \end{figure}
@@ -385,7 +385,7 @@ These figures report the random large-vortex ensemble used for the $K=1024$ lift
 \docref{Figure}{fig:case1-field} uses saved potential-trained $K=1024$, seed-0 states at $t=0,9\pi,18\pi$ from the $d=1.35$ trajectory. On the periodic $384^2$ display grid, $S$ smooths $|\omega|$ with Gaussian standard deviation 4.5 pixels; all three times use the fixed original scale $q=0.7395528286634208$ and the common display height $h=0.20-1.40[\operatorname{clip}(S|\omega|/q,0,1)]^{0.70}$. Here $\operatorname{clip}(v,a,b)$ clamps $v$ to $[a,b]$. One subdivision smooths the display mesh. At the middle time, white foam follows 12 signed-smoothed vorticity contour levels, normalized by the same fixed $q$, from 0.065 to 0.69; this exposes the elongated S-shaped merger filaments and pointed outer lobes. At the initial and final times, continuous spiral material accents are anchored to measured vortex cores and cover both deep and shallow relief. These material cues emphasize vortex structure on the data-derived height surface. The oblique camera, lighting, transparent water material, and white ground are shared. Saved velocity, vorticity, and ROM coefficients are unchanged.
 
 \begin{figure}[!htb]
-\centering\includegraphics[width=\linewidth,height=.72\textheight,keepaspectratio]{unified_names_20261021_v1/case1_matched_fields.pdf}
+\centering\includegraphics[width=\linewidth,height=.72\textheight,keepaspectratio]{case1_matched_fields.pdf}
 \caption{\textbf{Vortex merger at $K=1024$.} Columns compare Numerical GT, Laplacian, potential-trained, velocity-trained, and NKB bases; rows show $t=0,9\pi,18\pi$. Learned fields use seed 0 and maximum step $0.005$. Signed vorticity uses the common GT 99.5th-percentile scale; colorbar extensions indicate saturation. Annotations report velocity error over the full $128^2$ observation grid. All methods use the same $d=1.35$ initial velocity and evolve autonomously.}
 \label{fig:case1-fourway}
 \end{figure}
@@ -393,7 +393,7 @@ These figures report the random large-vortex ensemble used for the $K=1024$ lift
 \subsection{Three-dimensional flow comparison}
 \docref{Figure}{fig:3d-context} compares instantaneous velocity streamtubes for the numerical reference, Laplacian basis, and velocity-trained Eigenfluid basis. Shared camera, seeding, material, and speed mapping expose the three-dimensional flow structure behind the common-slice comparison in \docref{Figure}{fig:case3-field}.
 \begin{figure}[!htb]
-\centering\includegraphics[width=\linewidth,height=.72\textheight,keepaspectratio]{unified_names_20261021_v1/case3_houdini_glass_3d.pdf}
+\centering\includegraphics[width=\linewidth,height=.72\textheight,keepaspectratio]{case3_houdini_glass_3d.pdf}
 \caption{\textbf{Three-dimensional flow structure.} Numerical GT, Laplacian, and velocity-trained Eigenfluid $K=1024$ streamtubes at $t=0,0.60,1.16$, colored by speed. The transparent shell follows the rounded domain boundary. Camera, seeding, material, and the $[0,0.8]$ speed range are shared. Centerline smoothing is a display operation.}
 \label{fig:3d-context}
 \end{figure}
@@ -401,7 +401,7 @@ These figures report the random large-vortex ensemble used for the $K=1024$ lift
 \subsection[Three-hole K1024 time sequence]{Three-hole $K=1024$ time sequence}
 \docref{Figure}{fig:case2-h3-water-time} follows the refined reference and all three completed bases through three saved times. One display mapping across methods and times preserves temporal changes in the surface relief.
 \begin{figure}[!htb]
-\centering\includegraphics[width=\linewidth,height=.72\textheight,keepaspectratio]{unified_names_20261021_v1/case2_h3_k1024_fourway_houdini_sequence.pdf}
+\centering\includegraphics[width=\linewidth,height=.72\textheight,keepaspectratio]{case2_h3_k1024_fourway_houdini_sequence.pdf}
 \caption{\textbf{Three-hole evolution at $K=1024$.} Rows compare Numerical GT, Laplacian, potential-trained, and velocity-trained bases; columns show $t=0,0.5,1$, seed 1, state 00. Each basis contains 1021 positive and three harmonic coordinates; the learned bases share scaled $H_3$. All panels share the height mapping, contour levels, camera, and material. Annotations give full-domain velocity error against the level-2 reference.}
 \label{fig:case2-h3-water-time}
 \end{figure}
@@ -424,15 +424,15 @@ The $K=1024$ field plates compare Laplacian, potential-trained, and velocity-tra
 \docref{Table}{tab:runtime-training} compares the completed positive-basis training costs alongside NKB. \docref{Appendix}{app:runtime} separates shared harmonic scope, offline preparation, process-stage receipts, and synchronized online timings.
 
 \begin{figure}[!htb]
-\centering\includegraphics[width=\linewidth,height=.72\textheight,keepaspectratio]{unified_names_20261021_v1/case2_h1_k1024_fourway.pdf}
+\centering\includegraphics[width=\linewidth,height=.72\textheight,keepaspectratio]{case2_h1_k1024_fourway.pdf}
 \caption{\textbf{1-hole planar evolution at $K=1024$.} Rows compare Numerical GT, Laplacian, potential-trained, and velocity-trained bases; columns show $t=0,0.5,1$. Unsmoothed signed vorticity shares a symmetric scale, with colorbar extensions indicating saturation. Annotations give full-domain velocity error for seed 1, state 00 against the common level-2 reference.}
 \end{figure}
 \begin{figure}[!htb]
-\centering\includegraphics[width=\linewidth,height=.72\textheight,keepaspectratio]{unified_names_20261021_v1/case2_h2_k1024_fourway.pdf}
+\centering\includegraphics[width=\linewidth,height=.72\textheight,keepaspectratio]{case2_h2_k1024_fourway.pdf}
 \caption{\textbf{2-hole planar evolution at $K=1024$.} Rows compare Numerical GT, Laplacian, potential-trained, and velocity-trained bases; columns show $t=0,0.5,1$. Unsmoothed signed vorticity shares a symmetric scale, with colorbar extensions indicating saturation. Annotations give full-domain velocity error for seed 1, state 00 against the common level-2 reference.}
 \end{figure}
 \begin{figure}[!htb]
-\centering\includegraphics[width=\linewidth,height=.72\textheight,keepaspectratio]{unified_names_20261021_v1/case2_h3_k1024_fourway.pdf}
+\centering\includegraphics[width=\linewidth,height=.72\textheight,keepaspectratio]{case2_h3_k1024_fourway.pdf}
 \caption{\textbf{3-hole planar evolution at $K=1024$.} Rows compare Numerical GT, Laplacian, potential-trained, and velocity-trained bases; columns show $t=0,0.5,1$. Unsmoothed signed vorticity shares a symmetric scale, with colorbar extensions indicating saturation. Annotations give full-domain velocity error for seed 1, state 00 against the common level-2 reference.}
 \end{figure}
 
@@ -440,7 +440,7 @@ The $K=1024$ field plates compare Laplacian, potential-trained, and velocity-tra
 \label{app:modes}
 {The periodic and three-dimensional atlases complement the multiply connected comparison in \docref{Figure}{fig:multihole-modes}. Rows identify the construction and columns show its first eight displayed modes, with ordering and representation specified in each caption. Signs and orthogonal rotations within repeated eigenspaces preserve the represented span. Mean-zero scalar displays and per-mode amplitude normalization expose spatial structure while leaving the ROM coordinates unchanged.}
 \begin{figure}[!htb]
-\centering\includegraphics[width=\linewidth,height=.72\textheight,keepaspectratio]{unified_names_20261021_v1/case1_modes.pdf}
+\centering\includegraphics[width=\linewidth,height=.72\textheight,keepaspectratio]{case1_modes.pdf}
 \caption{\textbf{First eight periodic modes.} Rows compare analytic Fourier modes and generalized Ritz modes from the potential- and velocity-trained $K=1024$ spans; columns show modes 1--8. Potential Ritz fields use centered potential mass and gradient energy, while velocity Ritz fields use velocity mass and curl energy. Color shows mean-zero streamfunction with per-mode normalization; all 1024 channels contribute to each learned Ritz field.}
 \label{fig:modes1}
 \end{figure}
@@ -448,7 +448,7 @@ The $K=1024$ field plates compare Laplacian, potential-trained, and velocity-tra
 
 
 \begin{figure}[!htb]
-\centering\includegraphics[width=\linewidth,height=.72\textheight,keepaspectratio]{unified_names_20261021_v1/case3_four_method_modes_K32.pdf}
+\centering\includegraphics[width=\linewidth,height=.72\textheight,keepaspectratio]{case3_four_method_modes_K32.pdf}
 \caption{\textbf{First eight velocity fields at common $K=32$.} Rows compare Laplacian, Velocity, Potential, and Potential-AL; columns show modes 1--8. All methods use the same $z=0.50390625$ slice and per-mode maximum-magnitude normalization of $u_z$. Laplacian fields follow numerical eigenvalue order; learned fields follow their saved channel order, without a display-only Ritz rotation.}
 \label{fig:modes3}
 \end{figure}

@@ -1,5 +1,4 @@
 {
-  "paper_PDF_sha256": "1152a3eb38dc5141e0630f7933e6c7eca0bfa5c9b8ed8babe29302c4b30baca5",
   "pages": 59,
   "figures": 27,
   "paired_measurements": 460,
@@ -19,7 +18,6 @@
     "512": 2000,
     "1024": 25
   },
-  "source_archive_sha256": "6b72c9bcfc85a98c70517ceab2c33b2c220cbca9ce461b1256f61ca505cd2825",
   "source_members": 77,
   "primary_basis_runtime_rows": 8,
   "preparation_cost_estimate_rows": 5,

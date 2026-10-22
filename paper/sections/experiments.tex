@@ -41,12 +41,12 @@ Potential & $1.619\times10^{-7}$\\
 NKB & $2.823\times10^{-3}$\\
 \bottomrule\end{tabular}\end{table}
 \begin{figure}[!htb]
-\centering\includegraphics[width=\linewidth,height=.72\textheight,keepaspectratio]{unified_names_20261021_v1/case1_houdini_evolution.pdf}
+\centering\includegraphics[width=\linewidth,height=.72\textheight,keepaspectratio]{case1_houdini_evolution.pdf}
 \caption{\textbf{Potential: periodic vortex merger.} Panels show the $K=1024$, seed-0 Potential trajectory with vortex separation $d=1.35$, from left to right at $t=0,9\pi,18\pi$. Surface relief encodes smoothed vorticity magnitude on a common scale; white accents trace vortex structure. Height is a display coordinate for the two-dimensional flow.}
 \label{fig:case1-field}
 \end{figure}
 \begin{figure}[!htb]
-\centering\includegraphics[width=\linewidth,height=.72\textheight,keepaspectratio]{unified_names_20261021_v1/case1_merger_diagnostics.pdf}
+\centering\includegraphics[width=\linewidth,height=.72\textheight,keepaspectratio]{case1_merger_diagnostics.pdf}
 \caption{\textbf{Autonomous accuracy and decay in vortex merger.} All panels use $K=1024$, $d=1.35$, $T=18\pi$. (a) Relative velocity (top) and vorticity (bottom) errors against Numerical GT, normalized by the corresponding time-dependent observation-grid $L^2$ norm. Learned curves show three-seed means with one sample standard deviation (SD), on a symmetric-log scale with a linear interval below $0.01\%$. Open and filled markers indicate initial and final states. (b) Kinetic energy, $E=\frac12\langle|u|^2\rangle$. (c) Enstrophy, $Z=\frac12\langle\omega^2\rangle$, where $\omega=\partial_xu_y-\partial_yu_x$ is scalar vorticity, $u_x,u_y$ are velocity components, and $\langle\cdot\rangle$ denotes the spatial mean. {All five methods appear in the upper decay panels, using seed-0 learned trajectories and common initial GT normalization. Distinct line styles and sampled markers distinguish nearly overlapping curves. The lower panels of (b,c) show $100(E-E_{\rm GT})/E_{\rm GT}$ and $100(Z-Z_{\rm GT})/Z_{\rm GT}$ for Laplacian, velocity and potential bases.} Curves use all 241 saved $128^2$ states from $256^2$ operator quadrature and maximum step $0.005$.}
 \label{fig:case1-wide}
 \end{figure}
@@ -71,7 +71,7 @@ Let $W$ be the positive assessment quadrature matrix, with $\|v\|_W^2=v^{\top}Wv
 
 
 \begin{figure}[!htb]\centering
-\includegraphics[width=\linewidth,height=.72\textheight,keepaspectratio]{unified_names_20261021_v1/random_k1024_initial_energy_capture.pdf}
+\includegraphics[width=\linewidth,height=.72\textheight,keepaspectratio]{random_k1024_initial_energy_capture.pdf}
 \caption{Initial energy captured by the original $K=1024$ representations. Circles and squares denote the two predetermined physical fields in each topology; vertical ticks denote their mean. The annotations give mean captured-energy percentages and state-coordinate compression $N_{\rm ref}/K$, where $N_{\rm ref}$ is the number of independent coordinates of the reference state. The complete set of learned branches, raw/scaled harmonic coordinates, numerical controls, and NKBs use the same analytic initial fields.}
 \label{fig:random-k1024-energy}
 \end{figure}
@@ -105,7 +105,7 @@ Holes & Numerical $P$ & Learned $P$\\\midrule
 {Once the harmonic fields are consistently conditioned, potential and velocity learning produce similar trajectory errors. \docref{Figure}{fig:case2-field} shows the resulting flow, and \docref{Appendix}{app:fields} gives the matched-objective and conditioning comparisons.}
 
 \begin{figure}[!htb]
-\centering\includegraphics[width=\linewidth,height=.72\textheight,keepaspectratio]{unified_names_20261021_v1/case2_k1024_fourway_houdini.pdf}
+\centering\includegraphics[width=\linewidth,height=.72\textheight,keepaspectratio]{case2_k1024_fourway_houdini.pdf}
 \caption{\textbf{Random large-vortex flow at $K=1024$.} Rows: one-, two-, and three-hole domains. Columns: numerical reference, Laplacian, potential- and velocity-trained bases at $t=1$, seed 1, state 00. Reduced bases have $1024-h$ positive and $h$ harmonic coordinates; the learned objectives share raw $H_1$ and scaled $H_2,H_3$. Errors use the common level-2 reference. Overhead views share height and foam mappings within each geometry (\docref{Appendix}{app:fields}).}
 \label{fig:case2-field}
 \end{figure}
@@ -117,7 +117,7 @@ Holes & Numerical $P$ & Learned $P$\\\midrule
 
 
 \begin{figure}[!htb]
-\centering\includegraphics[width=\linewidth,height=.72\textheight,keepaspectratio]{unified_names_20261021_v1/case2_multihole_modes.pdf}
+\centering\includegraphics[width=\linewidth,height=.72\textheight,keepaspectratio]{case2_multihole_modes.pdf}
 \caption{\textbf{Positive spectral modes across obstacle topologies.} Panels (a--c) show one-, two-, and three-hole domains. Within each panel, rows compare Laplacian, potential-trained, and velocity-trained fields; columns show modes 1--8. Learned fields follow the positive-mode selection order in the total-$32$ continuous piecewise-linear finite-element (P1) basis, whose $h$ harmonic coordinates are separate. The shared color scale shows area-centered streamfunction divided by its per-mode maximum magnitude. Signs and rotations within repeated eigenspaces preserve the span.}
 \label{fig:multihole-modes}\end{figure}
 
@@ -128,7 +128,7 @@ The three-dimensional domain tests how a learned span supports autonomous dynami
 \paragraph{Autonomous flow at 1024 modes.}
 {\docref{Figure}{fig:case3-field} compares a velocity-trained $K=1024$ basis with same-capacity Laplacian and NKB bases against the common independent $128^3$ normal-penalty Navier--Stokes (NS) reference. All three evolve autonomously from full-mass projections of the same initial field. Eigenfluid and Laplacian begin with comparable reconstruction quality and develop similar relative errors during autonomous evolution. The vector-error panels in \docref{Figure}{fig:case3-field} also highlight similar regions of elevated error. Their agreement in error magnitude and spatial structure identifies the shared role of truncated Galerkin dynamics. Both methods compress the flow into the same number of coordinates, with nonlinear interactions resolved within that span. This correspondence connects the learned continuous basis to the established spectral ROM behavior at the same compression level. \docref{Figure}{fig:case3-capacity} examines the joint contributions of spatial capacity and coefficient dynamics.}
 \begin{figure}[!htb]
-\centering\includegraphics[width=\linewidth,height=.72\textheight,keepaspectratio]{unified_names_20261021_v1/case3_k1024_comparison.pdf}
+\centering\includegraphics[width=\linewidth,height=.72\textheight,keepaspectratio]{case3_k1024_comparison.pdf}
 \caption{\textbf{Three-dimensional autonomous flow at $K=1024$.} Rows show Numerical GT, Laplacian, Velocity, and NKB; columns show $t=0,0.60,1.16$. Each time pairs speed $|u|$ (blue) with pointwise vector error $|u-u_{\rm GT}|$ (orange--red) on the offset $z=0.31640625$ slice, which exposes the fused Metaball silhouette. Filled contours interpolate the saved nodal values and are clipped to the original geometry's smooth boundary. Speed, error, and in-plane arrow lengths use separate fixed scales across all methods and times. Percentages in the upper-left corner of the vector-error panels denote full-volume relative velocity error, evaluated on all 1,599,754 fluid nodes. Here $\Delta t$ is the integration time step; ROM trajectories use $\Delta t=0.000625$ and the common NS reference uses $\Delta t=0.0025$.}
 \label{fig:case3-field}
 \end{figure}
@@ -143,7 +143,7 @@ Increasing capacity improves both initial reconstruction and autonomous accuracy
 \paragraph{Representation of randomized 3D large-eddy fields.}
 Figure~\ref{fig:case3-Pot-capacity} compares the frozen Metaball spans on 20 independently randomized large-eddy initial states. A case-local Philox stream draws 96 independent standard-Gaussian sine and cosine coefficients for a three-component vector potential over 16 representatives of the integer wavevector pairs $\pm\boldsymbol{k}$ with $1\leq\|\boldsymbol{k}\|\leq2$. Coefficients are scaled by $1/\|\boldsymbol{k}\|$; the raw potential wavelengths range from $0.5$ to $1$ unit-domain length. The analytic curl follows the common $128^3$ Metaball incompressibility projection and boundary conditioning, RMS normalization to $0.32$, and four warm-up substeps. Each frozen basis projects the same states using the full physical mass matrix, all 1,599,754 fluid nodes, and all $K$ retained coordinates. Errors decrease with capacity; at $K=256$, mean relative velocity errors are Laplacian $26.51102\pm3.94584\%$, Velocity $31.26405\pm5.95889\%$, Potential $26.10521\pm3.97608\%$, and NKB $56.03645\pm2.70518\%$ (mean $\pm$ sample standard deviation). At $K=512$, Potential gives $23.73323\pm3.99279\%$, compared with Laplacian $23.90729\pm4.04593\%$, with lower Potential error in 15 of the same 20 states. This paired assessment measures representation of independently sampled large eddies with each training checkpoint held fixed; the autonomous-flow study evaluates evolution on its trajectory initial condition. Assessment states are separate from basis training and selection, and NKB uses geometry alone. The $K=1024$ results for Velocity, Laplacian, and NKB are reported separately in Appendix~\ref{app:randomfield-values}. At $K=512$, Potential training takes 140.20 hours for 2000 updates, compared with 3.99 hours for Velocity, while its mean random-field error is only 0.17 percentage points below Laplacian. At this three-dimensional scale, that small gain over the numerical basis does not justify the Potential training cost. We therefore favor Velocity when a learned high-capacity basis is required and Laplacian for fixed-domain reconstruction. Appendix~\ref{app:old-Pot} documents the Potential-FG and Potential-AL configurations; Appendix~\ref{app:Pot-cost} reports preparation costs.
 \begin{figure}[!htb]
-\centering\includegraphics[width=\linewidth,height=.78\textheight,keepaspectratio]{unified_names_20261021_v1/case3_large_eddy20_method_names_20261021_v1.pdf}
+\centering\includegraphics[width=\linewidth,height=.78\textheight,keepaspectratio]{metaball_random_fields.pdf}
 \caption{\textbf{Representation of independently randomized large-eddy fields.} Relative velocity $L^2$ errors on the same 20 paired initial states generated by independent Gaussian vector-potential Fourier coefficients and common Metaball physical conditioning. The 20 method--capacity groups contain 400 model--field measurements. Solid rectangles span mean $\pm$ sample standard deviation ($n=20$, $\mathrm{ddof}=1$); whisker caps show the observed minimum and maximum. Each frozen basis uses all $K$ retained modes and all 1,599,754 fluid nodes in the full-mass representation comparison. All four methods are compared through $K=512$; the $K=1024$ comparison is given in Appendix~\ref{app:randomfield-values}. Horizontal offsets separate the methods at each capacity.}
 \label{fig:case3-Pot-capacity}
 \end{figure}
@@ -151,7 +151,7 @@ Figure~\ref{fig:case3-Pot-capacity} compares the frozen Metaball spans on 20 ind
 \paragraph{Separating the two error sources.}
 {Projection onto each frozen span separates autonomous error into orthogonal representation and in-span coefficient terms (\doceqref{eq:error-split}). The extended decomposition shows the same pattern through 1024 modes: a richer span lowers the best-projection error, while the coefficient term remains nearly unchanged at the upper capacities (\docref{Table}{tab:3d-error-attribution}). Spatial refinement and coefficient evolution thus control complementary parts of the reduced model. The decomposition makes the representation gain explicit and connects the common evolution pattern to the retained-coordinate dynamics.}
 \begin{figure}[!htb]
-\centering\includegraphics[width=\linewidth,height=.72\textheight,keepaspectratio]{unified_names_20261021_v1/case3_capacity_to1024.pdf}
+\centering\includegraphics[width=\linewidth,height=.72\textheight,keepaspectratio]{case3_capacity_to1024.pdf}
 \caption{\textbf{Spatial capacity and autonomous accuracy through 1024 modes.} Initial full-mass projection error (open circles, $t=0$) and final autonomous error (filled circles, $T=1.16$) for $K=128,256,512,1024$. Within each capacity, Velocity, Laplacian, and NKB bases are offset from left to right for readability; color identifies the basis and darkens with increasing capacity. Arrows connect the two assessment times. All errors are percentages, evaluated against the same full-volume reference using all trained coordinates. Each trajectory has 30 stored states through $T=1.16$, with ROM step $\Delta t=0.000625$ and common NS reference step $\Delta t=0.0025$. Training costs are listed in \docref{Table}{tab:runtime-training}. The error decomposition is specified in \docref{Appendix}{app:3d-error}.}
 \label{fig:case3-capacity}
 \end{figure}

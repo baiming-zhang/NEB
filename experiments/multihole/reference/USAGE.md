@@ -1,6 +1,6 @@
 # Multihole FEM references
 
-Run commands from the repository root. Mesh and full-mass operator construction use NumPy, SciPy and MeshPy. Native reference integration and LEB controls additionally use CuPy with a compatible CUDA installation. CPU checks use NumPy and SciPy.
+Run commands from the repository root. Mesh and full-mass operator construction use NumPy, SciPy and MeshPy. Native reference integration and Laplacian controls additionally use CuPy with a compatible CUDA installation. CPU checks use NumPy and SciPy.
 
 ```bash
 python -m experiments.multihole.reference.run --mode mesh --case one_circle --output runs/reference/one_circle/mesh
@@ -15,11 +15,11 @@ The refinement directory records each mesh and its interpolation error. Choose i
 
 The native trajectory uses the original full-mass vorticity/circulation system, analytical initial vorticity projection, harmonic boundary traces, IMEX midpoint/Crank–Nicolson integration and CG true-residual correction. It writes every requested full nodal frame and harmonic reference. Running separately at `--dt 0.002` and `--dt 0.001` enables temporal comparison; spatial comparison uses separate refinement meshes. Compare the paired trajectories and refinement levels using the same field specification and physical observation times.
 
-## Numerical LEB P/PH controls
+## Numerical Laplacian P/PH controls
 
 ```bash
-python -m experiments.multihole.reference.sparse_controls --case one_circle --mesh runs/reference/one_circle/mesh/mesh.npz --modes 1024 --iterations 800 --output runs/LEB/one_circle/PH1024
-python -m experiments.multihole.reference.sparse_controls --case one_circle --mesh runs/reference/one_circle/mesh/mesh.npz --modes 1024 --positive-only --output runs/LEB/one_circle/P1024
+python -m experiments.multihole.reference.sparse_controls --case one_circle --mesh runs/reference/one_circle/mesh/mesh.npz --modes 1024 --iterations 800 --output runs/Laplacian/one_circle/PH1024
+python -m experiments.multihole.reference.sparse_controls --case one_circle --mesh runs/reference/one_circle/mesh/mesh.npz --modes 1024 --positive-only --output runs/Laplacian/one_circle/P1024
 ```
 
 These commands retain the entire constrained P1 space and consistent mass matrix. Positive modes solve `S x = lambda M x` with the original true-residual LOBPCG source, diagonal stiffness preconditioner and tolerance `1e-12`. The full free-node count must exceed five times the positive-mode count. P uses K positive modes; PH uses K−h positive modes plus the h harmonic boundary-trace functions, normalized by their full stiffness Gram matrix. Final relative true residuals and energy Gram errors must each be below `1e-8`. Assembly uses the full consistent mass matrix, all specified K modes and global orthogonalization.

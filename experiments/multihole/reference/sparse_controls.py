@@ -1,4 +1,4 @@
-"""Portable full-space, full-consistent-mass LEB P/PH controls, including K1024."""
+"""Portable full-space, full-consistent-mass Laplacian P/PH controls, including K1024."""
 from pathlib import Path
 import argparse,ast,json,time,hashlib,warnings
 import numpy as np
@@ -51,7 +51,7 @@ def main(argv=None):
     cp.get_default_memory_pool().set_limit(size=a.pool_bytes);sample=native_guard(cp)
     def guard():
         sample()
-        if time.perf_counter()-started>a.timeout_seconds:raise TimeoutError('Bounded LEB stage deadline')
+        if time.perf_counter()-started>a.timeout_seconds:raise TimeoutError('Bounded Laplacian stage deadline')
     stiffness,mass,S,M=assemble_p1(mesh.xy,mesh.tri,free,cp,coo_matrix)
     # Operator forwarding preserves full products and supplies the bounded stage guard.
     def apply(A,X):guard();return A@X

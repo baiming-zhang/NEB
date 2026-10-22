@@ -13,8 +13,8 @@ import numpy as np
 
 ROOT = Path(__file__).resolve().parents[4]
 LEGACY = ROOT / '3d_metaball_reproduction_latest/cases/3D_Metaball'
-GENERATOR = LEGACY / 'k2048_joint_ns/scripts/generate_independent_dns_gt_128.py'
-CONFIG = LEGACY / 'configs/k2048_three_sphere_connected_siren_freeslip_2000_w128_d5.json'
+GENERATOR = LEGACY / 'physical_dns/scripts/generate_independent_dns_gt_128.py'
+CONFIG = LEGACY / 'configs/metaball_geometry.json'
 DNS = LEGACY / 'results/independent_freeslip_dns_gt_128'
 PROTOCOL = ROOT / 'ICLR2027_campaign/cases/metaball/results/velocity_k1024_full2000_v1/checkpoint_comparison20/protocol.json'
 

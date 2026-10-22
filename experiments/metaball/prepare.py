@@ -108,7 +108,7 @@ def volume(args):
     np.save(out/'cell_volumes.npy',cells,allow_pickle=False)
     (out/'complete.json').write_text(json.dumps(dict(physical_volume=float(np.sum(cells,dtype=np.float64)),cells=len(t),quadrature_points=len(bary)),indent=2))
 def dns(args):
-    module=load('metaball_dns',V/'3d_metaball_reproduction_latest/cases/3D_Metaball/k2048_joint_ns/scripts/generate_independent_dns_gt_128.py')
+    module=load('metaball_dns',V/'3d_metaball_reproduction_latest/cases/3D_Metaball/physical_dns/scripts/generate_independent_dns_gt_128.py')
     import dataclasses
     original_loader=module.load_training_module
     def training_module():
@@ -117,24 +117,34 @@ def dns(args):
         training.Config=lambda **values:original(**{k:v for k,v in values.items() if k in allowed})
         return training
     module.load_training_module=training_module
-    module.CONFIG_PATH=Path(args.config);module.run_dns(Path(args.output),module.DNSConfig(substeps_per_frame=16))
+    protocol=json.loads((HERE/'configs/dns.json').read_text(encoding='utf-8'))
+    module.CONFIG_PATH=Path(args.config);module.run_dns(Path(args.output),module.DNSConfig(**protocol))
     mask=np.load(Path(args.output)/'fluid_mask.npy',allow_pickle=False)
     np.save(Path(args.output)/'fluid_flat_indices.npy',np.flatnonzero(mask.reshape(-1)),allow_pickle=False)
 def random20(args):
     import torch, dataclasses
+    from large_eddy import draw,raw_curl,WAVEVECTORS
     # Load only the original initializer's numerical definitions; no CUDA or
     # rendering side effects accompany this CPU target generation path.
     ns=dict(np=np,torch=torch,math=math,dataclass=dataclasses.dataclass,Any=object)
-    source=V/'3d_metaball_reproduction_latest/cases/3D_Metaball/k2048_joint_ns/scripts/generate_independent_dns_gt_128.py'
+    source=V/'3d_metaball_reproduction_latest/cases/3D_Metaball/physical_dns/scripts/generate_independent_dns_gt_128.py'
     nodes(source,['DNSConfig','SpectralOperators','independent_initial_velocity','damp_normal_component','PseudoSpectralDNS'],ns)
     d=Path(args.dns);out=Path(args.output);out.mkdir(parents=True,exist_ok=False)
     arrays={k:np.load(d/f,allow_pickle=False) for k,f in {'solid_fraction':'solid_fraction.npy','fluid_mask':'fluid_mask.npy','normal_xyz':'boundary_normal_xyz.npy','boundary_band':'boundary_band.npy'}.items()}
     flat=np.flatnonzero(arrays['fluid_mask'].reshape(-1))
     if len(flat)!=1599754:raise ValueError('Original complete fluid-node count required')
     torch.set_num_threads(1)
-    for i,seed in enumerate(range(20260826,20260846)):
+    plan=json.loads((HERE/'configs/large_eddy20.json').read_text(encoding='utf-8'))
+    protocol=json.loads((HERE/'configs/initial_condition.json').read_text(encoding='utf-8'))
+    for i,key in enumerate(plan['rng_keys']):
         from run import guard
-        guard();c=ns['DNSConfig'](seed=seed,substeps_per_frame=16)
+        guard();raw=draw(key)
+        np.savez(out/f'case_{i:02d}_Fourier_potential.npz',potential_sin_cos_coefficients=raw,wavevectors=WAVEVECTORS,rng_key=str(key))
+        def initial_velocity(resolution,seed,device,_raw=raw,_case=i):
+            if resolution!=128 or seed!=_case or device.type!='cpu':raise ValueError('Paper physical initialization scope required')
+            return torch.from_numpy(raw_curl(_raw,resolution).astype('f4'))
+        ns['independent_initial_velocity']=initial_velocity
+        guard();c=ns['DNSConfig'](**dict(protocol,seed=i))
         solver=ns['PseudoSpectralDNS'](c,device=torch.device('cpu'),**arrays)
         state=solver.initialize();target=solver.operators.ifft_real(state).permute(1,2,3,0).reshape(-1,3).numpy()[flat].astype('f8')
         np.save(out/f'case_{i:02d}.npy',target,allow_pickle=False)
@@ -142,7 +152,7 @@ def random20(args):
 def main():
     p=argparse.ArgumentParser(__doc__);s=p.add_subparsers(dest='stage',required=True)
     for name,func in [('mesh',mesh),('source',source),('physical',physical),('source-map',source_map),('volume',volume),('dns',dns),('random20',random20)]:
-        a=s.add_parser(name);a.add_argument('--config',default=str(HERE/'configs/vrq_ccq_k32.json'));a.add_argument('--output',required=True);a.set_defaults(func=func)
+        a=s.add_parser(name);a.add_argument('--config',default=str(HERE/'configs/spectral_k32.json'));a.add_argument('--output',required=True);a.set_defaults(func=func)
         if name=='mesh':a.add_argument('--h',type=float,default=.025);a.add_argument('--surface-resolution',type=int,default=80);a.add_argument('--K',type=int,default=1024)
         if name=='physical':a.add_argument('--mesh',required=True)
         if name=='volume':a.add_argument('--physical',required=True)

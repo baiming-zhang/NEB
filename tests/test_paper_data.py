@@ -8,12 +8,12 @@ ROOT = Path(__file__).resolve().parents[1]
 
 def test_paired_fields_and_sample_statistics():
     stats = paired_statistics(ROOT / "data/paper/metaball20.csv")
-    assert set(stats) == {(method, k) for method in ["LEB", "VRQ", "CCQ", "NKB"]
-                          for k in [32, 64, 128, 256]}
+    assert set(stats) == {(method, k) for method in ["Laplacian", "Velocity", "Potential", "NKB"]
+                          for k in [32, 64, 128, 256, 512]} | {
+                              (method, 1024) for method in ["Laplacian", "Velocity", "NKB"]}
     # Selected published means independently pin the paired-field data.
-    np.testing.assert_allclose(stats["CCQ", 32][0], 0.8426269234109827, rtol=0, atol=2e-15)
-    np.testing.assert_allclose(stats["CCQ", 64][1], 0.0010720684309286383,
-                               rtol=0, atol=2e-15)
+    np.testing.assert_allclose(stats["Potential", 512][0], 0.2373323, rtol=0, atol=5e-8)
+    np.testing.assert_allclose(stats["Laplacian", 256][0], 0.2651102, rtol=0, atol=5e-8)
 
 
 def test_periodic_assessment_configuration():

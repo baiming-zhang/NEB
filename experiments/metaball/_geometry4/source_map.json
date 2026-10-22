@@ -1,12 +1,12 @@
 {
-  "exports/full_completion_20261005/geometry4_curved_complex.py": "38276316906149f1a8dbea57bd5b023162d7ed9f602fee459a7dc61c98d826a8",
-  "exports/full_completion_20261005/geometry4_quadratic_probe.py": "9792024f9e02177e2fa39d1a641b0ccc0b84a5d487660299f9381d5d841e1e9a",
-  "exports/full_completion_20261005/geometry4_optimize_mesh.py": "8e8f9172aeea2fe8ed6ffed7945c0cb0f2ba8f8225cfb6b0d043a31a8dd08a7e",
-  "exports/full_completion_20261005/geometry4_local_repair.py": "045775e5e702d85b8dd3f51a9a73614b80545e3b43d9bd51d21f3a19863f001f",
-  "exports/full_completion_20261005/geometry4_boundary_flow_certificate.py": "fcfa0acce033b3e7a7e01c73bac98159e1033200950347797c5e5948cf9c8d2f",
-  "exports/full_completion_20261005/verify_boundary_manifold.py": "5947f220074c9d034ba8032fd763f5a911d6d4b1fc24d0404fe5ced2bec332d8",
-  "exports/full_completion_20261005/geometry4_curved_solve.py": "fa668e26bbb2645966d882585f181a87c51ac7988e1366b261689d5b67d95136",
-  "ICLR2027_campaign/cases/metaball/case4_numerical_k256_20261005/run.py": "680dff1872245e1d7db90998ecbcb689024af6f3a853252b30953d2d1e114917",
-  "ICLR2027_campaign/cases/metaball/case4_numerical_k256_20261005/fitted_target_core.py": "0fc71f3f8eaae82642d8557aa96f4c2957c37326b948a7d797155452f15ce46a",
-  "ICLR2027_campaign/cases/metaball/case4_numerical_k256_20261005/pardiso_ooc.py": "f8b3e27b80deca62592966673baaee40db687331164d2edf369f9c890c04ed4b"
+  "exports/full_completion_20261005/geometry4_curved_complex.py": null,
+  "exports/full_completion_20261005/geometry4_quadratic_probe.py": null,
+  "exports/full_completion_20261005/geometry4_optimize_mesh.py": null,
+  "exports/full_completion_20261005/geometry4_local_repair.py": null,
+  "exports/full_completion_20261005/geometry4_boundary_flow_certificate.py": null,
+  "exports/full_completion_20261005/verify_boundary_manifold.py": null,
+  "exports/full_completion_20261005/geometry4_curved_solve.py": null,
+  "ICLR2027_campaign/cases/metaball/case4_numerical_k256_20261005/run.py": null,
+  "ICLR2027_campaign/cases/metaball/case4_numerical_k256_20261005/fitted_target_core.py": null,
+  "ICLR2027_campaign/cases/metaball/case4_numerical_k256_20261005/pardiso_ooc.py": null
 }

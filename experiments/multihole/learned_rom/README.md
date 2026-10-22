@@ -35,7 +35,7 @@ Use its same mesh to generate quadrature. The learned operator generator reads
 those original P1 cell velocities in the exact quadrature cell order:
 
 ```sh
-python -m experiments.multihole.learned_rom.run --mode operators --field-ensemble compact-vortex --checkpoint outputs/multihole/one_circle/train/checkpoints/hardcoded_epoch2000.npz --harmonic-checkpoint checkpoints/2d/one_circle_harmonic_seed1/harmonic_epoch2000.npz --quadrature outputs/multihole/one_circle/operators/quadrature.npz --fields outputs/multihole/one_circle/vortex_gt --output outputs/multihole/one_circle/vortex_learned_operators
+python -m experiments.multihole.learned_rom.run --mode operators --field-ensemble compact-vortex --checkpoint outputs/multihole/one_circle/train/checkpoints/hardcoded_epoch2000.npz --harmonic-checkpoint checkpoints/2d/one_circle-harmonic-k1-seed1-raw/model.npz --quadrature outputs/multihole/one_circle/operators/quadrature.npz --fields outputs/multihole/one_circle/vortex_gt --output outputs/multihole/one_circle/vortex_learned_operators
 python -m experiments.multihole.learned_rom.run --mode dynamics --operators outputs/multihole/one_circle/vortex_learned_operators --output outputs/multihole/one_circle/vortex_learned_dynamics
 ```
 

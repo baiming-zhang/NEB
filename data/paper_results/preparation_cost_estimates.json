@@ -12,12 +12,10 @@
   "K1024_full_training_forecast_seconds": 866770.043023507,
   "existing_measured_update_sources": [
     {
-      "path": "E:\\Eigenbasis_runs\\projected_potential_scaleup_20261008_storage\\k1024\\timing25_no_validation_v4\\steps.jsonl",
-      "sha256": "e61a6fbfe6bcd43da99d230f321ea28fa7a643b4b2c5885315a16e6086f5cf2a"
+      "path": "steps.jsonl"
     },
     {
-      "path": "E:\\Eigenbasis_runs\\projected_potential_scaleup_20261008_storage\\k512\\training_recovery_reboot_e1827_v1\\steps.jsonl",
-      "sha256": "217cb7761cd7ca4a38329e9767bbf2a686dbf70fdf6f4a475601414ce97c538f"
+      "path": "steps.jsonl"
     }
   ],
   "models": {
@@ -132,8 +130,7 @@
   "new_training_or_GPU_run_launched": false,
   "forecasts_are_not_measurements": true,
   "recovery_forecast_assumes_uninterrupted_run": true,
-  "historical_recovery_inclusive_entries_are_not_zero": true,
   "estimated_training_precision_seconds": 100,
   "estimated_basis_precision_seconds": 10,
-  "no_new_GPU_sampling_required": "Existing complete lower-capacity full-point timings and native K1024 step timings are used; historical recovery episodes cannot be remeasured retrospectively."
+  "recovery_inclusive_entries_are_not_zero": true
 }
