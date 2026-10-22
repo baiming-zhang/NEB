@@ -42,6 +42,8 @@ The figure command runs on CPU and exports PNG and vector PDF comparisons from t
 python -m pip install -e ".[cuda,torch,fem,test]" -c requirements-repro.txt
 ```
 
+The neural networks use native CuPy/CUDA with analytic spatial derivatives and handwritten parameter reverse passes. The `torch` extra supplies the existing Metaball DNS, target-generation and geometry/sampling utilities. CPU numerical routines and NumPy evaluation remain available.
+
 The 3D canonical inverse also uses an installed oneMKL LP64 runtime or cuDSS 0.8 library. [Solver setup](experiments/metaball/USAGE.md) describes both options.
 
 ## Trained checkpoints

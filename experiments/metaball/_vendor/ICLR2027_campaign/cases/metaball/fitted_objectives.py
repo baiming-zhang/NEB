@@ -1,68 +1,6 @@
-
-
-
-
-
-import torch
+"""CPU physical diagnostics; network objectives use the native CUDA pipelines."""
 import scipy.sparse.linalg as sla
 from campaign_core import np
-
-def sparse(matrix,device,dtype):
-    coo=matrix.tocoo()
-    return torch.sparse_coo_tensor(np.array([coo.row,coo.col]),coo.data,coo.shape,device=device,dtype=dtype).coalesce()
-
-class Project(torch.autograd.Function):
-    @staticmethod
-    def forward(ctx,x,complex_,harmonic):
-        ctx.complex=complex_;ctx.harmonic=harmonic
-        value=x.detach().cpu().double().numpy();c=complex_
-        p=value-c.G@c.poisson.solve(c.G.T@(c.M@value))
-        if harmonic:p-=c.H@(c.H.T@(c.M@p))
-        return torch.as_tensor(p,device=x.device,dtype=x.dtype)
-    @staticmethod
-    def backward(ctx,gradient):
-        c=ctx.complex;v=gradient.detach().cpu().double().numpy()
-        p=v-c.M@(c.G@c.poisson.solve(c.G.T@v))
-        if ctx.harmonic:p-=c.M@(c.H@(c.H.T@p))
-        return torch.as_tensor(p,device=gradient.device,dtype=gradient.dtype),None,None
-
-class MassInverse(torch.autograd.Function):
-    @staticmethod
-    def forward(ctx,x,factor):
-        ctx.factor=factor
-        return torch.as_tensor(factor.solve(x.detach().cpu().double().numpy()),device=x.device,dtype=x.dtype)
-    @staticmethod
-    def backward(ctx,gradient):
-        return torch.as_tensor(ctx.factor.solve(gradient.detach().cpu().double().numpy(),trans='T'),
-            device=gradient.device,dtype=gradient.dtype),None
-
-class Objective:
-    def __init__(self,complex_,method,device='cpu',dtype=torch.float64):
-        self.c=complex_;self.method=method
-        self.mass=sparse(complex_.M,device,dtype);self.stiffness=sparse(complex_.S,device,dtype)
-        self.mass_factor=sla.splu(complex_.M.tocsc())
-
-    def canonicalize(self,raw,final=False):
-        if self.method in ('full','lifted_velocity') or (final and self.method=='posthoc'):
-            return Project.apply(raw,self.c,True)
-        if self.method=='coulomb_only':return Project.apply(raw,self.c,False)
-        return raw
-
-    def quotient(self,a):
-        sa=torch.mv(self.stiffness,a)
-        if self.method=='lifted_velocity':
-            return torch.dot(sa,MassInverse.apply(sa,self.mass_factor))/torch.dot(a,sa)
-        return torch.dot(a,sa)/torch.dot(a,torch.mv(self.mass,a))
-
-    def orthogonalize(self,raw,previous):
-        a=self.canonicalize(raw)
-        a=a/torch.sqrt(torch.dot(a,torch.mv(self.mass,a)))
-        if previous is not None:
-            q=previous.detach()
-            for _ in range(2):a=a-q@(q.T@torch.mv(self.mass,a))
-        norm=torch.dot(a,torch.mv(self.mass,a))
-        if not torch.isfinite(norm) or norm<1e-12:raise FloatingPointError('Mass MGS rank collapse')
-        return a/torch.sqrt(norm)
 
 def physical_metrics(c,a,reference=None):
 
