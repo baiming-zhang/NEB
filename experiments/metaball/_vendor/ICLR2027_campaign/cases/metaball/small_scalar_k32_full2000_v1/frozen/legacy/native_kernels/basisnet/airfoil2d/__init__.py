@@ -1,12 +1,11 @@
+"""Airfoil geometry and native CUDA networks."""
+__all__ = ["Config", "HardcodedModel"]
 
-
-__all__ = ["Config", "OfficialPeelingFields"]
-
-
-def __getattr__(name: str):
-
-    if name in __all__:
-        from .training import Config, OfficialPeelingFields
-
-        return {"Config": Config, "OfficialPeelingFields": OfficialPeelingFields}[name]
+def __getattr__(name):
+    if name == "Config":
+        from .training import Config
+        return Config
+    if name == "HardcodedModel":
+        from .hardcoded_backend import HardcodedModel
+        return HardcodedModel
     raise AttributeError(name)

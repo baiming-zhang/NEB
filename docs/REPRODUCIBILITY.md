@@ -1,6 +1,6 @@
 # Reproducing Neural Eigenfluid Bases
 
-Run commands from the repository root. `requirements-repro.txt` pins the Python dependencies. Install `.[test,fem]` for the CPU checks and measurement plots, and `.[cuda,torch,fem,test]` for native neural calculations. CuPy uses CUDA 12. Set `NEB_MKL_RUNTIME` to the directory containing your installed `mkl_rt.dll` or `libmkl_rt.so` for the canonical direct solver; alternatively, set `NEB_CUDSS_LIBRARY` to your installed cuDSS 0.8 library.
+Run commands from the repository root. `requirements-repro.txt` pins the Python dependencies. Install `.[test,fem]` for the CPU checks and measurement plots, and `.[cuda,torch,fem,test]` for the complete native reproduction environment. The `torch` extra is used by the Metaball DNS, target generators and geometry/sampling utilities; neural forwards, spatial derivatives, parameter reverse passes and optimizers use native CuPy/CUDA. CPU numerical and NumPy evaluation paths are retained. Unused PyTorch network definitions, duplicate pilot trainers and their network postprocessor have been removed; the geometry/configuration helpers required by DNS and sampling are retained. CuPy uses CUDA 12. Set `NEB_MKL_RUNTIME` to the directory containing your installed `mkl_rt.dll` or `libmkl_rt.so` for the canonical direct solver; alternatively, set `NEB_CUDSS_LIBRARY` to your installed cuDSS 0.8 library.
 
 ## Checkpoints and resources
 

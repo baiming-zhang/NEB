@@ -51,7 +51,7 @@ def hashes():
     names=['potential_eigenfluids_experiment_pack/potential_eigenfluids_experiment_manual.md',
            'potential_eigenfluids_experiment_pack/potential_eigenfluids_experiment_manifest.yaml',
            'ICLR2027_Potential_Eigenfluids/ICLR2027_Potential_Eigenfluids.tex',
-           'GAUGE_CANONICAL_EIGENFLUID/gauge_core.py','GAUGE_CANONICAL_EIGENFLUID/train_gauge.py',
+           'GAUGE_CANONICAL_EIGENFLUID/gauge_core.py',
            '3d_metaball_reproduction_latest/cases/3D_Metaball/scripts/train_validate.py']
     return {p:hashlib.sha256((WORKSPACE/p).read_bytes()).hexdigest() for p in names}
 
