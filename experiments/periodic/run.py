@@ -4,9 +4,9 @@ CLI help is CPU-only. Execution of train/evaluate requires native CuPy.
 """
 from pathlib import Path
 import argparse, ast, importlib.util, json, os, runpy, sys
-BASE=Path(__file__).resolve().parents[1]/'2d/_vendor'
-CASE=BASE/'native_periodic/2D_Vortex_Merger'
-TRAIN=BASE/'ICLR2027_campaign/cases/vortex_merger/reuse_v1'
+BASE=Path(__file__).resolve().parents[1]/'2d/_backend'
+CASE=BASE/'periodic_core/vortex_merger'
+TRAIN=BASE/'flow/cases/vortex_merger/neural_training'
 def load(path,name):
     spec=importlib.util.spec_from_file_location(name,path)
     module=importlib.util.module_from_spec(spec);sys.modules[name]=module;spec.loader.exec_module(module)
@@ -21,7 +21,7 @@ def main():
     p.add_argument('--method',choices=['Potential','Velocity','NKB'],default='Potential')
     p.add_argument('--seed',type=int,default=0)
     a=p.parse_args();os.environ['NEB_2D_VENDOR_ROOT']=str(BASE)
-    sys.path[:0]=[str(TRAIN),str(CASE/'src'),str(CASE/'GAUGE_CANONICAL_EIGENFLUID/scripts')]
+    sys.path[:0]=[str(TRAIN),str(CASE/'src'),str(CASE/'canonical_gauge/scripts')]
     if a.stage in ('prepare','train'):
         if a.stage=='prepare':
             if not a.config:p.error('prepare requires --config')

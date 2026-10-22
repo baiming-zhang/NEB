@@ -16,9 +16,9 @@ def main():
     p.add_argument('--quadrature',type=Path,required=True,help='NPZ points[N,2], weights[N] from the reference generator')
     p.add_argument('--output',type=Path,required=True)
     a=p.parse_args()
-    base=Path(__file__).resolve().parents[1]/'2d/_vendor';top=base/'ICLR2027_campaign/cases/topology3'
+    base=Path(__file__).resolve().parents[1]/'2d/_backend';top=base/'flow/cases/topology3'
     os.environ['NEB_2D_VENDOR_ROOT']=str(base)
-    sys.path[:0]=[str(top/'learned_stable_v2/positive/src'),str(top/'learned_stable_v2/harmonic/scripts')]
+    sys.path[:0]=[str(top/'learned_basis/positive/src'),str(top/'learned_basis/harmonic/scripts')]
     import numpy as np,cupy as cp
     from neb2d.basisnet.metaball2d import hardcoded_backend as be
     from harmonic_common import learned_harmonic_fields
@@ -48,7 +48,7 @@ def main():
         if not a.causal_order:p.error('P(K-h)H(h) requires the actual final causal-order receipt')
         order=np.asarray(json.loads(a.causal_order.read_text())['details'][0]['causal_order']);assert sorted(order.tolist())==list(range(cfg.modes))
     selected=order[:positive]
-    path=top/'random_streamfunction_20260928/preview_random_streamfunction.py'
+    path=top/'random_streamfunctions/preview_random_streamfunction.py'
     spec=importlib.util.spec_from_file_location('neb_quintic',path);mod=importlib.util.module_from_spec(spec);sys.modules[spec.name]=mod;spec.loader.exec_module(mod)
     fields=[]
     for i in range(20):

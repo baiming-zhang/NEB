@@ -6,14 +6,14 @@ sys.path.insert(0,str(METABALL))
 def main():
     p=argparse.ArgumentParser(__doc__);p.add_argument('--method',choices=['finite','spline'],required=True);p.add_argument('--resolution',type=int,default=8)
     p.add_argument('--config',required=True);p.add_argument('--samples',required=True);p.add_argument('--source-fields',required=True);p.add_argument('--query-points',required=True);p.add_argument('--query-fields',required=True);p.add_argument('--output',required=True)
-    a=p.parse_args();from train import native_context,resource,write,V
+    a=p.parse_args();from train import native_context,resource,write,V,runtime_configuration
     from prepare import nodes
     from types import SimpleNamespace
     import cupy as cp
     from cupyx.scipy.sparse import csr_matrix
     from cupyx.scipy.linalg import solve_triangular
     out=Path(a.output);out.mkdir(parents=True,exist_ok=False)
-    config=json.loads(Path(a.config).read_text());c=SimpleNamespace(**config);K=int(c.modes)
+    config=runtime_configuration(json.loads(Path(a.config).read_text()));c=SimpleNamespace(**config);K=int(c.modes)
     shared,cm,_=native_context(config,K,out/'analytic_runtime',Path(a.samples));rt=cm.rt;geo=cp.asarray(c.fixed_training_geometry,'f8')
     x=cp.asarray(np.load(a.samples)['fit'],'f8');q=cp.asarray(np.load(a.query_points),'f8')
     A=cp.asarray(np.load(a.source_fields),'f8').reshape(3*len(x),K);Aq=cp.asarray(np.load(a.query_fields),'f8').reshape(3*len(q),K)

@@ -71,7 +71,7 @@
     "analytic_eigenmodes": false,
     "degenerate_block_direction_alignment": false,
     "rank_reporting": "peeled_only",
-    "result_root": "ICLR2027_campaign/cases/metaball2d/results/learned_potential_k1024_harmonic_v1/one_circle"
+    "result_root": "runs/one_circle-potential-k1024-seed1"
   },
   "complete_model_and_adam": true,
   "method": "Potential",

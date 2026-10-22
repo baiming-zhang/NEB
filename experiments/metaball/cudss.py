@@ -1,37 +1,42 @@
 from pathlib import Path
 from contextlib import contextmanager
-import hashlib, json, os, time
+import json, os, time
 import numpy as np
 import scipy.sparse as sp
 import scipy.sparse.linalg as sla
-from scipy.sparse.csgraph import connected_components,breadth_first_order
-from train import V,load,resource
+from scipy.sparse.csgraph import connected_components, breadth_first_order
+from train import V, load, resource
 import sys
-sys.path.insert(0,str(V/"exports/projected_potential_loss_20261008/implementation"))
+sys.path.insert(0, str(V / 'exports/canonical_potential/implementation'))
 from native_cudss import NativeCuDSSPair
-_pardiso=load('public_pardiso',V/'exports/projected_potential_loss_20261008/implementation/pardiso_incore_scoped.py')
-ScopedPardisoSPD=_pardiso.InCoreScopedPardisoSPD
-ASSETS=Path('data/metaball/physical');CERTIFICATE=ASSETS/'complete.json'
-PAIRS=np.array([(0,1),(1,2),(0,2),(0,3),(1,3),(2,3)])
+_pardiso = load('public_pardiso', V / 'exports/canonical_potential/implementation/pardiso_incore_scoped.py')
+ScopedPardisoSPD = _pardiso.InCoreScopedPardisoSPD
+ASSETS = Path('data/metaball/physical')
+CERTIFICATE = ASSETS / 'complete.json'
+PAIRS = np.array([(0, 1), (1, 2), (0, 2), (0, 3), (1, 3), (2, 3)])
+
 class NativeFactor:
-    def __init__(self,matrix,output,log):
+
+    def __init__(self, matrix, output, log):
         import cupy as cp
         import cupyx.scipy.sparse as csp
-        self.cp=cp;self.output=output
-        host=matrix.tocsr();transpose=host.T.tocsr()
-        self.pair=NativeCuDSSPair(cp,csp.csr_matrix(host),csp.csr_matrix(transpose),host,transpose,lambda:resource(cp,output),dll=os.environ['NEB_CUDSS_LIBRARY'],log=log)
-        self.analysis=self.pair.analysis
-    @contextmanager
-    def local_threads(self,threads):yield
-    def solve(self,rhs):return self.pair.solve(rhs)
-    def close(self):self.pair.close()
+        self.cp = cp
+        self.output = output
+        host = matrix.tocsr()
+        transpose = host.T.tocsr()
+        self.pair = NativeCuDSSPair(cp, csp.csr_matrix(host), csp.csr_matrix(transpose), host, transpose, lambda: resource(cp, output), dll=os.environ['NEB_CUDSS_LIBRARY'], log=log)
+        self.analysis = self.pair.analysis
 
-def sha(path):
-    h = hashlib.sha256()
-    with Path(path).open('rb') as stream:
-        for block in iter(lambda: stream.read(1 << 20), b''):
-            h.update(block)
-    return h.hexdigest()
+    @contextmanager
+    def local_threads(self, threads):
+        yield
+
+    def solve(self, rhs):
+        return self.pair.solve(rhs)
+
+    def close(self):
+        self.pair.close()
+
 def relative_tree(p, t, free, vn, bn, G, C):
     edges = np.unique(np.sort(t[:, PAIRS].reshape(-1, 2), axis=1), axis=0)
     wall_edges = edges[np.setdiff1d(np.arange(len(edges)), free)]
@@ -90,6 +95,7 @@ def relative_tree(p, t, free, vn, bn, G, C):
         depth[child] = depth[pred[child]] + 1
     metadata = dict(boundary_components=count, collapsed_relative_vertices=n, interior_scalar_dof=nv, additional_inner_wall_scalar=1, tree_edges=len(tree), cotree_edges=len(cotree), tree_max_depth=int(depth.max()), all_original_relative_edges=len(free), self_loops_retained_in_cotree=int((~nonloops).sum()), original_G_exactly_equal_to_D_interior=True, CD_exact_integer_zero=True, grounded_tree_unimodular_triangular=True, grounding='outer boundary component; inner boundary retained as one additional node')
     return (tree, cotree, D, metadata)
+
 class TreeCanonicalLift:
 
     def __init__(self, output, log=None, *, scalar_backend='superlu'):
@@ -99,7 +105,7 @@ class TreeCanonicalLift:
         certificate = json.loads(CERTIFICATE.read_text(encoding='utf-8-sig'))
         if not (certificate['qualified'] and certificate['CG_exact_integer_zero'] and (certificate['relative_edges'] == 239415) and (certificate['scalar_dof'] == 29352) and (certificate['harmonic_dimension'] == 1)):
             raise ValueError('The actual complete relative physical kernel certificate changed')
-        self.inputs = {str(f): sha(f) for f in [CERTIFICATE, ASSETS / 'M1.npz', ASSETS / 'S1.npz', ASSETS / 'G.npz', ASSETS / 'C.npz', ASSETS / 'complex.npz']}
+        self.inputs = {str(f): None for f in [CERTIFICATE, ASSETS / 'M1.npz', ASSETS / 'S1.npz', ASSETS / 'G.npz', ASSETS / 'C.npz', ASSETS / 'complex.npz']}
         self.M = sp.load_npz(ASSETS / 'M1.npz').tocsr()
         self.S = sp.load_npz(ASSETS / 'S1.npz').tocsr()
         self.G = sp.load_npz(ASSETS / 'G.npz').tocsr()

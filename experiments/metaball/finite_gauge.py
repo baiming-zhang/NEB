@@ -1,7 +1,7 @@
 """Finite-gauge potential objective with analytic native CuPy fields."""
 from pathlib import Path
 import ast
-FG_SOURCE=Path(__file__).resolve().parent/"_vendor/exports/full_completion_20261005/train_potential.py"
+FG_SOURCE=Path(__file__).resolve().parent/"_backend/exports/potential_rayleigh/train_potential.py"
 KS=(32,64,128,256)
 FIXED = dict(seed=20260823, epochs=2000, points_per_step=6144,
              validation_points=4096, validation_geometries=8, validate_every=25,

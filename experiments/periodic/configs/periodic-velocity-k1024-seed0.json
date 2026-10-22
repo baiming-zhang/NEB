@@ -66,6 +66,6 @@
   "analytic_eigenmodes": false,
   "degenerate_block_direction_alignment": false,
   "rank_reporting": "peeled_only",
-  "result_root": "K1024_velocity_rayleigh_seed0",
+  "result_root": "runs/periodic-velocity-k1024-seed0",
   "gauge_canonicalization": "mean_zero_before_sort_normalize_mgs"
 }

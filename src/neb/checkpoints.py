@@ -30,13 +30,12 @@ def run(root, *, download=False, only=None):
                 fetched = Path(temporary) / item["asset"]
                 if fetched.stat().st_size != item["bytes"]:
                     raise ValueError(f"Incomplete checkpoint: {item['id']}")
-                with zipfile.ZipFile(fetched) as bundle:
-                    if bundle.testzip() is not None:
-                        raise ValueError(f"Unreadable checkpoint: {item['id']}")
+                if not zipfile.is_zipfile(fetched):
+                    raise ValueError(f"Unreadable checkpoint: {item['id']}")
                 fetched.replace(path)
         if path.exists():
             if path.stat().st_size != item["bytes"] or not zipfile.is_zipfile(path):
-                raise ValueError(f"Checkpoint verification failed: {item['id']}")
-            print(f"{item['id']}: verified ({item['bytes'] / 1e6:.2f} MB)")
+                raise ValueError(f"Incomplete or unreadable checkpoint: {item['id']}")
+            print(f"{item['id']}: ready ({item['bytes'] / 1e6:.2f} MB)")
         else:
             print(f"{item['id']}: {item['bytes'] / 1e6:.2f} MB; use --download")

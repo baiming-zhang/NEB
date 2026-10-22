@@ -1,11 +1,12 @@
 from __future__ import annotations
-import os,sys,time,json,hashlib,ast,gc,itertools,traceback
+import os, sys, time, json, ast, gc, itertools, traceback
 from pathlib import Path
-import numpy as np,scipy.sparse as sp,scipy.sparse.linalg as sla
+import numpy as np, scipy.sparse as sp, scipy.sparse.linalg as sla
 from scipy.sparse.csgraph import connected_components
-from skfem import MeshTet,Basis,ElementTetN1
-PAIRS=[(0,1),(1,2),(0,2),(0,3),(1,3),(2,3)]
-GBAR=np.array([[-1.,-1.,-1.],[1.,0.,0.],[0.,1.,0.],[0.,0.,1.]])
+from skfem import MeshTet, Basis, ElementTetN1
+PAIRS = [(0, 1), (1, 2), (0, 2), (0, 3), (1, 3), (2, 3)]
+GBAR = np.array([[-1.0, -1.0, -1.0], [1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]])
+
 def levels(x, geo, c):
     q = (x - 0.5) / c['outer_half_extent']
     p = c['outer_superellipsoid_power']
@@ -134,7 +135,7 @@ def main():
                 worst_corner = int(local[1])
         norms = np.linalg.norm(delta, axis=1)
         physical_mid_norms = np.linalg.norm(delta + vd[edges].mean(1), axis=1)
-        write('jacobian_diagnostics.json', dict(tetrahedra=len(vertices), max_J_minus_identity_norm=max_norm, min_corner_det=min_det, nonpositive_corner_count=negative_corners, worst_cell=worst_cell, worst_corner=worst_corner, worst_cell_vertices=vertices[worst_cell].tolist(), worst_cell_edge_displacements=td[worst_cell].tolist(), max_boundary_midpoint_displacement=float(norms.max()), boundary_displacement_quantiles=np.quantile(norms[flags >= 0], [0, 0.5, 0.9, 0.99, 1]).tolist(), source_mesh=str(MESH), source_mesh_sha256=hashlib.sha256(MESH.read_bytes()).hexdigest(), seconds=time.perf_counter() - START, qualification_passed=max_norm < 1))
+        write('jacobian_diagnostics.json', dict(tetrahedra=len(vertices), max_J_minus_identity_norm=max_norm, min_corner_det=min_det, nonpositive_corner_count=negative_corners, worst_cell=worst_cell, worst_corner=worst_corner, worst_cell_vertices=vertices[worst_cell].tolist(), worst_cell_edge_displacements=td[worst_cell].tolist(), max_boundary_midpoint_displacement=float(norms.max()), boundary_displacement_quantiles=np.quantile(norms[flags >= 0], [0, 0.5, 0.9, 0.99, 1]).tolist(), source_mesh=str(MESH), seconds=time.perf_counter() - START, qualification_passed=max_norm < 1))
         np.savez(OUT / 'chart_coefficients.npz', p=mesh.p, t=mesh.t, vertex_displacements=vd, edge_corrections=delta, edges=edges)
         write('chart_method.json', dict(project_boundary_vertices=PROJECT_VERTICES, extend_interior_nodes=EXTEND_INTERIOR, straight_interior_edges=STRAIGHT_INTERIOR_EDGES, nonpositive_corners=bad_corners, worst_cell_vertex_ids=mesh.t.T[worst_cell].tolist(), worst_cell_boundary_vertices=np.isin(mesh.t.T[worst_cell], np.unique(facets)).tolist(), worst_cell_polyhedral_volume=abs(float(np.linalg.det(E[worst_cell]))) / 6, max_physical_midpoint_displacement=float(physical_mid_norms.max()), max_edge_correction=float(norms.max()), spectral_solve_started=False))
         if PRE_REPAIR:
@@ -243,7 +244,7 @@ def main():
             summary[label] = dict(points=len(points), located=len(points) - len(missing), missing_indices=missing, inverse_residual_max=max_residual)
             np.savez(OUT / f'{label}_mapped.npz', **{k: np.concatenate(v) for k, v in result.items()})
         qualified = all((r['located'] == r['points'] for r in summary.values()))
-        record = dict(status='qualified_for_review' if qualified else 'not_qualified', all_points_located=qualified, all_cell_local_det_positive=True, max_J_minus_identity_norm=max_norm, det_lower_bound=det_lower, boundary_geometric_distance_max=max_distance, boundary_test_points=len(facets) * len(beta), source_mesh=str(MESH), source_samples=str(original), source_samples_sha256=hashlib.sha256(original.read_bytes()).hexdigest(), sets=summary, seconds=time.perf_counter() - START, method='Continuous quadratic isoparametric chart using original target mesh and implicit-wall node projection; approximate smooth geometry, no star-shapedness assumption', project_boundary_vertices=PROJECT_VERTICES, extend_interior_nodes=EXTEND_INTERIOR, global_boundary_injectivity_pending=True, spectral_solve_started=False)
+        record = dict(status='qualified_for_review' if qualified else 'not_qualified', all_points_located=qualified, all_cell_local_det_positive=True, max_J_minus_identity_norm=max_norm, det_lower_bound=det_lower, boundary_geometric_distance_max=max_distance, boundary_test_points=len(facets) * len(beta), source_mesh=str(MESH), source_samples=str(original), sets=summary, seconds=time.perf_counter() - START, method='Continuous quadratic isoparametric chart using original target mesh and implicit-wall node projection; approximate smooth geometry, no star-shapedness assumption', project_boundary_vertices=PROJECT_VERTICES, extend_interior_nodes=EXTEND_INTERIOR, global_boundary_injectivity_pending=True, spectral_solve_started=False)
         write('qualification.json', record)
         progress('qualification_complete', all_points_located=qualified, boundary_distance_max=max_distance)
     except BaseException:

@@ -16,7 +16,7 @@ def main():
     import numpy as np,cupy as cp
     from scipy.sparse import load_npz
     from ..runtime import guard
-    top=Path(__file__).resolve().parents[2]/'2d/_vendor/ICLR2027_campaign/cases/topology3';learned=top/'learned_stable_v2'
+    top=Path(__file__).resolve().parents[2]/'2d/_backend/flow/cases/topology3';learned=top/'learned_basis'
     os.environ['NEB_2D_VENDOR_ROOT']=str(top.parents[2])
     sys.path[:0]=[str(learned/'positive/src'),str(learned/'positive/scripts'),str(learned/'harmonic/scripts'),str(learned)]
     from neb2d.basisnet.metaball2d import hardcoded_backend as be

@@ -96,7 +96,7 @@
     "scalar_resolution": 8,
     "scalar_radius_cells": 3,
     "scalar_effective_directions": 441,
-    "result_root": "potential_k32",
+    "result_root": "runs/metaball-potential-fg-k32-seed0-scalar-gauge",
     "source_values_batch": 8,
     "validation_points": 4096,
     "validation_geometries": 1,

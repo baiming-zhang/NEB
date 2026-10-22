@@ -1,0 +1,46 @@
+name: Reproduction
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: reproduction-${{ github.head_ref || github.ref_name }}
+  cancel-in-progress: true
+
+jobs:
+  cpu:
+    name: CPU reproduction (${{ matrix.os }}, Python ${{ matrix.python }})
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            python: '3.11'
+          - os: windows-latest
+            python: '3.13'
+    runs-on: ${{ matrix.os }}
+    env:
+      OMP_NUM_THREADS: '1'
+      OPENBLAS_NUM_THREADS: '1'
+      MKL_NUM_THREADS: '1'
+      PYTHONDONTWRITEBYTECODE: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - name: Install Gmsh system library
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y libglu1-mesa
+      - name: Install pinned CPU and FEM environment
+        run: python -m pip install -e ".[test,fem]" -c requirements-repro.txt
+      - name: Check numerical interfaces and public configurations
+        run: python -m pytest tests -q
+      - name: Check saved-model catalogue
+        run: python tools/check_reproduction.py
+      - name: Regenerate measured comparison plots
+        run: neb figures --output outputs/paper_figures
+      - name: Exercise fitted mesh and numerical spectral generator
+        run: python experiments/metaball/prepare.py mesh --h .2 --surface-resolution 24 --K 2 --output outputs/mesh_check

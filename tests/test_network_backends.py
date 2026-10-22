@@ -10,7 +10,7 @@ import numpy as np
 import pytest
 
 ROOT = Path(__file__).resolve().parents[1]
-VENDOR = ROOT / 'experiments/metaball/_vendor'
+VENDOR = ROOT / 'experiments/metaball/_backend'
 
 
 def test_production_networks_do_not_use_torch_autograd():
@@ -40,7 +40,7 @@ def test_cuda_analytic_network_forward_reverse_and_adam():
     cp = pytest.importorskip('cupy')
     cp.get_default_memory_pool().set_limit(size=256 * 2**20)
     sys.path.insert(0, str(VENDOR))
-    core = native_module(VENDOR / 'ICLR2027_campaign/cases/metaball/native_cupy_core.py',
+    core = native_module(VENDOR / 'flow/cases/metaball/native_cupy_core.py',
                          'network_backend_core')
     cfg = SimpleNamespace(hidden=8, hidden_layers=2,
                           siren_first_omega0=2.3, siren_hidden_omega0=1.7)
@@ -95,3 +95,84 @@ def test_cuda_analytic_network_forward_reverse_and_adam():
         np.testing.assert_allclose(cp.asnumpy(p), expected_step, rtol=2e-6, atol=2e-7)
     cp.cuda.Stream.null.synchronize()
     cp.get_default_memory_pool().free_all_blocks()
+
+
+@pytest.mark.parametrize('precision', ['float32', 'float64'])
+def test_multihole_preserves_precision_spatial_derivatives_and_adam(precision):
+    if os.environ.get('NEB_RUN_CUDA_TESTS') != '1':
+        pytest.skip('Set NEB_RUN_CUDA_TESTS=1 for the native precision check')
+    cp = pytest.importorskip('cupy')
+    cp.get_default_memory_pool().set_limit(size=256 * 2**20)
+    source = ROOT / 'experiments/2d/_backend/flow/cases/topology3/learned_basis/positive/src'
+    sys.path.insert(0, str(source))
+    from neb2d.basisnet.metaball2d import hardcoded_backend as be
+    import json
+    cfg = json.loads((ROOT / 'experiments/multihole/configs/one_circle-potential-k32-seed1.json').read_text())
+    cfg.update(modes=2, hidden=8, hidden_layers=2, learning_rate=1e-4, grad_clip=1e6)
+    for key in ('mlp_compute_dtype', 'mlp_accumulation_dtype', 'jet_dtype',
+                'parameter_backward_dtype', 'quadrature_dtype', 'ritz_dtype',
+                'master_weight_dtype', 'optimizer_dtype'):
+        cfg[key] = precision
+    c = be.cfg_namespace(cfg)
+    rng = np.random.default_rng(17)
+    arrays = {}
+    for mode in range(2):
+        for layer, (inside, outside) in enumerate(((2, 8), (8, 8), (8, 1))):
+            label = f'l{layer}' if layer < 2 else 'output'
+            for offset, (kind, shape) in enumerate((('weight', (outside, inside)), ('bias', (outside,)))):
+                name = f'm{mode:03d}.{label}.{kind}'
+                arrays[name] = rng.normal(0, .02, size=shape).astype(precision)
+                stem = f'm{mode:03d}.adam.p{2*layer+offset:02d}'
+                arrays[stem + '.exp_avg'] = np.zeros(shape, precision)
+                arrays[stem + '.exp_avg_sq'] = np.zeros(shape, precision)
+                arrays[stem + '.step'] = np.asarray(0, 'i8')
+    model = be.HardcodedModel(c, arrays)
+    x = np.array([[2., .2], [3., .3], [4., .4]], dtype=precision)
+    def fields(points):
+        result = list(model.forward_stream_jet1(c, points, 0., 0., False))
+        return np.stack([cp.asnumpy(f.value[:, 0]) for _, f, _ in result]), np.stack([cp.asnumpy(f.grad[:, 0]) for _, f, _ in result])
+    _, gradient = fields(x)
+    step = 1e-3 if precision == 'float32' else 1e-5
+    for axis in range(2):
+        plus, minus = x.copy(), x.copy()
+        plus[:, axis] += step
+        minus[:, axis] -= step
+        difference = (fields(plus)[0] - fields(minus)[0]) / (2 * step)
+        np.testing.assert_allclose(difference, gradient[..., axis],
+                                   rtol=2e-2 if precision == 'float32' else 2e-6,
+                                   atol=2e-6 if precision == 'float32' else 2e-9)
+    mode = model.modes[0]
+    assert mode.weights[0].dtype == np.dtype(precision)
+    parameters = [p for pair in zip(mode.weights, mode.biases) for p in pair]
+    before = [cp.asnumpy(p).copy() for p in parameters]
+    gradients = [cp.ones_like(p) * .25 for p in parameters]
+    mode.adam_step(gradients, c)
+    for parameter, initial in zip(parameters, before):
+        np.testing.assert_allclose(cp.asnumpy(parameter), initial - 1e-4 * .25 / (.25 + 1e-8),
+                                   rtol=2e-6 if precision == 'float32' else 1e-12,
+                                   atol=2e-8 if precision == 'float32' else 1e-14)
+    assert all(step == 1 for step in mode.steps)
+    cp.cuda.Stream.null.synchronize()
+
+
+def test_gauge_extension_supplies_the_native_spatial_jet():
+    if os.environ.get('NEB_RUN_CUDA_TESTS') != '1':
+        pytest.skip('Set NEB_RUN_CUDA_TESTS=1 for the native gauge extension check')
+    cp = pytest.importorskip('cupy')
+    import json
+    sys.path[:0] = [str(VENDOR), str(VENDOR / 'gauge_kernels')]
+    core = native_module(VENDOR / 'flow/cases/metaball/native_cupy_core.py', 'extension_jet_core')
+    import mfs
+    import extension
+    cfg = SimpleNamespace(**json.loads((ROOT / 'experiments/metaball/configs/spectral_k32.json').read_text()))
+    geo = cp.asarray(cfg.fixed_training_geometry, dtype='f8')
+    mfs.c, mfs.geo = cfg, geo
+    x = cp.asarray([[.12,.18,.2], [.85,.8,.75]], dtype='f8')
+    value = extension.extension(x, geo, cfg, core.Jet1)
+    for axis in range(3):
+        plus, minus = x.copy(), x.copy()
+        plus[:, axis] += 1e-5
+        minus[:, axis] -= 1e-5
+        difference = (extension.extension(plus, geo, cfg, core.Jet1).value -
+                      extension.extension(minus, geo, cfg, core.Jet1).value) / 2e-5
+        cp.testing.assert_allclose(difference, value.grad[..., axis], rtol=2e-6, atol=2e-8)

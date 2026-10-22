@@ -6,7 +6,7 @@ def main():
     p=argparse.ArgumentParser(__doc__);p.add_argument('--method',choices=['fmm','fourier'],required=True);p.add_argument('--resolution',type=int,required=True);p.add_argument('--order',type=int,default=6);p.add_argument('--forcing',required=True);p.add_argument('--points',required=True);p.add_argument('--output',required=True)
     p.add_argument('--boundary-points');p.add_argument('--boundary-sources')
     a=p.parse_args();import cupy as cp
-    d=Path(__file__).resolve().parents[1]/'metaball';sys.path.insert(0,str(d));sys.path.insert(0,str(d/'_vendor/gauge_kernels'))
+    d=Path(__file__).resolve().parents[1]/'metaball';sys.path.insert(0,str(d));sys.path.insert(0,str(d/'_backend/gauge_kernels'))
     from train import resource
     out=Path(a.output);out.mkdir(parents=True,exist_ok=False);resource(cp,out)
     forcing=np.load(a.forcing,allow_pickle=False).reshape(a.resolution**3,-1);x=cp.asarray(np.load(a.points,allow_pickle=False),'f8')

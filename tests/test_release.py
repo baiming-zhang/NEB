@@ -16,10 +16,10 @@ def test_checkpoint_case_and_configuration_coverage():
     assert len(byid)==len(entries)
     for method in ('potential','velocity','nkb'):
         for seed in range(3):assert f'periodic-{method}-k1024-seed{seed}' in byid
-    for k in (32,64,128,256,512):assert f'metaball-potential-k{k}-seed20260823' in byid
+    for k in (32,64,128,256,512):assert f'metaball-potential-k{k}-seed0' in byid
     for method in ('velocity','nkb'):
-        for k in (32,64,128,256,512,1024):assert f'metaball-{method}-k{k}-seed20260823' in byid
-    for k in (32,64,128,256):assert f'metaball-potential-fg-k{k}-seed20260823' in byid
+        for k in (32,64,128,256,512,1024):assert f'metaball-{method}-k{k}-seed0' in byid
+    for k in (32,64,128,256):assert f'metaball-potential-fg-k{k}-seed0' in byid
     for e in entries:
         metadata=json.loads((ROOT/e['metadata']).read_text())
         config=json.loads((ROOT/e['config']).read_text())
@@ -60,5 +60,5 @@ def test_periodic_evaluator_uses_only_packaged_runtime(monkeypatch):
     p=ROOT/'experiments/periodic/paper_rollout.py'
     spec=importlib.util.spec_from_file_location('isolated_paper_rollout',p)
     m=importlib.util.module_from_spec(spec);spec.loader.exec_module(m)
-    assert m.WORK.resolve()==(ROOT/'experiments/2d/_vendor').resolve()
+    assert m.WORK.resolve()==(ROOT/'experiments/2d/_backend').resolve()
     assert m.guard.__module__=='neb_periodic_runtime'

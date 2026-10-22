@@ -1,11 +1,11 @@
 from __future__ import annotations
-import os,sys,time,json,hashlib,ast,gc,itertools
+import os, sys, time, json, ast, gc, itertools
 from pathlib import Path
-import numpy as np,scipy.sparse as sp,scipy.sparse.linalg as sla
+import numpy as np, scipy.sparse as sp, scipy.sparse.linalg as sla
 from scipy.sparse.csgraph import connected_components
-from skfem import MeshTet,Basis,ElementTetN1
-PAIRS=[(0,1),(1,2),(0,2),(0,3),(1,3),(2,3)]
-PAIRS=[(0,1),(1,2),(0,2)]
+from skfem import MeshTet, Basis, ElementTetN1
+PAIRS = [(0, 1), (1, 2), (0, 2), (0, 3), (1, 3), (2, 3)]
+PAIRS = [(0, 1), (1, 2), (0, 2)]
 BG = np.array([[-1.0, -1.0], [1.0, 0.0], [0.0, 1.0]])
 LAMBDA = np.array([[1.0, 0, 0], [0, 1.0, 0], [0, 0, 1.0], [0.5, 0.5, 0], [0, 0.5, 0.5], [0.5, 0, 0.5]])
 CHILDREN = np.array([[[1, 0, 0], [0.5, 0.5, 0], [0.5, 0, 0.5]], [[0.5, 0.5, 0], [0, 1, 0], [0, 0.5, 0.5]], [[0.5, 0, 0.5], [0, 0.5, 0.5], [0, 0, 1]], [[0.5, 0.5, 0], [0, 0.5, 0.5], [0.5, 0, 0.5]]], dtype=float)
@@ -159,5 +159,5 @@ def main():
     inner, outerr = records
     assert inner['other_field_lower'] > outerr['associated_field_absolute_upper'] and outerr['other_field_lower'] > inner['associated_field_absolute_upper']
     proof = 'The entire straight homotopy from the original embedded polyhedral walls to the quadratic walls is transverse to the original analytic gradient, proved by degree(2,2) normal Bernstein controls and analytic Hessian bounds. Every point of this whole homotopy has a regular gradient-flow projection onto the zero wall. For the initial embedded transverse wall, projected sheets can be globally ordered along the flow direction; a connected embedded closed transverse wall therefore has one sheet and projection degree one. Homotopy preserves this degree. The final piecewise polynomial projection has positive face Jacobians and isolated fibers; all local degrees are positive, including skeleton points. Total degree one therefore excludes branch points and multiple preimages and establishes the final quadratic wall embedding. Both walls remain disjoint by certified analytic level-band separation. Together with the all-cell positive fluid Jacobian, the oriented embedded boundary gives volume degree one in its shell and zero outside; positivity of every local degree excludes interior or skeleton multiplicity. The unchanged fluid chart is globally injective. It remains a quadratic approximation of the original smooth walls, not an exact radial map.'
-    write('global_boundary_complete.json', dict(status='global_boundary_and_fluid_injectivity_qualified', entire_boundary_homotopy_certified=True, normal_Bernstein_degree=[2, 2], all_boundary_facets=len(facets), topology=topology, entire_patch_bounds=records, proof=proof, source_chart_sha256=hashlib.sha256((SOURCE / 'chart_coefficients.npz').read_bytes()).hexdigest(), source_point_arrays_unchanged=True, local_positive_det_receipt=str(SOURCE / 'bernstein_determinant_certificate.json'), seconds=time.perf_counter() - START, scope='Analytic interval over the entire boundary homotopy and positive degree proof; no sampled transversality replacement'))
+    write('global_boundary_complete.json', dict(status='global_boundary_and_fluid_injectivity_qualified', entire_boundary_homotopy_certified=True, normal_Bernstein_degree=[2, 2], all_boundary_facets=len(facets), topology=topology, entire_patch_bounds=records, proof=proof, source_point_arrays_unchanged=True, local_positive_det_receipt=str(SOURCE / 'bernstein_determinant_certificate.json'), seconds=time.perf_counter() - START, scope='Analytic interval over the entire boundary homotopy and positive degree proof; no sampled transversality replacement'))
     progress(status='global_boundary_and_fluid_injectivity_qualified')

@@ -4,7 +4,7 @@ import argparse, ast, importlib.util, json, os, sys, time, math
 from pathlib import Path
 from types import SimpleNamespace
 import numpy as np
-HERE=Path(__file__).resolve().parent;V=HERE/'_vendor'
+HERE=Path(__file__).resolve().parent;V=HERE/'_backend'
 def load(name,p):
     spec=importlib.util.spec_from_file_location(name,p);module=importlib.util.module_from_spec(spec)
     sys.modules[name]=module;spec.loader.exec_module(module);return module
@@ -14,7 +14,9 @@ def nodes(p,names,ns):
     if {n.name for n in selected}!=set(names):raise ValueError('Scientific interface changed')
     future=ast.ImportFrom(module='__future__',names=[ast.alias(name='annotations')],level=0)
     exec(compile(ast.fix_missing_locations(ast.Module(body=[future,*selected],type_ignores=[])),str(p),'exec'),ns)
-def config(args):return json.loads(Path(args.config).read_text('utf-8'))
+def config(args):
+    from train import runtime_configuration
+    return runtime_configuration(json.loads(Path(args.config).read_text('utf-8')))
 def mesh(args):
     import gmsh,meshio,scipy.sparse as sp,scipy.sparse.linalg as sla
     from scipy.special import logsumexp
@@ -25,10 +27,10 @@ def mesh(args):
     cfg=SimpleNamespace(**config(args));out=Path(args.output);out.mkdir(parents=True,exist_ok=False)
     ns=dict(np=np,gmsh=gmsh,meshio=meshio,logsumexp=logsumexp,marching_cubes=marching_cubes,MeshTet=MeshTet,cfg=lambda:cfg,
         sp=sp,sla=sla,connected_components=connected_components,Basis=Basis,ElementTetN1=ElementTetN1,asm=asm,BilinearForm=BilinearForm,dot=dot,curl=curl)
-    case=V/'ICLR2027_campaign/cases/metaball'
-    nodes(case/'fitted_metaball_v2.py',['mesh_metaball'],ns)
+    case=V/'flow/cases/metaball'
+    nodes(case/'fitted_mesh.py',['mesh_metaball'],ns)
     nodes(case/'fitted_shell_probe.py',['mass','stiffness'],ns)
-    nodes(case/'fitted_core_v2.py',['FittedComplex'],ns)
+    nodes(case/'fitted_complex.py',['FittedComplex'],ns)
     start=time.perf_counter();m=ns['mesh_metaball'](cfg.fixed_training_geometry,args.h,args.surface_resolution,out)
     complex_=ns['FittedComplex'](m);values,a,residual=complex_.spectrum(args.K)
     if residual.max()>=1e-6:raise FloatingPointError('Complete generalized residual failed')
@@ -36,7 +38,7 @@ def mesh(args):
     (out/'complete.json').write_text(json.dumps(dict(K=args.K,mesh=complex_.metadata,residuals=residual.tolist(),actual_seconds=time.perf_counter()-start),indent=2))
 def source(args):
     import cupy as cp
-    case=V/'ICLR2027_campaign/cases/metaball'
+    case=V/'flow/cases/metaball'
     c=SimpleNamespace(**config(args));geo=cp.asarray(c.fixed_training_geometry,'f8')
     ns=dict(np=np,cp=cp);nodes(case/'native_cupy_core.py',['levels','fluid_points'],ns)
     out=Path(args.output);out.mkdir(parents=True,exist_ok=False)
@@ -51,11 +53,11 @@ def physical(args):
     from threadpoolctl import threadpool_limits
     from skfem import MeshTet
     from train import resource
-    case=V/'ICLR2027_campaign/cases/metaball';sys.path.insert(0,str(case))
+    case=V/'flow/cases/metaball';sys.path.insert(0,str(case))
     # Piola geometry imports the unchanged native analytic geometry backend.
     mapping=load('metaball_radial_geometry',case/'piola_radial_geometry.py')
     c=SimpleNamespace(**config(args));out=Path(args.output);out.mkdir(parents=True,exist_ok=False)
-    source_file=V/'exports/gauge_repair_k128_20261006/compatible_physical_complex.py'
+    source_file=V/'exports/physical_complex/compatible_physical_complex.py'
     tree=ast.parse(source_file.read_text('utf-8'))
     main=next(n for n in tree.body if isinstance(n,ast.FunctionDef) and n.name=='main')
     # Only local input/output declarations are adapted. Assembly, complete
@@ -78,7 +80,7 @@ def physical(args):
     resource(cp,out)
     result=ns['main'](out);write(out/'complete.json',result)
 def source_map(args):
-    module=load('metaball_curl_source',V/'exports/projected_potential_loss_20261008/implementation/source_curl_mapping.py')
+    module=load('metaball_curl_source',V/'exports/canonical_potential/implementation/source_curl_mapping.py')
     module.ASSETS=Path(args.physical);module.SOURCE=Path(args.samples)
     out=Path(args.output);out.mkdir(parents=True,exist_ok=False)
     # The original parser accepts the velocity configuration in this wrapper.
@@ -87,8 +89,8 @@ def source_map(args):
 
 def volume(args):
     """Original all-cell q1 positive physical-volume quadrature."""
-    module=load('public_physical_volume',V/'exports/projected_potential_loss_20261008/support/physical_volume.py')
-    mapping_module=load('public_volume_mapping',V/'exports/projected_potential_loss_20261008/implementation/source_curl_mapping.py')
+    module=load('public_physical_volume',V/'exports/canonical_potential/support/physical_volume.py')
+    mapping_module=load('public_volume_mapping',V/'exports/canonical_potential/implementation/source_curl_mapping.py')
     out=Path(args.output);out.mkdir(parents=True,exist_ok=False)
     with np.load(Path(args.physical)/'complex.npz') as z:
         p,t=z['p'].copy(),z['t'].copy();bary,weights=z['points'].copy(),z['weights'].copy()
@@ -119,7 +121,7 @@ def conditioned_dns_factory(native,dns_config,initial_protocol):
     return factory
 
 def dns(args):
-    module=load('metaball_dns',V/'3d_metaball_reproduction_latest/cases/3D_Metaball/physical_dns/scripts/generate_independent_dns_gt_128.py')
+    module=load('metaball_dns',V/'metaball_reference/cases/3D_Metaball/physical_dns/scripts/generate_independent_dns_gt_128.py')
     import dataclasses
     original_loader=module.load_training_module
     def training_module():
@@ -140,7 +142,7 @@ def random20(args):
     # Load only the original initializer's numerical definitions; no CUDA or
     # rendering side effects accompany this CPU target generation path.
     ns=dict(np=np,torch=torch,math=math,dataclass=dataclasses.dataclass,Any=object)
-    source=V/'3d_metaball_reproduction_latest/cases/3D_Metaball/physical_dns/scripts/generate_independent_dns_gt_128.py'
+    source=V/'metaball_reference/cases/3D_Metaball/physical_dns/scripts/generate_independent_dns_gt_128.py'
     nodes(source,['DNSConfig','SpectralOperators','independent_initial_velocity','damp_normal_component','PseudoSpectralDNS'],ns)
     d=Path(args.dns);out=Path(args.output);out.mkdir(parents=True,exist_ok=False)
     arrays={k:np.load(d/f,allow_pickle=False) for k,f in {'solid_fraction':'solid_fraction.npy','fluid_mask':'fluid_mask.npy','normal_xyz':'boundary_normal_xyz.npy','boundary_band':'boundary_band.npy'}.items()}
