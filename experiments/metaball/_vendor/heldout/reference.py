@@ -3,8 +3,8 @@ from types import SimpleNamespace
 import ast,json,numpy as np
 from train import V
 LEGACY=V/'3d_metaball_reproduction_latest/cases/3D_Metaball'
-GENERATOR=LEGACY/'k2048_joint_ns/scripts/generate_independent_dns_gt_128.py'
-CONFIG=Path(__file__).resolve().parents[2]/'configs/vrq_capacity_k256.json'
+GENERATOR=LEGACY/'physical_dns/scripts/generate_independent_dns_gt_128.py'
+CONFIG=Path(__file__).resolve().parents[2]/'configs/velocity_capacity_k256.json'
 def _original_functions(path, names, namespace):
     """Compile selected pure functions, never execute the legacy module imports."""
     tree = ast.parse(Path(path).read_text(encoding='utf-8-sig'))

@@ -10,7 +10,7 @@ operators. The protocol and target mean length are written to each run config.
 ```sh
 python experiments/2d/nkb/run.py prepare --case periodic --K 1024 --seed 0 --output outputs/nkb
 python experiments/2d/nkb/run.py train --case periodic --K 1024 --seed 0 --output outputs/nkb
-python experiments/periodic/run.py evaluate --method NKB --checkpoint checkpoints/2d/NKB_periodic_k1024_seed0/checkpoint_e2000.npz --gt outputs/periodic/gt --output outputs/periodic/nkb
+python experiments/periodic/run.py evaluate --method NKB --checkpoint checkpoints/2d/periodic-nkb-k1024-seed0/model.npz --gt outputs/periodic/gt --output outputs/periodic/nkb
 ```
 
 For each multihole case, use the same `prepare` and `train` commands with its

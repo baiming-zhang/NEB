@@ -22,7 +22,7 @@ ROOT = Path(__file__).resolve().parent
 WORKSPACE = ROOT.parent
 CASE = WORKSPACE / "3d_metaball_reproduction_latest/cases/3D_Metaball"
 THEORY = WORKSPACE / "ICLR2027_Potential_Eigenfluids/ICLR2027_Potential_Eigenfluids.tex"
-CONFIG = CASE / "configs/k2048_three_sphere_connected_siren_freeslip_2000_w128_d5.json"
+CONFIG = CASE / "configs/metaball_geometry.json"
 GT = CASE / "results/independent_freeslip_dns_gt_128"
 
 

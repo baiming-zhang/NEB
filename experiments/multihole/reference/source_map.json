@@ -1,12 +1,10 @@
 {
   "geometry.py": {
     "original_source": "ICLR2027_campaign\\cases\\topology3\\baseline_fresh_v1\\src\\geometry.py",
-    "original_sha256": "d7cccf233989c93863fd5779fa467a399d23b2ba82e4fba6ee49fd11ca9eedce",
     "import_only_changes": []
   },
   "mesh_builder.py": {
     "original_source": "ICLR2027_campaign\\cases\\topology3\\baseline_fresh_v1\\src\\mesh_builder.py",
-    "original_sha256": "7240baf7cbf226d15382b7747b01516a5f5074ae6212b27efc18671a9c633ed2",
     "import_only_changes": [
       [
         "from geometry import",
@@ -16,7 +14,6 @@
   },
   "solver_sparse.py": {
     "original_source": "ICLR2027_campaign\\cases\\topology3\\solver_sparse.py",
-    "original_sha256": "22f710fefa4e7ff8111ff13a3d43e4e20ee0d06261ea8ab6fc2be39857a30dbd",
     "import_only_changes": [
       [
         "from geometry import",
@@ -30,7 +27,6 @@
   },
   "high_order_reference.py": {
     "original_source": "ICLR2027_campaign\\cases\\topology3\\random_streamfunction_20260928\\high_order_reference.py",
-    "original_sha256": "a859dbcaf08246b489aaf5c256e20ec077c7c02862be318722ea44f447eaffd2",
     "import_only_changes": [
       [
         "from preflight import TOPO\n",
@@ -44,7 +40,6 @@
   },
   "random_fields.py": {
     "original_source": "ICLR2027_campaign\\cases\\topology3\\random_streamfunction_20260928\\preview_random_streamfunction.py",
-    "original_sha256": "e1c57798e66f33ca9faba9da96189f302126b4cf6f0d7cb8c7c9e7acbb2183ec",
     "functions_AST_preserved": [
       "Jet",
       "RandomField",
@@ -55,7 +50,6 @@
   },
   "gpu_field.py": {
     "original_source": "ICLR2027_campaign\\cases\\topology3\\random_streamfunction_20260928\\gpu_field.py",
-    "original_sha256": "c650239e17f5775b182ee8dcbe98d9f5a850ebe63a70f68d89deed0aa44db871",
     "import_only_changes": [
       [
         "HERE/'preview_random_streamfunction.py'",
@@ -73,47 +67,40 @@
   },
   "baseline_dense.py": {
     "original_source": "ICLR2027_campaign/cases/topology3/baseline_fresh_v1/src/solver.py",
-    "original_sha256": "2296ac80d9e98cb1f7562d347d9d98aa71c2e7dbe2bb474f89730910f9fa49be",
     "portable_changes": [
       "relative imports only"
     ]
   },
   "laplacian_controls.py": {
     "original_source": "ICLR2027_campaign/cases/topology3/learned_fresh_v1/positive/scripts/run_laplacian_baseline.py",
-    "original_sha256": "d9c68f3f7e5e540d836a17af7a69dcee51908bffda8de2f21d2ebaf5c5bfa833",
     "portable_changes": [
       "exact mathematical functions extracted; portable generator"
     ]
   },
   "lobpcg_true_residual.py": {
     "original_source": "ICLR2027_campaign/cases/topology3/lobpcg_true_residual.py",
-    "original_sha256": "5930f0bde6e207f4fddcd0ad9e46b1ade9911258afdf6c4330cf9111ee0f4b45",
     "portable_changes": []
   },
   "sparse_controls.py": {
     "original_source": "ICLR2027_campaign/cases/topology3/run_sparse1024_true_residual_v3.py",
-    "original_sha256": "ccad9f3afad5c8f096798cbcf7eaa226b183be8fc3d8a55890131a1dfab11a9f",
     "portable_changes": [
       "parameterized full-mode block/mesh/initial iterate; original full consistent-mass assembly and residual checks; P/PH harmonic completion; guarded operator forwarding"
     ]
   },
   "configs/one_circle_random20.json": {
     "original_source": "ICLR2027_campaign/cases/topology3/baseline_fresh_v1/configs/one_circle_random20_k32.json",
-    "original_sha256": "9618e5ed0af165f9b8966b088b9eaa71d2dae98ba7bf5b67921e900afc459e98",
     "portable_changes": [
       "retain exact scientific configuration; omit controller/status descriptions"
     ]
   },
   "configs/circle_square_random20.json": {
     "original_source": "ICLR2027_campaign/cases/topology3/baseline_fresh_v1/configs/circle_square_random20_k32.json",
-    "original_sha256": "687a2c6b1e4e588905b5cae7b767bd26a082266a707443d2f69a9f5f52d6762d",
     "portable_changes": [
       "retain exact scientific configuration; omit controller/status descriptions"
     ]
   },
   "configs/circle_square_triangle_random20.json": {
     "original_source": "ICLR2027_campaign/cases/topology3/baseline_fresh_v1/configs/circle_square_triangle_random20_k32.json",
-    "original_sha256": "2b39fce22fcdf53a91c6b0f2fed30cce156578d5a71d894d412217611d2d8252",
     "portable_changes": [
       "retain exact scientific configuration; omit controller/status descriptions"
     ]

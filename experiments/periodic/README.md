@@ -9,12 +9,12 @@ From the repository root:
 
 ```sh
 python experiments/periodic/run.py dns --output outputs/periodic/gt
-python experiments/periodic/run.py prepare --config experiments/periodic/configs/K1024_potential_rayleigh_seed0.json --output outputs/periodic/init
+python experiments/periodic/run.py prepare --config experiments/periodic/configs/periodic-potential-k1024-seed0.json --output outputs/periodic/init
 python experiments/periodic/run.py train --checkpoint outputs/periodic/init/initial_epoch0000.npz --output outputs/periodic/train
-python experiments/periodic/run.py evaluate --checkpoint checkpoints/2d/K1024_potential_rayleigh_seed0/hardcoded_epoch2000.npz --gt outputs/periodic/gt --method Potential --seed 0 --output outputs/periodic/evaluation
+python experiments/periodic/run.py evaluate --checkpoint checkpoints/2d/periodic-potential-k1024-seed0/model.npz --gt outputs/periodic/gt --method Potential --seed 0 --output outputs/periodic/evaluation
 ```
 
-Velocity uses the corresponding `K1024_velocity_rayleigh_seed0.json` and
+Velocity uses the corresponding `periodic-velocity-k1024-seed0.json` and
 `--method Velocity`. Repeat the seed 1/2 configurations for the three-seed
 comparison. Reference checkpoints are optional downloadable models; fresh
 initialization and full training are supported. Native CuPy is required for
@@ -29,5 +29,5 @@ trajectories and creates PNG/vector PDF without altering numerical outputs.
 
 ```sh
 python experiments/periodic/run.py laplacian --output outputs/periodic/leb
-python experiments/periodic/plot.py --gt outputs/periodic/gt/dns.npz --trajectory SF-R=outputs/periodic/evaluation/potential_seed0_n256/fields_dt0.005.npz --trajectory LEB=outputs/periodic/leb/laplacian1024.npz --output outputs/periodic/figures
+python experiments/periodic/plot.py --gt outputs/periodic/gt/dns.npz --trajectory Potential=outputs/periodic/evaluation/potential_seed0_n256/fields_dt0.005.npz --trajectory Laplacian=outputs/periodic/leb/laplacian1024.npz --output outputs/periodic/figures
 ```

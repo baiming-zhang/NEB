@@ -1,0 +1,58 @@
+{
+  "config": {
+    "case": "periodic",
+    "K": 1024,
+    "seed": 1,
+    "epochs": 2000,
+    "points_per_step": 4096,
+    "validation_points": 4096,
+    "validation_geometries": 1,
+    "validate_every": 25,
+    "checkpoint_every": 25,
+    "input_dim": 4,
+    "dim": 2,
+    "width": 256,
+    "hidden_layers": 7,
+    "dtype": "float32",
+    "learning_rate": 0.0005,
+    "lr_rule": "0.0005 * 0.96 ** (10*(update-1)/2000)",
+    "training_budget": "2000 optimizer updates on the fixed campaign geometry; not the original million-update budget",
+    "losses": {
+      "smooth": 0.01,
+      "divergence": 5,
+      "orthogonality": 100,
+      "boundary": 30,
+      "length": 100,
+      "small": 100
+    },
+    "target_mean_length": 0.37,
+    "small_threshold": 0.05,
+    "orthogonality": "mean squared global off-diagonal Gram entries; explicit nonnegative realization of printed signed sum",
+    "backend": "native CuPy with analytic coordinate Jacobians and handwritten parameter reverse",
+    "geometry": {
+      "name": "periodic",
+      "dim": 2,
+      "bbox": [
+        [
+          0.0,
+          0.0
+        ],
+        [
+          6.283185307179586,
+          6.283185307179586
+        ]
+      ],
+      "boundary_bandwidth": 0.0,
+      "periodic_sincos_embedding": true,
+      "geometry_training": "fixed original assessment domain",
+      "derivative_coordinates": "physical",
+      "hard_boundary_envelope": false,
+      "snapshot_supervision": false
+    }
+  },
+  "epoch": 2000,
+  "method": "NKB",
+  "case": "periodic",
+  "K": 1024,
+  "seed_index": 1
+}

@@ -1,0 +1,84 @@
+% !TeX program = pdflatex
+\documentclass[11pt,letterpaper]{article}
+\ifdefined\pdfminorversion\pdfminorversion=7\fi
+\usepackage[margin=1in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage{newtxtext}
+\usepackage{amsmath,amsthm,mathtools}
+\usepackage{newtxmath}
+\usepackage{graphicx,booktabs,multirow}
+\usepackage{microtype,xcolor,enumitem,array,url}
+\usepackage[authoryear,round]{natbib}
+\usepackage[font=small,labelfont=bf,labelsep=period]{caption}
+\usepackage[unicode=true]{hyperref}
+\hypersetup{hidelinks,bookmarksnumbered=true,bookmarksopen=true,bookmarksopenlevel=1,
+  pdftitle={Neural Eigenfluid Bases: Spectral Objectives, Gauge, and Topology},
+  pdfauthor={Baiming Zhang, Shiying Xiong, Zhecheng Wang}}
+% Link the complete reference phrase; starred references avoid nested annotations.
+\DeclareRobustCommand{\docref}[2]{\hyperref[#2]{#1~\ref*{#2}}}
+\DeclareRobustCommand{\doceqref}[2][Eq.]{\hyperref[#2]{#1~\textup{(\ref*{#2})}}}
+% plainnat otherwise prints DOI strings without a DOI resolver link.
+\newcommand{\doi}[1]{doi: \begingroup\urlstyle{rm}\href{https://doi.org/#1}{\nolinkurl{#1}}\endgroup}
+\pagestyle{plain}
+\raggedbottom
+\setlength{\parindent}{1em}
+\setlength{\parskip}{3pt plus 1pt}
+\setlength{\emergencystretch}{1em}
+\graphicspath{{figures/}}
+\setcounter{topnumber}{5}
+\setcounter{bottomnumber}{3}
+\setcounter{totalnumber}{8}
+\setlength{\textfloatsep}{12pt plus 2pt minus 2pt}
+\setlength{\floatsep}{10pt plus 2pt minus 2pt}
+\setlength{\intextsep}{10pt plus 2pt minus 2pt}
+\renewcommand{\topfraction}{.92}
+\renewcommand{\bottomfraction}{.85}
+\renewcommand{\textfraction}{.07}
+
+\newtheorem{proposition}{Proposition}
+\newtheorem{lemma}{Lemma}
+\makeatletter
+\setlength{\@fptop}{0pt}
+\setlength{\@fpsep}{12pt}
+\setlength{\@fpbot}{0pt plus 1fil}
+\makeatother
+\newcommand{\R}{\mathbb R}
+\newcommand{\C}{\mathcal C}
+\newcommand{\Harm}{\mathcal H}
+\newcommand{\ip}[2]{\langle #1,#2\rangle}
+\newcommand{\norm}[1]{\lVert #1\rVert}
+\newcommand{\curl}{\operatorname{curl}}
+\newcommand{\diver}{\operatorname{div}}
+\newcommand{\sg}{\operatorname{sg}}
+\newcommand{\dd}{\,\mathrm d}
+\title{Neural Eigenfluid Bases:\\Spectral Objectives, Gauge, and Topology}
+\input{authors}
+\date{}
+\begin{document}
+\maketitle
+\begin{abstract}
+\begingroup
+Neural eigenfluids represent incompressible flow with a continuously queryable spectral basis. Differential lifts and potential boundary traces build physical admissibility into the spatial coordinates, while geometry-local orthogonalization and Rayleigh minimization learn their ordering. We connect potential and velocity learning through the classical compatible positive-spectrum pairing and derive a spectral-variance relation that explains how the two objectives weight approximate modes. Gauge selection gives a lower-derivative potential formulation, and a boundary-constrained Dirichlet loss learns the independent harmonic circulation fields of multiply connected domains. Together, these coordinates support full-mass projection and autonomous Galerkin evolution with reusable operators. At $K=1024$ retained modes, both learned objectives sustain sub-percent velocity error in periodic vortex merger. Across six directly sampled random fields around obstacles, potential bases improve initial energy capture and final accuracy over equal-capacity Laplacian controls while reducing the state dimension by roughly three orders of magnitude. Random large-vortex comparisons identify when harmonic completion and lift conditioning matter. Three-dimensional tests separate spatial representation from coefficient-evolution error and connect increasing capacity to improved reconstruction. Preassembled quadratic operators execute the same reduced generator with millisecond-scale coefficient updates; their offline cost determines the number of repeated queries needed to recover preparation. Neural eigenfluids thus provide physical spectral coordinates for continuous spatial evaluation and reusable reduced fluid computation.
+\par\endgroup
+\end{abstract}
+
+
+
+\input{sections/introduction}
+\input{sections/method}
+\input{sections/experiments}
+\input{sections/conclusion}
+
+\pdfbookmark[1]{References}{navigation-references}
+\bibliographystyle{plainnat}
+\begingroup
+\small
+\setlength{\bibsep}{1.2pt plus .5pt}
+\bibliography{references}
+\endgroup
+\appendix
+
+\input{sections/appendix}
+\input{sections/nkb_baseline}
+\input{nkb_timing_comparison}
+\end{document}

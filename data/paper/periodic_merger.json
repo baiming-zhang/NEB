@@ -20,8 +20,6 @@
         "quadrature_N": 256,
         "observation_N": 128,
         "nu": 0.0010742913669168762,
-        "reference_sha256": "7c05a635603e7a7c9cc986ef9ed25c0256aab9e634b76bb009cb05fab624c8c5",
-        "checkpoint_sha256": "75651b7daeec59e686982bb8a54916f43968899a7964ee87e7c20ccf5f895d1d",
         "full_rank": true,
         "modes_removed": 0,
         "ridge": 0,
@@ -1275,7 +1273,6 @@
         "future_reference_injection": false,
         "current_evaluation_seconds": 703.7012257000315,
         "original_equation_check": {
-          "original_source_sha256": "3a600916def84d61a8e6b8ac82321be58b298e6d14465b5d9a16b9db42fb2985",
           "coefficient_relative_difference": 0.0,
           "all_modes": true,
           "all_operator_points": true
@@ -1294,8 +1291,6 @@
         "quadrature_N": 256,
         "observation_N": 128,
         "nu": 0.0010742913669168762,
-        "reference_sha256": "7c05a635603e7a7c9cc986ef9ed25c0256aab9e634b76bb009cb05fab624c8c5",
-        "checkpoint_sha256": "492c8a302951d5c2a906471ceacaf1afbd2e6bd3aa550fcdf17a149e77df1f7a",
         "full_rank": true,
         "modes_removed": 0,
         "ridge": 0,
@@ -2549,7 +2544,6 @@
         "future_reference_injection": false,
         "current_evaluation_seconds": 703.3602259999607,
         "original_equation_check": {
-          "original_source_sha256": "3a600916def84d61a8e6b8ac82321be58b298e6d14465b5d9a16b9db42fb2985",
           "coefficient_relative_difference": 0.0,
           "all_modes": true,
           "all_operator_points": true
@@ -2568,8 +2562,6 @@
         "quadrature_N": 256,
         "observation_N": 128,
         "nu": 0.0010742913669168762,
-        "reference_sha256": "7c05a635603e7a7c9cc986ef9ed25c0256aab9e634b76bb009cb05fab624c8c5",
-        "checkpoint_sha256": "28593e613cd012ac398ed8634b28741fe9aa98e64f1c650e07d06cda02f452e5",
         "full_rank": true,
         "modes_removed": 0,
         "ridge": 0,
@@ -3823,7 +3815,6 @@
         "future_reference_injection": false,
         "current_evaluation_seconds": 704.6159307000344,
         "original_equation_check": {
-          "original_source_sha256": "3a600916def84d61a8e6b8ac82321be58b298e6d14465b5d9a16b9db42fb2985",
           "coefficient_relative_difference": 0.0,
           "all_modes": true,
           "all_operator_points": true
@@ -3844,8 +3835,6 @@
         "quadrature_N": 256,
         "observation_N": 128,
         "nu": 0.0010742913669168762,
-        "reference_sha256": "7c05a635603e7a7c9cc986ef9ed25c0256aab9e634b76bb009cb05fab624c8c5",
-        "checkpoint_sha256": "d447a6ebb7f9bb1fc258a104f18b56f6e7a6fd871b33288f8b1211a8df90636d",
         "full_rank": true,
         "modes_removed": 0,
         "ridge": 0,
@@ -5099,7 +5088,6 @@
         "future_reference_injection": false,
         "current_evaluation_seconds": 713.8502446000348,
         "original_equation_check": {
-          "original_source_sha256": "3a600916def84d61a8e6b8ac82321be58b298e6d14465b5d9a16b9db42fb2985",
           "coefficient_relative_difference": 0.0,
           "all_modes": true,
           "all_operator_points": true
@@ -5118,8 +5106,6 @@
         "quadrature_N": 256,
         "observation_N": 128,
         "nu": 0.0010742913669168762,
-        "reference_sha256": "7c05a635603e7a7c9cc986ef9ed25c0256aab9e634b76bb009cb05fab624c8c5",
-        "checkpoint_sha256": "f82bdcba939f4d448a1f673f18622adef1f70fa9a02761302e6e0366e1174b9c",
         "full_rank": true,
         "modes_removed": 0,
         "ridge": 0,
@@ -6373,7 +6359,6 @@
         "future_reference_injection": false,
         "current_evaluation_seconds": 709.9432681999751,
         "original_equation_check": {
-          "original_source_sha256": "3a600916def84d61a8e6b8ac82321be58b298e6d14465b5d9a16b9db42fb2985",
           "coefficient_relative_difference": 0.0,
           "all_modes": true,
           "all_operator_points": true
@@ -6392,8 +6377,6 @@
         "quadrature_N": 256,
         "observation_N": 128,
         "nu": 0.0010742913669168762,
-        "reference_sha256": "7c05a635603e7a7c9cc986ef9ed25c0256aab9e634b76bb009cb05fab624c8c5",
-        "checkpoint_sha256": "e0ea337bdc64cbc4880e8821ebfdab86e7e362785933c9c90cb48ff7a8509146",
         "full_rank": true,
         "modes_removed": 0,
         "ridge": 0,
@@ -7647,7 +7630,6 @@
         "future_reference_injection": false,
         "current_evaluation_seconds": 699.8588298999821,
         "original_equation_check": {
-          "original_source_sha256": "3a600916def84d61a8e6b8ac82321be58b298e6d14465b5d9a16b9db42fb2985",
           "coefficient_relative_difference": 0.0,
           "all_modes": true,
           "all_operator_points": true
@@ -7668,8 +7650,6 @@
         "quadrature_N": 256,
         "observation_N": 128,
         "nu": 0.0010742913669168762,
-        "reference_sha256": "7c05a635603e7a7c9cc986ef9ed25c0256aab9e634b76bb009cb05fab624c8c5",
-        "checkpoint_sha256": "4f79864d87d34bf5525e48c2fffb11aa70b25ee13bbb507e8fb8fab289815056",
         "full_rank": true,
         "modes_removed": 0,
         "ridge": 0,
@@ -8923,7 +8903,6 @@
         "future_reference_injection": false,
         "current_evaluation_seconds": 561.871642699989,
         "original_equation_check": {
-          "original_source_sha256": "3a600916def84d61a8e6b8ac82321be58b298e6d14465b5d9a16b9db42fb2985",
           "coefficient_relative_difference": 0.0,
           "all_modes": true,
           "all_operator_points": true
@@ -8942,8 +8921,6 @@
         "quadrature_N": 256,
         "observation_N": 128,
         "nu": 0.0010742913669168762,
-        "reference_sha256": "7c05a635603e7a7c9cc986ef9ed25c0256aab9e634b76bb009cb05fab624c8c5",
-        "checkpoint_sha256": "a519c2bc410e42862b1778507342d8cd33052cdb1b7cbedf5259c95d4103e278",
         "full_rank": true,
         "modes_removed": 0,
         "ridge": 0,
@@ -10197,7 +10174,6 @@
         "future_reference_injection": false,
         "current_evaluation_seconds": 561.5197720000288,
         "original_equation_check": {
-          "original_source_sha256": "3a600916def84d61a8e6b8ac82321be58b298e6d14465b5d9a16b9db42fb2985",
           "coefficient_relative_difference": 0.0,
           "all_modes": true,
           "all_operator_points": true
@@ -10216,8 +10192,6 @@
         "quadrature_N": 256,
         "observation_N": 128,
         "nu": 0.0010742913669168762,
-        "reference_sha256": "7c05a635603e7a7c9cc986ef9ed25c0256aab9e634b76bb009cb05fab624c8c5",
-        "checkpoint_sha256": "cd9957239672d9a12fd2a412a04f506e007eaa3eddf4473298cd218b0abe405c",
         "full_rank": true,
         "modes_removed": 0,
         "ridge": 0,
@@ -11471,7 +11445,6 @@
         "future_reference_injection": false,
         "current_evaluation_seconds": 561.0083629000001,
         "original_equation_check": {
-          "original_source_sha256": "3a600916def84d61a8e6b8ac82321be58b298e6d14465b5d9a16b9db42fb2985",
           "coefficient_relative_difference": 0.0,
           "all_modes": true,
           "all_operator_points": true

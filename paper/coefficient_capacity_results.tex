@@ -1,0 +1,13 @@
+\paragraph{Capacity scaling of the assembled ROM.}
+Increasing velocity-basis capacity improves autonomous accuracy while increasing online integration cost ({\docref{Table}{tab:coefficient-capacity}}). {\docref{Figure}{fig:coefficient-capacity}} shows the corresponding full-fluid error and energy trajectories. All trained coordinates are retained. Packed FP64 tensors occupy 0.501 and 4.004 GiB and remain on the GPU throughout integration.
+\begin{table}[!htb]\centering\small
+\caption{Coefficient-ROM capacity scaling at $\Delta t=0.000625$, $T=1.16$. \docref{Figure}{fig:coefficient-capacity} shows accuracy against the matched-step NS reference. Assembly measures the offline tensor construction, excluding training and field preparation. Synchronized online NS/ROM wall times define the speed ratio.}
+\label{tab:coefficient-capacity}
+\begin{tabular}{rrrrr}\toprule
+$K$ & Assembly (h) & ROM (s) & NS (s) & Speedup\\\midrule
+512 & 1.01 & 7.03 & 124.75 & 17.74$\times$\\
+1024 & 9.01 & 48.59 & 126.68 & 2.61$\times$\\
+\bottomrule\end{tabular}\end{table}
+
+\paragraph{Operator agreement and stage costs.}
+At $K=1024$, assembled and direct full-grid right-hand sides agree to $3.81\times10^{-14}$ relative error; the one-step RK4 discrepancy is $6.48\times10^{-17}$ in relative mass norm. Halving the ROM step changes the trajectory by at most $1.49\times10^{-11}$. {\docref{Appendix}{app:runtime}} collects field preparation, tensor assembly, loading, full-grid checks, projection, and output costs alongside the NKB and Laplacian comparisons. The agreement measurements show that assembly preserves the reduced generator, connecting the online cost directly to the learned span and projected dynamics assessed above.

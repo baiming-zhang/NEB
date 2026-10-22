@@ -1,0 +1,57 @@
+{
+  "method": "Potential-FG",
+  "rows": [
+    {
+      "K": 32,
+      "FG_mean": 0.9992814024062936,
+      "FG_sample_SD": 0.00044703724569036623,
+      "same_K_Lap_mean": 0.6592390948925169,
+      "same_K_Lap_sample_SD": 0.04039100271145059,
+      "n": 20,
+      "FG_epochs": 2000,
+      "FG_validations": 80,
+      "primary_wholewall_seconds": 291.39312620001147,
+      "observed_output_IO_seconds": 1.0716531004582066,
+      "primary_output_IO_included": true
+    },
+    {
+      "K": 64,
+      "FG_mean": 0.9869043253095262,
+      "FG_sample_SD": 0.013149287033860027,
+      "same_K_Lap_mean": 0.49277730066015984,
+      "same_K_Lap_sample_SD": 0.047824245993488355,
+      "n": 20,
+      "FG_epochs": 2000,
+      "FG_validations": 80,
+      "primary_wholewall_seconds": 346.7771489000006,
+      "observed_output_IO_seconds": 1.8062620001728646,
+      "primary_output_IO_included": true
+    },
+    {
+      "K": 128,
+      "FG_mean": 0.9534845338555552,
+      "FG_sample_SD": 0.03671102342662325,
+      "same_K_Lap_mean": 0.3459497575146018,
+      "same_K_Lap_sample_SD": 0.038523157023202546,
+      "n": 20,
+      "FG_epochs": 2000,
+      "FG_validations": 80,
+      "primary_wholewall_seconds": 451.2052573999972,
+      "observed_output_IO_seconds": 3.309421899408335,
+      "primary_output_IO_included": true
+    },
+    {
+      "K": 256,
+      "FG_mean": 0.9100056133793982,
+      "FG_sample_SD": 0.04096403657375215,
+      "same_K_Lap_mean": 0.26511018603260356,
+      "same_K_Lap_sample_SD": 0.039458448134889475,
+      "n": 20,
+      "FG_epochs": 2000,
+      "FG_validations": 80,
+      "primary_wholewall_seconds": 665.1459365999908,
+      "observed_output_IO_seconds": 9.056145700451452,
+      "primary_output_IO_included": true
+    }
+  ]
+}

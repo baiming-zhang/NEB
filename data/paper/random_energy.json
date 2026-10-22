@@ -16,7 +16,6 @@
       "P3_interior_nodes": 872577,
       "circulation_coordinates": 1,
       "reference_state_DOF": 872578,
-      "reference_mesh_sha256": "dec0417456f0cbf39dba0a4f4bf98152e9e2e297657c40b6700f147e0364147a",
       "qualified_initial_fields": 20,
       "accepted_dynamic_fields": 1
     },
@@ -31,7 +30,6 @@
       "P3_interior_nodes": 656075,
       "circulation_coordinates": 2,
       "reference_state_DOF": 656077,
-      "reference_mesh_sha256": "5917b6fdbc498d43057378c036303874631dce7bd20b04faca5cb0d1c6def07e",
       "qualified_initial_fields": 20,
       "accepted_dynamic_fields": 1
     },
@@ -46,7 +44,6 @@
       "P3_interior_nodes": 1368340,
       "circulation_coordinates": 3,
       "reference_state_DOF": 1368343,
-      "reference_mesh_sha256": "6166ab6e11e1baa40bd79b5a0460a77a2b81ce062680f035ca5bc6225b42c637",
       "qualified_initial_fields": 20,
       "accepted_dynamic_fields": 0
     }

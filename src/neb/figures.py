@@ -5,9 +5,9 @@ import json
 from pathlib import Path
 import numpy as np
 
-PALETTE = {"LEB": "#2878B5", "SF-R": "#C82423", "VRQ": "#F28E2B",
-           "CCQ": "#C82423", "NKB": "#7A6C99"}
-NAMES = {"Laplacian": "LEB", "Potential": "SF-R", "Velocity": "VRQ", "Vel": "VRQ"}
+PALETTE = {"Laplacian": "#858B98", "Potential": "#CC514C", "Velocity": "#3979AF",
+           "NKB": "#9AA6C4"}
+NAMES = {"Laplacian": "Laplacian", "Potential": "Potential", "Velocity": "Velocity", "Vel": "Velocity"}
 
 
 def paired_statistics(path):
@@ -44,14 +44,14 @@ def reproduce(root, output):
 
     stats = paired_statistics(root / "data/paper/metaball20.csv")
     fig, ax = plt.subplots(figsize=(5.0, 3.25), constrained_layout=True)
-    for method in ["LEB", "VRQ", "CCQ", "NKB"]:
-        capacities = sorted(k for m, k in stats if m == method)
+    for method in ["Laplacian", "Velocity", "Potential", "NKB"]:
+        capacities = sorted(k for m, k in stats if m == method and k <= 512)
         ax.errorbar(capacities, [stats[method, k][0] for k in capacities],
                     yerr=[stats[method, k][1] for k in capacities],
                     color=PALETTE[method], marker="o", markersize=4, capsize=3,
                     linewidth=1.6, label=method)
     ax.set(xlabel="Basis capacity K", ylabel="Initial relative L2 error", xscale="log")
-    ax.set_xticks([32, 64, 128, 256], labels=[32, 64, 128, 256])
+    ax.set_xticks([32, 64, 128, 256, 512], labels=[32, 64, 128, 256, 512])
     ax.xaxis.set_minor_locator(NullLocator())
     ax.legend(frameon=False, ncol=2)
     _save(fig, output / "metaball20")
@@ -59,7 +59,7 @@ def reproduce(root, output):
 
     data = json.loads((root / "data/paper/metaball_capacity.json").read_text(encoding="utf-8"))
     fig, axes = plt.subplots(1, 2, figsize=(7.0, 3.0), constrained_layout=True)
-    for original, method in [("Numerical", "LEB"), ("Eigenfluid velocity", "VRQ"),
+    for original, method in [("Numerical", "Laplacian"), ("Eigenfluid velocity", "Velocity"),
                               ("NKB adaptation", "NKB")]:
         rows = sorted((r for r in data["rows"] if r["method"] == original), key=lambda r: r["K"])
         for ax, field in zip(axes, ["initial_error", "final_error"]):
@@ -80,11 +80,11 @@ def reproduce(root, output):
 def _family(name):
     name = name.lower()
     if 'laplacian' in name:
-        return 'LEB'
+        return 'Laplacian'
     if 'potential' in name:
-        return 'SF-R'
+        return 'Potential'
     if 'velocity' in name:
-        return 'VRQ'
+        return 'Velocity'
     if name == 'nkb':
         return 'NKB'
     raise ValueError(f'Unknown method {name}')
@@ -116,7 +116,7 @@ def reproduce_measurements(root, output, only=None):
                 values = 100*np.asarray([r[field] if field == 'captured_energy_fraction' else r['matched'][field] for r in pair])
                 family = _family(label.split()[0])
                 ax.errorbar(i, values.mean(), yerr=values.std(ddof=1), fmt='o', capsize=3, color=PALETTE[family])
-            display=[s.replace('Potential','SF-R').replace('Velocity','VRQ').replace('Laplacian','LEB').replace(' (scaled H)','\nscaled H').replace(' P+H','\nP+H').replace(' P','\nP') for s in labels]
+            display=[s.replace('Potential','Potential').replace('Velocity','Velocity').replace('Laplacian','Laplacian').replace(' (scaled H)','\nscaled H').replace(' P+H','\nP+H').replace(' P','\nP') for s in labels]
             ax.set(xticks=range(len(labels)), xticklabels=display,
                    title=case.replace('_',' '), ylabel=ylabel)
             ax.tick_params(axis='x', labelrotation=0, labelsize=7)
@@ -165,7 +165,7 @@ def reproduce_measurements(root, output, only=None):
     finish(fig, 'nkb_completed_comparison')
     gauge = read('gauge_solver.json');fig, axes = plt.subplots(1, 2, figsize=(8,4.2))
     fig.subplots_adjust(left=.09,right=.99,bottom=.34,top=.97,wspace=.3)
-    colors={'fourier':PALETTE['SF-R'],'weak':PALETTE['VRQ'],'fmm':'#777777'}
+    colors={'fourier':PALETTE['Potential'],'weak':PALETTE['Velocity'],'fmm':'#777777'}
     for r in gauge['rows']:
         axes[0].scatter(r['forward']+r['reverse'],100*r['eps'],color=colors[r['kind']],label=r['label'])
         axes[1].plot(np.arange(1,33),100*np.asarray(r['all32']),color=colors[r['kind']],label=r['label'])
@@ -177,7 +177,7 @@ def reproduce_measurements(root, output, only=None):
     finish(fig, 'gauge_solver_ablation')
     coefficient=read('coefficient_acceleration.json');fig,axes=plt.subplots(1,3,figsize=(10,3),constrained_layout=True)
     for i,r in enumerate(coefficient['rows']):
-        color=[PALETTE['SF-R'],PALETTE['LEB']][i];label=f'K={r["K"]}';rows=r['metrics'];times=[a['time'] for a in rows]
+        color=[PALETTE['Potential'],PALETTE['Laplacian']][i];label=f'K={r["K"]}';rows=r['metrics'];times=[a['time'] for a in rows]
         axes[0].plot(times,[100*a['matched_dt_gt_relative_velocity_L2'] for a in rows],color=color,label=label)
         axes[1].plot(times,[a['mass_energy'] for a in rows],color=color,label=label)
         costs=r['stage_seconds'];axes[2].bar(np.arange(4)+(-.18 if i==0 else .18),list(costs.values()),width=.36,color=color,label=label)
@@ -188,17 +188,17 @@ def reproduce_measurements(root, output, only=None):
     finish(fig, 'case3_coefficient_acceleration')
     capacity = read('initial_capacity_training.json')
     fig, axes = plt.subplots(1, 2, figsize=(8,3), constrained_layout=True)
-    for method, family in [('velocity','VRQ'),('laplacian','LEB')]:
+    for method, family in [('velocity','Velocity'),('laplacian','Laplacian')]:
         rows=[r for r in capacity['initial_errors'] if method in r]
         axes[0].plot([r['K'] for r in rows],[100*r[method] for r in rows],'o-',color=PALETTE[family],label=family)
     timing=capacity['training'];total=np.asarray([r['inclusive_training_seconds']/3600 for r in timing])
     forward=np.asarray([r['mean_stage_seconds']['neural_forward_analytic_derivatives']*2000/3600 for r in timing])
     backward=np.asarray([r['mean_stage_seconds']['neural_recompute_and_analytic_backward']*2000/3600 for r in timing])
     bottom=np.zeros(len(timing))
-    for values,color,label in [(forward,PALETTE['LEB'],'Forward'),(backward,PALETTE['SF-R'],'Backward'),(total-forward-backward,'#D2D9DE','Other / validation')]:
+    for values,color,label in [(forward,PALETTE['Laplacian'],'Forward'),(backward,PALETTE['Potential'],'Backward'),(total-forward-backward,'#D2D9DE','Other / validation')]:
         axes[1].bar(np.arange(len(timing)),values,bottom=bottom,color=color,label=label);bottom+=values
     axes[0].set(xscale='log',xlabel='K',ylabel='Initial velocity error (%)')
-    axes[1].set(xticks=range(len(timing)),xticklabels=[r['K'] for r in timing],xlabel='K',ylabel='VRQ training time (h)')
+    axes[1].set(xticks=range(len(timing)),xticklabels=[r['K'] for r in timing],xlabel='K',ylabel='Velocity training time (h)')
     for ax in axes:ax.legend(frameon=False,fontsize=7)
     finish(fig,'case3_initial_capacity_training')
 

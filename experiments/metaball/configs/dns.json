@@ -1,0 +1,16 @@
+{
+  "resolution": 128,
+  "frames": 30,
+  "fps": 10,
+  "frame_dt": 0.04,
+  "substeps_per_frame": 16,
+  "viscosity": 0.00025,
+  "penalty_time_scale": 0.001,
+  "penalty_smoothing_cells": 0.75,
+  "geometry_token": 12000001,
+  "initial_rms_speed": 0.32,
+  "warmup_substeps": 4,
+  "seed": 20260826,
+  "isosurface_low_quantile": 0.9,
+  "isosurface_high_quantile": 0.975
+}

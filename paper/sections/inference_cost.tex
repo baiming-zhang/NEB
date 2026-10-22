@@ -1,0 +1,17 @@
+\subsection{Continuous basis queries and amortized inference}
+\label{sec:inference-cost}
+The learned object is the map $(\mathbf x,\mathbf g)\mapsto U_\theta(\mathbf x;\mathbf g)$ from spatial coordinates and geometry parameters to a vector-valued basis. Once trained, this map supplies basis values and analytic spatial derivatives at newly requested locations without repeating variational optimization or solving a new eigenproblem. It supports arbitrarily dense spatial resampling: there is no fixed output lattice or discrete set of admissible query points. For a geometry-conditioned model, geometry parameters can likewise be queried continuously within its learned family. The three-dimensional capacity experiment uses a fixed-domain checkpoint; the continuous geometry-family construction is exercised in the planar cases.
+
+\paragraph{Online latency and numerical comparison.}
+\begingroup
+The map supplies spatial fields once a geometry is selected; operator assembly then prepares their recurrent coefficient dynamics. Synchronized measurements give mean RK4 update times of 3.79 ms at $K=512$ and 26.18 ms at $K=1024$, with field reconstruction charged at requested outputs. \docref{Table}{tab:coefficient-capacity} reports NS integration speedups, alongside the flow errors in \docref{Figure}{fig:coefficient-capacity}. This cost separation makes reuse explicit: trajectories on one geometry share the basis and assembled operators, while initial projection and selected field outputs belong to each query.
+\par\endgroup
+
+\paragraph{When repeated inference recovers training cost.}
+For $n$ trajectories on one geometry, let $T_{\rm train}$ denote training, $T_{\rm off}$ the reusable preparation cost, and $T_{\rm ROM},T_{\rm NS}$ the per-trajectory integration costs. The smallest integration-only break-even count $n_\star$ is given below, with $\lceil\cdot\rceil$ denoting rounding up to an integer:
+\begin{equation}
+n_\star=\left\lceil\frac{T_{\rm train}+T_{\rm off}}{T_{\rm NS}-T_{\rm ROM}}\right\rceil,
+\qquad T_{\rm NS}>T_{\rm ROM}.
+\label{eq:inference-break-even}
+\end{equation}
+{Repeated initial-condition queries amortize both training and reusable operator preparation. \docref{Table}{tab:inference-amortization} gives the counts and exact timer boundaries. Projection and requested field output enter the per-query cost when included in the workload. For a parameterized family, training is shared across geometry queries, while each geometry's basis generation and operator preparation are charged to that query (\docref{Appendix}{app:inference-amortization}).}
