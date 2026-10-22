@@ -59,7 +59,7 @@ For the absolute Hodge domain, smooth velocities obey $\mathbf u\cdot\mathbf n=0
 
 \begingroup
 \subsection{Periodic and decaying free-space specialization}
-For periodic potentials with zero mean, $\C=\nabla^\perp$ in 2D and $\C=\curl$ on divergence-free canonical vector potentials in 3D commute with $-\Delta$. Thus $-\Delta\mu=\lambda\mu$ implies $-\Delta(\C\mu)=\lambda\C\mu$. Normalization gives the correspondence $u=\C\mu/\sqrt\lambda$ from \hyperref[prop:positive-spectrum]{the proposition above}. Conversely, $\mu=\C^*u/\sqrt\lambda$ maps a positive velocity eigenfield back to the canonical potential eigenspace. The maps are inverse on each positive eigenspace and preserve its multiplicity.
+For periodic zero-mean potentials, $\C=\nabla^\perp$ in 2D and $\C=\curl$ on divergence-free canonical vector potentials in 3D commute with $-\Delta$. The positive eigenspaces are therefore related by the normalized lift in \hyperref[prop:positive-spectrum]{the proposition above}.
 
 On $\mathbb R^D$, smooth fields with sufficient decay give the same identities without a wall boundary contribution. In Fourier coordinates, let $\xi$ be spatial frequency, $i$ the imaginary unit, a hat the Fourier transform, and $\xi^\perp=(\xi_y,-\xi_x)$ in 2D. The positive symbol is $|\xi|^2$; $\widehat{u}=i\xi^\perp\widehat\psi$ in 2D and $\widehat{u}=i\xi\times\widehat A$ with $\xi\cdot\widehat A=0$ in 3D. For $\xi\ne0$, these maps pair the potential and divergence-free velocity spectral sectors. Free space generally has continuous spectrum, so this statement is a spectral correspondence rather than a discrete list of square-integrable eigenmodes. For either periodic cancellation or decay at infinity, integration by parts also gives $\|\nabla u\|^2=\|\curl u\|^2$ for divergence-free velocity. A bounded curved-wall problem requires its specified boundary domain. Even when the positive spectra agree, $R_p$ and $R_v$ coincide on exact eigenspaces and differ on mixtures according to \doceqref{eq:variance}.
 \par\endgroup
@@ -142,7 +142,7 @@ A potential-mass denominator would change this boundary-value problem. Setting $
 or $-\Delta\chi=R(\chi)\chi$, instead of the required harmonic equation. The positive-mode quotient determines an eigenvalue with free amplitude; the harmonic loss determines the minimum-energy extension of fixed, nonhomogeneous traces. Zero Hodge energy of the resulting velocity refers to its curl, while the training energy $E(\chi)=\norm{u_H}^2$ is nonzero for a nontrivial circulation coordinate. The implementation averages $|\nabla\chi_\ell|^2$ over uniformly sampled interior points for each output and differentiates these per-output energies; on a fixed geometry their sum differs from \doceqref{eq:harmonic-loss} by the constant factor $1/|\Omega|$, where $|\Omega|$ is the domain volume. Validation additionally averages over the $h$ outputs. Subsequent mass or circulation normalization is a change of basis after learning and leaves the harmonic span unchanged.
 
 \subsection{Conditioning the harmonic coordinates}
-The Dirichlet principle characterizes $\chi_\ell$ as the minimum of $\frac12\int_\Omega|\nabla\chi|^2$ among functions with the prescribed cardinal boundary values. In the neural parameterization $L_\ell+e_{\mathbf g}n_{\theta,\ell}$, the lift fixes those traces before training. Rescaling its interior construction changes the optimization gradients while preserving the variational boundary-value problem. The raw/scaled comparison holds the positive modes, cardinal traces, correction envelope, initialization protocol, and epoch budget fixed, isolating the effect of harmonic coordinates at finite optimization accuracy.
+In the neural parameterization $L_\ell+e_{\mathbf g}n_{\theta,\ell}$, the lift fixes the cardinal traces before training. Rescaling its interior construction changes optimization gradients while preserving the boundary-value problem. The raw/scaled comparison holds the positive modes, cardinal traces, correction envelope, initialization protocol, and epoch budget fixed, isolating conditioning at finite optimization accuracy.
 
 \subsection{Full reduced operators and physical initialization}
 {Following the spectral Galerkin fluid operators of \citet{dewitt2012fluid,liu2015model}, for a static geometry and basis $U$ define}
@@ -226,18 +226,6 @@ $K$ & Best representation & In-span evolution\\\midrule
 
 \section{Three-dimensional capacity, computation, and transfer}
 \label{app:3d-controls}
-\subsection{High-capacity initial representation and training cost}
-\label{app:3d-high-capacity}
-{The fixed-domain velocity models at $K=512,1024$ each receive 2000 training epochs. Full-mass projection of the common initial numerical velocity on all 1,599,754 fluid nodes gives relative errors of $20.95\%,17.05\%$, compared with $19.65\%,17.90\%$ for the same-capacity Laplacian bases. \docref{Figure}{fig:case3-initial-capacity} relates these representation measurements to the training cost.}
-
-\begin{figure}[!htb]
-\centering\includegraphics[width=\linewidth,height=.72\textheight,keepaspectratio]{case3_initial_capacity_training.pdf}
-\caption{\textbf{Initial representation and training cost in three dimensions.} (a) Full-mass initial projection error on all fluid nodes, using every mode. {Numerical Laplacian and learned velocity results extend through $K=1024$ and measure initial representation.} (b) Wall time for 2000 epochs: forward and backward computation plus other training costs, including validation and checkpoint I/O. Total times at $K=512,1024$ are 3.99 and 7.77 hours.}
-\label{fig:case3-initial-capacity}
-\end{figure}
-
-
-
 \subsection{Coefficient-only acceleration of the 3D Galerkin system}
 \label{app:coefficient-acceleration}
 For the original $128^3$ normal-penalty generator, let $B_i$ denote a sampled learned velocity field, extended by zero outside the fluid nodes, and let $P_h$ be the original self-adjoint Leray, dealiasing, and zero-mean projector. Here $\Omega_h$ is the set of fluid grid nodes, $h=1/128$ the Cartesian grid spacing, and $\nabla_h,\Delta_h$ the grid spectral gradient and Laplacian. The spatial weight $\chi$ and positive penalty timescale $\eta$ specify the original normal penalty along wall normal $n$. The operators in \doceqref{eq:offline-rom} are
@@ -246,25 +234,24 @@ M_{ij}&=h^3\sum_{x\in\Omega_h}B_i(x)\cdot B_j(x),\\
 A_{ij}&=\left\langle B_i,P_h\left[\nu\Delta_h B_j-\frac{\chi}{\eta}(B_j\cdot n)n\right]\right\rangle_h,\\
 \mathcal Q_{ijk}&=h^3\sum_{x\in\Omega_h}(P_hB_i)(x)\cdot\left[B_j(x)\times(\nabla_h\times B_k)(x)\right].
 \end{align}
-The full-grid projector and derivatives act before restriction to the fluid nodes. The adjoint projector in the last line moves the output projection onto the test field, permitting blocked matrix products without changing the nonlinear operator. Input pairs are stored as $j\leq k$, summing $\mathcal Q_{ijk}+\mathcal Q_{ikj}$ for $j<k$. This stores $K^2(K+1)/2$ FP64 entries. All 1,599,754 fluid nodes and all modes are retained; the sampled basis cache remains at its original FP32 precision, with operator construction and coefficient arithmetic in FP64.
+The full-grid projector and derivatives act before restriction to the fluid nodes. The adjoint projector in the last line moves the output projection onto the test field, permitting blocked matrix products without changing the nonlinear operator. Input pairs are stored as $j\leq k$, summing $\mathcal Q_{ijk}+\mathcal Q_{ikj}$ for $j<k$. This stores $K^2(K+1)/2$ FP64 entries, occupying 0.501 and 4.004 GiB at $K=512$ and $1024$, respectively; both remain on the GPU during integration. All 1,599,754 fluid nodes and all modes are retained; the sampled basis cache remains at its original FP32 precision, with operator construction and coefficient arithmetic in FP64.
 
-At $K=512$, the packed tensor occupies 0.501 GiB and remains on the GPU. Native CuPy evaluation of two production right-hand sides agrees with full-grid projection to $1.17\times10^{-14}$ relative error; one RK4 step differs by $4.53\times10^{-17}$ in relative mass norm. The complete coarse-step trajectory agrees with the full-grid Galerkin trajectory to $1.25\times10^{-14}$. These comparisons verify that tensor assembly preserves the selected reduced dynamics.
+At $K=512$, native CuPy evaluation of two production right-hand sides agrees with full-grid projection to $1.17\times10^{-14}$ relative error; one RK4 step differs by $4.53\times10^{-17}$ in relative mass norm. The complete coarse-step trajectory agrees with the full-grid Galerkin trajectory to $1.25\times10^{-14}$. These comparisons verify that tensor assembly preserves the selected reduced dynamics.
 
-On an NVIDIA RTX 4080 SUPER, the 1856 RK4 steps with $\Delta t=0.000625$ to $T=1.16$ take 7.03 seconds. The original numerical NS solver takes 124.75 seconds for the same step size, physical interval, and initial physical field. It retains its split viscosity and normal-penalty integrator; the ROM integrates the projected unsplit generator using RK4. The measured $17.74\times$ ratio compares online integration, including GPU synchronization. Quadratic assembly takes 3645.51 seconds offline; reconstructing and diagnosing three selected frames takes a further 20.41 seconds. Training, derived-field preparation, reference projection, and output are accounted for separately from online integration.
+On an NVIDIA RTX 4080 SUPER, the assembled $K=512$ ROM is $17.74\times$ faster than the matched-step numerical NS solver over 1856 steps to $T=1.16$. This ratio compares synchronized online integration. The NS solver retains its split viscosity and normal-penalty integrator; the ROM integrates the projected unsplit generator using RK4. \docref{Appendix}{app:runtime} separates training, field preparation, assembly, initial projection, and requested output from integration.
 
 Halving the ROM time step changes the trajectory by at most $2.67\times10^{-12}$ in relative mass norm, confirming temporal convergence of the assembled dynamics. Refining the NS reference from $0.0025$ to $0.000625$ changes its final velocity by $2.12\%$. \docref{Figure}{fig:coefficient-acceleration} presents the flow error and kinetic energy alongside the measured online and preparation costs, characterizing the accuracy--cost tradeoff of coefficient-space execution.
 \begin{figure}[!htb]
 \centering\includegraphics[width=\linewidth,height=.72\textheight,keepaspectratio]{case3_coefficient_acceleration.pdf}
-\caption{\textbf{Accuracy, energy, and cost of coefficient-space dynamics.} Red and blue denote $K=512$ and $1024$. (a) Autonomous velocity errors against the shared refined NS reference on all 1,599,754 fluid nodes; the dotted gray curve assesses $K=512$ against the original reference. (b) Fluid kinetic energy. (c) Synchronized NS/ROM online integration, offline tensor assembly, and three-frame output times. Both 2000-epoch models use full-mass initial projection, all retained coordinates, and $\Delta t=0.000625$. Time-step checks are given in the adjacent text; \docref{Table}{tab:coefficient-capacity} reports cost ratios.}
+\caption{\textbf{Accuracy, energy, and cost of coefficient-space dynamics.} Red and blue denote $K=512$ and $1024$. (a) Autonomous velocity errors against the shared refined NS reference on all 1,599,754 fluid nodes; the dotted gray curve assesses $K=512$ against the original reference. (b) Fluid kinetic energy. (c) Synchronized NS/ROM online integration, offline tensor assembly, and three-frame output times. Both 2000-epoch models use full-mass initial projection, all retained coordinates, and $\Delta t=0.000625$. Time-step checks and online speed ratios are given in the adjacent text.}
 \label{fig:coefficient-acceleration}
 \label{fig:coefficient-capacity}
 \end{figure}
 
 \input{coefficient_capacity_results.tex}
 
-\subsection{Randomized-field representation across capacities}
+\subsection[Randomized-field representation at K1024]{Randomized-field representation at $K=1024$}
 \label{app:randomfield-values}
-\input{sections/mainfour_NEW20_values}
 
 \input{sections/mainfour_K1024_values}
 
@@ -364,11 +351,6 @@ The geometry-2 numerical basis uses a fitted mesh with 80,890 vertices and 354,1
 \label{app:fields}
 \subsection{Random large-vortex ablations and matched flow views}
 These figures report the random large-vortex ensemble used for the $K=1024$ lift-conditioning comparisons in \docref{Section}{sec:case2}. The direct random-streamfunction ensemble is reported separately in \docref{Appendix}{app:random-streamfunction}.
-\begin{figure}[!htb]
-\centering\includegraphics[width=\linewidth,height=.72\textheight,keepaspectratio]{case2_h2_k1024_fourway_houdini.pdf}
-\caption{\textbf{Random large-vortex flow around two holes with a shared harmonic lift.} Numerical reference, Laplacian, potential-trained, and velocity-trained trajectories at $K=1024$, $t=1$, seed 1, state 00. Both learned bases use scaled $H_2$. Shared height and contour mappings preserve amplitude differences; annotations give full-domain velocity error.}
-\label{fig:case2-velocity-water}
-\end{figure}
 
 \begin{figure}[!htb]
 \centering\includegraphics[width=\linewidth,height=.72\textheight,keepaspectratio]{case2_ablations.pdf}
@@ -408,33 +390,14 @@ These figures report the random large-vortex ensemble used for the $K=1024$ lift
 
 
 \paragraph{Water-surface display mapping.}
-The $K=1024$ renderings in \docref{Figures}{fig:case2-field}, \ref{fig:case2-velocity-water}, and~\ref{fig:case2-h3-water-time} embed the saved two-dimensional fields in a height surface. Analytic derivatives of the learned fields are evaluated from the original checkpoints and contracted with the saved coefficients. The refined GT vorticity is recovered from its stored streamfunction using the original interior finite-element mass--stiffness relation. On a $481\times481$ display grid, let $S$ be a masked Gaussian smoother with standard deviation 8 pixels. Let $Q_p[f]$ be the pooled empirical quantile of field $f$ at probability $p$, $q$ a combined vorticity--speed display signal, and $z_{\rm disp}$ the display height. Define
+The $K=1024$ renderings in \docref{Figures}{fig:case2-field} and~\ref{fig:case2-h3-water-time} embed the saved two-dimensional fields in a height surface. Analytic derivatives of the learned fields are evaluated from the original checkpoints and contracted with the saved coefficients. The refined GT vorticity is recovered from its stored streamfunction using the original interior finite-element mass--stiffness relation. On a $481\times481$ display grid, let $S$ be a masked Gaussian smoother with standard deviation 8 pixels. Let $Q_p[f]$ be the pooled empirical quantile of field $f$ at probability $p$, $q$ a combined vorticity--speed display signal, and $z_{\rm disp}$ the display height. Define
 \begin{align*}
 q&=0.8\,\frac{|S(\omega)|}{Q_{0.90}[|S(\omega)|]}
   +0.2\,\frac{S(\|u\|^2)}{Q_{0.90}[S(\|u\|^2)]},\\
 z_{\mathrm{disp}}&=0.30-0.75\,\operatorname{clip}\!\left(
 \frac{q-Q_{0.02}[q]}{Q_{0.98}[q]-Q_{0.02}[q]},0,1\right).
 \end{align*}
-Quantiles pool all four methods and all three times within each geometry; the main views and time sequence reuse that common mapping. Filtering signed vorticity before taking its magnitude emphasizes coherent large-scale structure. The speed term also reveals curl-free harmonic circulation. Height is a display coordinate; the saved physical fields and ROM coordinates remain unchanged. White foam follows shared streamfunction contour levels after subtracting each field's nodal mean on the reference mesh; this contour convention differs from the area-weighted centering of the planar scalar plots. The obstacle footprints come from the stored reference-level-2 mesh. Camera and water material are fixed within each plate. \docref{Figures}{fig:case2-field}, \ref{fig:case2-velocity-water}, and~\ref{fig:case2-h3-water-time} use matched orthographic overhead views with a white ground and one subdivision of the display surface. Its foam particles follow the saved contours, with density weighted by $|S\omega|$; within each geometry, all four methods use the same absolute density thresholds taken from the potential-trained $t=1$ field (58th and 95th percentiles), particle-size rule, and random seeds. Foam provides a common material cue for the displayed flow structure.
-
-\subsection[Planar K1024 four-way comparisons]{Planar $K=1024$ four-way comparisons}
-The $K=1024$ field plates compare Laplacian, potential-trained, and velocity-trained trajectories against the same numerical reference. The two learned objectives share their harmonic fields within each geometry. \docref{Figures}{fig:case2-ablation} and~\ref{fig:nkb-completed} compare final velocity errors averaged over 20 initial states; the plates show state 00 at three times and annotate its individual errors. Learned vorticity uses analytic derivatives, and numerical vorticity uses the interior finite-element mass--stiffness relation. The signed planar fields are displayed without smoothing.
-
-\paragraph{Training cost.}
-\docref{Table}{tab:runtime-training} compares the completed positive-basis training costs alongside NKB. \docref{Appendix}{app:runtime} separates shared harmonic scope, offline preparation, process-stage receipts, and synchronized online timings.
-
-\begin{figure}[!htb]
-\centering\includegraphics[width=\linewidth,height=.72\textheight,keepaspectratio]{case2_h1_k1024_fourway.pdf}
-\caption{\textbf{1-hole planar evolution at $K=1024$.} Rows compare Numerical GT, Laplacian, potential-trained, and velocity-trained bases; columns show $t=0,0.5,1$. Unsmoothed signed vorticity shares a symmetric scale, with colorbar extensions indicating saturation. Annotations give full-domain velocity error for seed 1, state 00 against the common level-2 reference.}
-\end{figure}
-\begin{figure}[!htb]
-\centering\includegraphics[width=\linewidth,height=.72\textheight,keepaspectratio]{case2_h2_k1024_fourway.pdf}
-\caption{\textbf{2-hole planar evolution at $K=1024$.} Rows compare Numerical GT, Laplacian, potential-trained, and velocity-trained bases; columns show $t=0,0.5,1$. Unsmoothed signed vorticity shares a symmetric scale, with colorbar extensions indicating saturation. Annotations give full-domain velocity error for seed 1, state 00 against the common level-2 reference.}
-\end{figure}
-\begin{figure}[!htb]
-\centering\includegraphics[width=\linewidth,height=.72\textheight,keepaspectratio]{case2_h3_k1024_fourway.pdf}
-\caption{\textbf{3-hole planar evolution at $K=1024$.} Rows compare Numerical GT, Laplacian, potential-trained, and velocity-trained bases; columns show $t=0,0.5,1$. Unsmoothed signed vorticity shares a symmetric scale, with colorbar extensions indicating saturation. Annotations give full-domain velocity error for seed 1, state 00 against the common level-2 reference.}
-\end{figure}
+Quantiles pool all four methods and all three times within each geometry; the main views and time sequence reuse that common mapping. Filtering signed vorticity before taking its magnitude emphasizes coherent large-scale structure. The speed term also reveals curl-free harmonic circulation. Height is a display coordinate; the saved physical fields and ROM coordinates remain unchanged. White foam follows shared streamfunction contour levels after subtracting each field's nodal mean on the reference mesh; this contour convention differs from the area-weighted centering of the planar scalar plots. The obstacle footprints come from the stored reference-level-2 mesh. Camera and water material are fixed within each plate. \docref{Figures}{fig:case2-field} and~\ref{fig:case2-h3-water-time} use matched orthographic overhead views with a white ground and one subdivision of the display surface. Its foam particles follow the saved contours, with density weighted by $|S\omega|$; within each geometry, all four methods use the same absolute density thresholds taken from the potential-trained $t=1$ field (58th and 95th percentiles), particle-size rule, and random seeds. Foam provides a common material cue for the displayed flow structure.
 
 \section{First eight modes: a basis atlas}
 \label{app:modes}

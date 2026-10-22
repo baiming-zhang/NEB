@@ -10,26 +10,18 @@ belong to offline preparation. Existing Laplacian modes are reused in the
 reported controls.
 
 \subsection{Training cost and its components}
-\docref{Table}{tab:runtime-training} groups the completed 2000-update training runs.
-Periodic entries summarize three seeds. The topology entries measure positive-basis
-training; the learned harmonic fields are shared by the potential and velocity arms,
-and their training is outside those timers. NKB learns direct velocity outputs without
-a separate harmonic stage. The 2D potential entries use Potential. The 3D entries at $K=128,256$ use Potential-FG with seed 0 and finite scalar/harmonic gauge projection. These configurations differ from Potential-AL and canonical Potential, whose 3D training costs appear in \docref{Appendix}{app:Pot-cost}. The velocity capacity family has gauge projection disabled and completes full training through $K=1024$. NKB covers the same autonomous capacities through $K=1024$.
+Completed 2000-update spectral training costs appear in \docref{Table}{tab:runtime-training} for 2D and \docref{Table}{tab:Pot-training-basis-cost} for 3D. Topology timers cover positive-basis training; the harmonic lift shared within each Potential/Velocity pair is separate. NKB directly predicts velocity without a harmonic training stage; its update, validation, and total timers appear in \docref{Table}{tab:runtime-nkb-training}. The seed-0 Potential-FG run at $K=128$ takes 195.80 minutes; its $K=256$ counterpart and the matched FG, AL, and canonical Potential families are included in the 3D preparation table.
 
 \begin{table}[!htb]\centering\footnotesize\setlength{\tabcolsep}{4pt}
-\caption{Training wall time in minutes for complete 2000-update runs. Periodic entries are mean $\pm$ sample SD over three seeds. The 3D totals include all 80 scheduled validations. Topology totals exclude the separately trained harmonic lift shared within each potential/velocity pair. The potential column denotes Potential in 2D and the seed-0 Potential-FG runs in 3D; unavailable measurements are dashes. Canonical 3D Potential costs appear in Appendix~\ref{app:Pot-cost}. See the text for architecture and gauge settings.}
+\caption{Two-dimensional spectral training wall time in minutes for complete 2000-update runs. Periodic entries are mean $\pm$ sample SD over three seeds. Topology totals exclude the separately trained harmonic lift shared within each Potential/Velocity pair. Three-dimensional spectral totals are in \docref{Table}{tab:Pot-training-basis-cost}; NKB totals and components are in \docref{Table}{tab:runtime-nkb-training}.}
 \label{tab:runtime-training}
 \label{tab:k1024-cost}
-\begin{tabular}{lrrrr}\toprule
-Case&$K$&Potential / Potential-FG&Velocity&NKB\\\midrule
-Periodic & 1024 & $106.428\pm3.196$ & $165.760\pm1.636$ & $2.649\pm0.003$\\
-1 hole & 1024 & 232.61 & 423.97 & 2.68\\
-2 holes & 1024 & 235.48 & 376.76 & 2.71\\
-3 holes & 1024 & 233.88 & 388.71 & 2.80\\
-3D & 128 & 195.80 & 89.36 & 0.84\\
-3D & 256 & 387.30 & 143.70 & 1.22\\
-3D & 512 & -- & 239.43 & 2.33\\
-3D & 1024 & -- & 466.28 & 6.13\\
+\begin{tabular}{lrrr}\toprule
+Case&$K$&Potential&Velocity\\\midrule
+Periodic & 1024 & $106.428\pm3.196$ & $165.760\pm1.636$\\
+1 hole & 1024 & 232.61 & 423.97\\
+2 holes & 1024 & 235.48 & 376.76\\
+3 holes & 1024 & 233.88 & 388.71\\
 \bottomrule\end{tabular}\end{table}
 \begin{table}[!htb]\centering\footnotesize\setlength{\tabcolsep}{4pt}
 \caption{Instrumented 3D Velocity-training components, in minutes, summed over 2000 committed updates and 80 scheduled validations. Fwd./Rev. include analytic derivatives and the reverse pass includes recomputation. The full wall total also includes initialization, progress logging, cleanup, and other uninstrumented overhead; the listed components identify the principal computational stages. Checkpoints are saved every update through $K=256$ and every 25 updates at higher capacities.}
@@ -43,7 +35,7 @@ $K$&Fwd.&Rev.&Geometry&Ortho.&Validate&Save&Opt./sample\\\midrule
 1024 & 89.94 & 298.41 & 29.88 & 8.86 & 28.61 & 3.77 & 0.67\\
 \bottomrule\end{tabular}\end{table}
 \paragraph{Architecture and derivative workload.}
-The 3D velocity implementation assigns an independent width-128, five-hidden-layer sinusoidal representation network (SIREN) {\citep{sitzmann2020implicit}} to each mode: at $K=1024$ it has 70,126,592 trainable parameters. NKB uses a shared width-256, seven-hidden-layer network with all velocity outputs, totaling 1,188,352 parameters. For Velocity, the neural vector potential $A_\theta$ gives $u=\curl A_\theta$ and the velocity-gradient Rayleigh energy require second spatial derivatives of $A_\theta$ and their parameter adjoints. NKB directly predicts $u$ and its losses use first spatial derivatives. At $K=1024$, neural forward and reverse account for 83.3\% of the 466.28-minute wall time; gauge projection is disabled. The cost breakdown connects the derivative workload and network architecture to the measured training time.
+The 3D velocity implementation assigns an independent width-128, five-hidden-layer sinusoidal representation network (SIREN) {\citep{sitzmann2020implicit}} to each mode: at $K=1024$ it has 70,126,592 trainable parameters. The shared NKB network has 1,188,352 parameters (\docref{Appendix}{app:nkb}). For Velocity, the neural vector potential $A_\theta$ gives $u=\curl A_\theta$ and the velocity-gradient Rayleigh energy require second spatial derivatives of $A_\theta$ and their parameter adjoints. NKB directly predicts $u$ and its losses use first spatial derivatives. At $K=1024$, neural forward and reverse account for 83.3\% of full training wall time; gauge projection is disabled. The cost breakdown connects the derivative workload and network architecture to the measured training time.
 
 \begin{table}[!htb]\centering\footnotesize\setlength{\tabcolsep}{4pt}
 \caption{NKB training timers, in seconds. Updates sum the 2000 measured optimization iterations, including sampling, analytic network forward/reverse, losses, Adam, and checkpoint writes within those iterations. Validation sums the 80 scheduled events. Total additionally includes preflight, initialization, and other run overhead. Topology seed is 1 and the 3D seed is 20260823; update totals measure the combined neural forward/reverse and optimization workload.}
@@ -159,11 +151,7 @@ Nonlinear tensor & 3484.71 & 3504.59 & 3501.97\\
 ROM execution & 520.06 & 610.08 & 610.08\\
 Reference fields and error assessment & 570.13 & 2250.30 & 2280.28\\
 \bottomrule\end{tabular}\end{table}
-The one-hole kernel comparison in \docref{Appendix}{app:protocol} measures
-0.393 s per assembled coefficient step versus 153.8 s for streamed field contraction
-of the same reduced operator (about $391\times$), with its separately recorded
-57.9-minute tensor assembly. These kernel-level intervals differ from the process
-receipts in \docref{Table}{tab:runtime-topology-pipeline}.
+The one-hole kernel comparison in \docref{Appendix}{app:protocol} isolates coefficient stepping from streamed field contraction. Its kernel-level intervals differ from the process-stage workloads in \docref{Table}{tab:runtime-topology-pipeline}.
 
 
 \subsection{Numerical checks and auxiliary costs}
@@ -179,7 +167,7 @@ $K$&Velocity load&Velocity check&Refined proj.&Velocity eval.&NKB eval.&Lap. ref
 At $K=128,256$, joint Velocity/Laplacian evaluation costs 547.33 and 3449.86 s, covering both methods, both time steps, and their field outputs. The corresponding NKB evaluation bundles take 25.91 and 30.12 s. These totals characterize the complete evaluation workloads at the two capacities.
 
 \paragraph{NKB operator precision.}
-The accepted K1024 tensor assembly costs 32446.09 s and uses FP64 short-dot products and compensated accumulation. Every online RK4 stage uses compensated products and summation; this implementation is included in its 1532.83 s online cost. Independent full-grid RHS comparisons verify the assembled operator to the reported precision (\docref{Table}{tab:nkb-3d-checks}).
+The accepted $K=1024$ tensor assembly uses FP64 short-dot products and compensated accumulation. Every online RK4 stage likewise uses compensated products and summation. Their measured costs appear in Tables~\ref{tab:runtime-offline} and~\ref{tab:nkb-runtime}. Independent full-grid RHS comparisons verify the assembled operator to the reported precision (\docref{Table}{tab:nkb-3d-checks}).
 
 \paragraph{Gauge-solver timings.}
 \docref{Table}{tab:gauge-solver-ablation} groups setup, forward, reverse, and independent
