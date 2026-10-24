@@ -4,7 +4,7 @@
 
 Code and trained models for **Neural Eigenfluid Bases: Spectral Objectives, Gauge, and Topology**, by Baiming Zhang, Shiying Xiong, and Zhecheng Wang.
 
-[Paper (53 pages)](paper/Neural_Eigenfluid_Bases.pdf) · [Reproduction guide](docs/REPRODUCIBILITY.md) · [Checkpoints](https://github.com/baiming-zhang/NEB/releases/tag/paper) · [Executed checks](docs/REPRODUCTION_CHECKS.md) · [Experiment index](docs/EXPERIMENTS.md)
+[Paper (54 pages)](paper/Neural_Eigenfluid_Bases.pdf) · [Reproduction guide](docs/REPRODUCIBILITY.md) · [Checkpoints](https://github.com/baiming-zhang/NEB/releases/tag/paper) · [Executed checks](docs/REPRODUCTION_CHECKS.md) · [Experiment index](docs/EXPERIMENTS.md)
 
 Neural eigenfluids combine analytic differential lifts, spectral ordering, and harmonic circulation coordinates. These spatial bases support full-mass projection and autonomous Galerkin evolution with reusable operators. The experiments study periodic vortex merger, flow around multiple obstacles, and three-dimensional Metaball flow.
 
