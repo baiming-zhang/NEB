@@ -32,7 +32,7 @@ def distribution(ax,rows):
     ax.set_xticks(range(len(ks)),labels=ks);ax.set_xlim(-.55,4.55);axes_style(ax)
     return stats
 def evolution(ax,rows):
-    mapping={'Velocity':'Eigenfluid velocity','Laplacian':'Numerical','NKB':'NKB adaptation'};ks=[128,256,512,1024]
+    mapping={'Laplacian':'Numerical','Velocity':'Eigenfluid velocity','NKB':'NKB adaptation'};ks=[128,256,512,1024]
     used=[]
     for j,(m,key) in enumerate(mapping.items()):
         for i,k in enumerate(ks):

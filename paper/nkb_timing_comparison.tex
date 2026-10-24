@@ -89,7 +89,7 @@ Periodic s2 & 1024 & NKB & 1.09 & 1.63 & \textit{incl.} & \textit{m.f.}\\
 3D & 1024 & NKB & 7.20 & 322.78 & 1939.69 & 32446.09\\
 \bottomrule\end{tabular}\end{table}
 For periodic flow, basis evaluation includes the analytic velocity and curl fields on all $256^2$ quadrature nodes; projection includes the full mass/curl-stiffness assembly and generalized eigensolve. The rotational nonlinear load is evaluated matrix-free.
-The synchronized 3D Velocity basis pass evaluates analytic curl on all 1,599,754 nodes in the original FP32 spatial arithmetic, with FP64 checksum accumulation; coordinate/input transfer and checksum reduction are included, and storage is excluded. Its checksum agrees with the original full-mass basis energy to $1.10\times10^{-14}$ relative error. The topology basis passes evaluate every field and derivative and assemble the full mass, derivative, and divergence moments on 1,048,576 nodes for one hole and 4,194,304 for two and three holes. Each saved matrix agrees with its original operator to the reported precision.
+The synchronized 3D Velocity basis pass evaluates analytic curl on all $1.6\,\mathrm{M}$ nodes in the original FP32 spatial arithmetic, with FP64 checksum accumulation; coordinate/input transfer and checksum reduction are included, and storage is excluded. Its checksum agrees with the original full-mass basis energy to $1.10\times10^{-14}$ relative error. The topology basis passes evaluate every field and derivative and assemble the full mass, derivative, and divergence moments on 1,048,576 nodes for one hole and 4,194,304 for two and three holes. Each saved matrix agrees with its original operator to the reported precision.
 
 
 

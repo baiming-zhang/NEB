@@ -48,7 +48,7 @@ Potential-AL and Potential-FG are the noncanonical 3D potential controls. The Po
 
 \input{sections/matched_FG_results}
 \begin{table}[!htb]\centering\small
-\caption{Initial relative velocity $L^2$ errors on the original common initial field ($n=1$ per method and capacity), using all retained modes and all 1,599,754 fluid nodes. Potential completes 2000 epochs and 80 scheduled validations through $K=512$. The controls use Potential-AL at $K=32,64,128$ and Potential-FG at $K=256$. The $K=1024$ Potential training run completes 25 optimizer updates; its update count is reported separately from the full-training representation results.}
+\caption{Initial relative velocity $L^2$ errors on the original common initial field ($n=1$ per method and capacity), using all retained modes and all $1.6\,\mathrm{M}$ fluid nodes. Potential completes 2000 epochs and 80 scheduled validations through $K=512$. The controls use Potential-AL at $K=32,64,128$ and Potential-FG at $K=256$. The $K=1024$ Potential training run completes 25 optimizer updates; its update count is reported separately from the full-training representation results.}
 \label{tab:finite-potential-initial}
 \begin{tabular}{rrrrr}\toprule
 $K$&Potential&Velocity&Laplacian&Potential-AL/FG\\\midrule
@@ -192,7 +192,7 @@ M_{ij}&=h^3\sum_{x\in\Omega_h}B_i(x)\cdot B_j(x),\\
 A_{ij}&=\left\langle B_i,P_h\left[\nu\Delta_h B_j-\frac{\chi}{\eta}(B_j\cdot n)n\right]\right\rangle_h,\\
 \mathcal Q_{ijk}&=h^3\sum_{x\in\Omega_h}(P_hB_i)(x)\cdot\left[B_j(x)\times(\nabla_h\times B_k)(x)\right].
 \end{align}
-The full-grid projector and derivatives act before restriction to the fluid nodes. The adjoint projector in the last line moves the output projection onto the test field, permitting blocked matrix products without changing the nonlinear operator. Input pairs are stored as $j\leq k$, summing $\mathcal Q_{ijk}+\mathcal Q_{ikj}$ for $j<k$. This stores $K^2(K+1)/2$ FP64 entries, occupying 0.501 and 4.004 GiB at $K=512$ and $1024$, respectively; both remain on the GPU during integration. All 1,599,754 fluid nodes and all modes are retained; the sampled basis cache remains at its original FP32 precision, with operator construction and coefficient arithmetic in FP64.
+The full-grid projector and derivatives act before restriction to the fluid nodes. The adjoint projector in the last line moves the output projection onto the test field, permitting blocked matrix products without changing the nonlinear operator. Input pairs are stored as $j\leq k$, summing $\mathcal Q_{ijk}+\mathcal Q_{ikj}$ for $j<k$. This stores $K^2(K+1)/2$ FP64 entries, occupying 0.501 and 4.004 GiB at $K=512$ and $1024$, respectively; both remain on the GPU during integration. All $1.6\,\mathrm{M}$ fluid nodes and all modes are retained; the sampled basis cache remains at its original FP32 precision, with operator construction and coefficient arithmetic in FP64.
 
 At $K=512$, native CuPy evaluation of two production right-hand sides agrees with full-grid projection to $1.17\times10^{-14}$ relative error; one RK4 step differs by $4.53\times10^{-17}$ in relative mass norm. The complete coarse-step trajectory agrees with the full-grid Galerkin trajectory to $1.25\times10^{-14}$. These comparisons verify that tensor assembly preserves the selected reduced dynamics.
 
@@ -201,7 +201,7 @@ On an NVIDIA RTX 4080 SUPER, the assembled $K=512$ ROM is $17.74\times$ faster t
 Halving the ROM time step changes the trajectory by at most $2.67\times10^{-12}$ in relative mass norm, confirming temporal convergence of the assembled dynamics. Refining the NS reference from $0.0025$ to $0.000625$ changes its final velocity by $2.12\%$. \docref{Figure}{fig:coefficient-acceleration} presents the flow error and kinetic energy alongside the measured online and preparation costs, characterizing the accuracy--cost tradeoff of coefficient-space execution.
 \begin{figure}[!htb]
 \centering\includegraphics[width=\linewidth,height=.72\textheight,keepaspectratio]{case3_coefficient_acceleration.pdf}
-\caption{\textbf{Accuracy, energy, and cost of coefficient-space dynamics.} Red and blue denote $K=512$ and $1024$. (a) Autonomous velocity errors against the shared refined NS reference on all 1,599,754 fluid nodes; the dotted gray curve assesses $K=512$ against the original reference. (b) Fluid kinetic energy. (c) Synchronized NS/ROM online integration, offline tensor assembly, and three-frame output times. Both 2000-epoch models use full-mass initial projection, all retained coordinates, and $\Delta t=0.000625$. Time-step checks and online speed ratios are given in the adjacent text.}
+\caption{\textbf{Accuracy, energy, and cost of coefficient-space dynamics.} Red and blue denote $K=512$ and $1024$. (a) Autonomous velocity errors against the shared refined NS reference on all $1.6\,\mathrm{M}$ fluid nodes; the dotted gray curve assesses $K=512$ against the original reference. (b) Fluid kinetic energy. (c) Synchronized NS/ROM online integration, offline tensor assembly, and three-frame output times. Both 2000-epoch models use full-mass initial projection, all retained coordinates, and $\Delta t=0.000625$. Time-step checks and online speed ratios are given in the adjacent text.}
 \label{fig:coefficient-acceleration}
 \label{fig:coefficient-capacity}
 \end{figure}
@@ -216,7 +216,7 @@ Halving the ROM time step changes the trajectory by at most $2.67\times10^{-12}$
 \subsection{Training and boundary-to-basis costs}
 \label{app:Pot-cost}
 \begin{table}[!htb]\centering\scriptsize
-\caption{Three-dimensional preparation costs in seconds. Training totals cover 2000 updates, scheduled validation and checkpoint I/O. Basis generation runs from the original parameterized boundary to all 1,599,754 points and all $K$ fields, including streamed-output I/O; Laplacian also includes coefficient construction, interstage waits, setup, paging and background load. A dash means that the stage is not applicable. Superscript $*$ marks an estimate, not a completed run; projected runs assume uninterrupted execution. ``incl.'' means recovery is already included in the training total and was not timed separately; $\dagger$ marks these inclusive counters. Estimates and the measured short $K=1024$ endpoint are explained below. Matched Potential-FG rows use the same training protocol.}
+\caption{Three-dimensional preparation costs in seconds. Training totals cover 2000 updates, scheduled validation and checkpoint I/O. Basis generation runs from the original parameterized boundary to all $1.6\,\mathrm{M}$ points and all $K$ fields, including streamed-output I/O; Laplacian also includes coefficient construction, interstage waits, setup, paging and background load. A dash means that the stage is not applicable. Superscript $*$ marks an estimate, not a completed run; projected runs assume uninterrupted execution. ``incl.'' means recovery is already included in the training total and was not timed separately; $\dagger$ marks these inclusive counters. Estimates and the measured short $K=1024$ endpoint are explained below. Matched Potential-FG rows use the same training protocol.}
 \begin{tabular}{rlrrr}\toprule
 $K$&Method&Normal training&State recovery&Boundary to all basis\\\midrule
 32&Laplacian&\textemdash&\textemdash&3467.56\\
@@ -254,7 +254,7 @@ $K$&Method&Normal training&State recovery&Boundary to all basis\\\midrule
 \end{table}
 Initial-field evaluation is separate from training and basis generation: Potential takes 655.76 seconds at $K=256$ and 1182.42 seconds at $K=512$. At $K=512$, the saved-basis assessment of 20 independent random fields takes 123.32 seconds. Potential training at $K=1024$ completes 25 updates, with zero scheduled validations, the original 2000-epoch learning-rate horizon, and a full model/Adam endpoint checkpoint.
 
-At $K=1024$, Laplacian construction from raw geometry (marching-cubes resolution 80, mesh size $0.025$) through the full spectrum and coefficient archive takes 18769.83 seconds. The sampled-basis stage takes 477.10 seconds and writes all $1{,}599{,}754\times3\times1024$ FP64 values (39,315,554,304 payload bytes). The raw-geometry-to-output interval is 22049.01 seconds, including interstage waits, setup, paging, I/O, and background load. CPU construction uses one BLAS thread, a 7 GiB resident limit, and an 8 GiB resident-peak guard; GPU basis output reuses the completed analytic geometry prefix.
+At $K=1024$, Laplacian construction from raw geometry (marching-cubes resolution 80, mesh size $0.025$) through the full spectrum and coefficient archive takes 18769.83 seconds. The sampled-basis stage takes 477.10 seconds and writes all three FP64 velocity components for $1.6\,\mathrm{M}$ fluid nodes and 1024 modes (39,315,554,304 payload bytes). The raw-geometry-to-output interval is 22049.01 seconds, including interstage waits, setup, paging, I/O, and background load. CPU construction uses one BLAS thread, a 7 GiB resident limit, and an 8 GiB resident-peak guard; GPU basis output reuses the completed analytic geometry prefix.
 
 
 \input{sections/highK_training_runtime}
@@ -292,7 +292,7 @@ Case & Capacity & Reference / assessment & Autonomous horizon\\\midrule
 Periodic &1024&$256^2$ DNS / $128^2$ observations&241 frames, $T=18\pi$\\
 Multi-hole P1 &32&Common circulation-aware P1 mesh&51 frames, $T=1$\\
 Multi-hole analytic &1024&Finest level-2 reference, common points&51 frames, $T=1$\\
-Metaball &128--1024&$128^3$, 1,599,754 fluid nodes&30 frames, $T=1.16$\\\bottomrule
+Metaball &128--1024&$128^3$, $1.6\,\mathrm{M}$ fluid nodes&30 frames, $T=1.16$\\\bottomrule
 \end{tabular}
 \end{table}
 
