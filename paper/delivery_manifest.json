@@ -13,12 +13,12 @@
     "NKB"
   ],
   "appendix_K1024_measurements": 60,
-  "source_build": "pdflatex main.tex (three passes; main.bbl included)",
+  "source_build": "paper/compile.ps1 (latexmk/pdflatex; main.bbl included)",
   "Potential_optimizer_updates": {
     "512": 2000,
     "1024": 25
   },
-  "source_members": 62,
+  "source_members": 63,
   "primary_basis_runtime_rows": 8,
   "preparation_cost_estimate_rows": 5,
   "estimates_marked_superscript_star": true,

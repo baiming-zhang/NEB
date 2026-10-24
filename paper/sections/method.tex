@@ -2,7 +2,7 @@
 \section{Method}
 \label{sec:method}
 \begingroup
-The construction has two stages (\docref{Figure}{fig:method}). During learning, the differential lifts of Neural Conservation Laws \citep{richterpowell2022neural} and potential boundary traces restrict the candidates to divergence-free, impermeable velocities. Geometry-local spectral orthogonalization follows Shape Space Spectra \citep{chang2025shapespacespectra}; harmonic circulation fields complete the span as in spectral fluid reduction \citep{liu2015model}. For a selected geometry, initial projection and preassembled Galerkin operators then turn this spatial basis into an autonomous coefficient model. The resulting state can be reconstructed at any requested spatial locations and output times.
+The construction has two stages (\docref{Figure}{fig:method}). During learning, the differential lifts of Neural Conservation Laws \citep{richterpowell2022neural} and potential boundary traces restrict the candidates to divergence-free, impermeable velocities. Geometry-local spectral orthogonalization follows Shape Space Spectra \citep{chang2025shapespacespectra}; harmonic circulation fields complete the span as in spectral fluid reduction \citep{liu2015model}. For a selected geometry, initial projection and preassembled Galerkin operators turn this spatial basis into an autonomous coefficient model, which we advance using the coefficient-space evolution equations of Laplacian Eigenfluids \citep{dewitt2012fluid}. The resulting state can be reconstructed at any requested spatial locations and output times.
 \par\endgroup
 \begin{figure}[!htb]
 \centering\includegraphics[width=\linewidth,height=.72\textheight,keepaspectratio]{method_overview.pdf}
