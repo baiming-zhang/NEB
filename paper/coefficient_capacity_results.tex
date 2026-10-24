@@ -1,4 +1,0 @@
-At $K=1024$, coefficient-space execution gives a synchronized online speedup of $2.61\times$ over the matched-step NS control. \docref{Figure}{fig:coefficient-capacity} compares its error, energy, and timing with $K=512$. All trained coordinates are retained.
-
-\paragraph{Operator agreement and stage costs.}
-At $K=1024$, assembled and direct full-grid right-hand sides agree to $3.81\times10^{-14}$ relative error; the one-step RK4 discrepancy is $6.48\times10^{-17}$ in relative mass norm. Halving the ROM step changes the trajectory by at most $1.49\times10^{-11}$. {\docref{Appendix}{app:runtime}} collects field preparation, tensor assembly, loading, full-grid checks, projection, and output costs alongside the NKB and Laplacian comparisons. The agreement measurements show that assembly preserves the reduced generator, connecting the online cost directly to the learned span and projected dynamics assessed above.

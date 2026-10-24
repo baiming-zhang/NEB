@@ -12,3 +12,6 @@ checkpoints/**/*.pt
 checkpoints/**/*.pth
 checkpoints/**/*.npy
 data/generated/
+
+# Keep local manuscript work outside the published software tree.
+/paper/

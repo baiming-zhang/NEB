@@ -67,7 +67,7 @@ The [gauge guide](../experiments/gauge/USAGE.md) covers finite, spline, FMM, and
 
 For the K1024 Potential preparation-timing experiment, select its timing configuration and add `--timing-only` to the Potential training command. This runs 25 optimizer updates with the original 2000-update learning-rate horizon, saves the full endpoint, and performs zero scheduled validations. Its corresponding saved checkpoint is `metaball-potential-k1024-timing25`.
 
-## Data, figures, and manuscript
+## Data and figures
 
 ```bash
 neb figures --output outputs/paper_figures
@@ -76,6 +76,6 @@ python tools/redraw_combined_metaball.py --repo . --output outputs/metaball_pape
 
 Both commands export PNG/vector PDF. The main Metaball figure uses 400 measurements through K=512; its K=1024 appendix uses 60. Sample deviations use `ddof=1`. Preparation-cost estimates, fit coefficients, and assumptions are supplied in `data/paper_results/preparation_cost_estimates.json`; measured full-basis times are in `primary_basis_runtime.csv`.
 
-All paper artwork is included. [Visualization guidance](../experiments/VISUALIZATIONS.md) describes field plates and mode atlases. Build from `paper/` with `pdflatex main.tex` three times; `main.bbl` is supplied. Method and airfoil schematic panels are included as artwork.
+[Visualization guidance](../experiments/VISUALIZATIONS.md) describes field plates and mode atlases. The plotting commands regenerate figures from the supplied experiment measurements. Manuscript sources, the manuscript PDF, and static manuscript artwork are not included in this repository.
 
 `python -m pytest tests -q` checks analytic derivatives, full-mass projection, finite-element controls, Galerkin contractions, published statistics, checkpoint coverage, and CPU-only command help. Native full-size experiment commands use the CUDA dependencies and the case-specific reference/time-step checks.
